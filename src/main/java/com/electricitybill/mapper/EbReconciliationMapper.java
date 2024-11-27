@@ -1,6 +1,6 @@
 package com.electricitybill.mapper;
 
-import com.electricitybill.entity.model.EbReconciliation;
+import com.electricitybill.entity.po.EbReconciliation;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**

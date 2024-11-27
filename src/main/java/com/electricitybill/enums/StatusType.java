@@ -5,27 +5,27 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum CommonStatus implements BaseEnum{
+public enum StatusType implements BaseEnum{
     DISABLE(0, "禁用"),
     ENABLE(1, "启用"),
     ;
     private final int value;
     private final String desc;
 
-    public static CommonStatus of(Integer value) {
+    public static StatusType of(Integer value) {
         if (value == null) {
             return null;
         }
-        for (CommonStatus commonStatus : values()) {
-            if (commonStatus.getValue() == value) {
-                return commonStatus;
+        for (StatusType statusType : values()) {
+            if (statusType.getValue() == value) {
+                return statusType;
             }
         }
         return null;
     }
 
     public static String desc(Integer value) {
-        CommonStatus status = of(value);
+        StatusType status = of(value);
         return status.getDesc();
     }
 }

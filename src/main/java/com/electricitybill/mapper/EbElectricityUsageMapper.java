@@ -1,6 +1,6 @@
 package com.electricitybill.mapper;
 
-import com.electricitybill.entity.model.EbElectricityUsage;
+import com.electricitybill.entity.po.EbElectricityUsage;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**

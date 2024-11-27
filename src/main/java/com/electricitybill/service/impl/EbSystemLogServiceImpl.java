@@ -1,6 +1,6 @@
 package com.electricitybill.service.impl;
 
-import com.electricitybill.entity.model.EbSystemLog;
+import com.electricitybill.entity.po.EbSystemLog;
 import com.electricitybill.mapper.EbSystemLogMapper;
 import com.electricitybill.service.IEbSystemLogService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;

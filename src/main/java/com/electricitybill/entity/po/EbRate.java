@@ -1,9 +1,11 @@
-package com.electricitybill.entity.model;
+package com.electricitybill.entity.po;
 
 import java.math.BigDecimal;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
+import java.time.LocalDate;
 import com.baomidou.mybatisplus.annotation.TableId;
+import java.time.LocalTime;
 import java.time.LocalDateTime;
 import java.io.Serializable;
 import lombok.Data;
@@ -21,8 +23,8 @@ import lombok.experimental.Accessors;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("eb_payment")
-public class EbPayment implements Serializable {
+@TableName("eb_rate")
+public class EbRate implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -30,64 +32,59 @@ public class EbPayment implements Serializable {
     private Long id;
 
     /**
-     * 用户ID
+     * 费率名称
      */
-    private Long userId;
+    private String rateName;
 
     /**
-     * 账单ID
+     * 用户类型
      */
-    private Long billId;
+    private String userType;
 
     /**
-     * 订单号
+     * 每度电费价格
      */
-    private String orderNo;
+    private BigDecimal price;
 
     /**
-     * 支付金额
+     * 开始时间
      */
-    private BigDecimal amount;
+    private LocalTime startTime;
 
     /**
-     * 支付方式
+     * 结束时间
      */
-    private String paymentMethod;
+    private LocalTime endTime;
 
     /**
-     * 支付流水号
+     * 峰时价格
      */
-    private String transactionNo;
+    private BigDecimal peakPrice;
 
     /**
-     * 支付状态:pending/success/failed
+     * 平时价格
      */
-    private String status;
+    private BigDecimal flatPrice;
 
     /**
-     * 失败原因
+     * 谷时价格
      */
-    private String failureReason;
+    private BigDecimal valleyPrice;
 
     /**
-     * 支付时间
+     * 状态:0禁用/1启用
      */
-    private LocalDateTime paymentTime;
+    private Integer status;
 
     /**
-     * 退款状态:none/processing/success/failed
+     * 生效日期
      */
-    private String refundStatus;
+    private LocalDate effectiveDate;
 
     /**
-     * 退款金额
+     * 失效日期
      */
-    private BigDecimal refundAmount;
-
-    /**
-     * 退款时间
-     */
-    private LocalDateTime refundTime;
+    private LocalDate expireDate;
 
     private LocalDateTime createdAt;
 

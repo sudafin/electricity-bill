@@ -1,6 +1,6 @@
 package com.electricitybill.service.impl;
 
-import com.electricitybill.entity.model.EbPayment;
+import com.electricitybill.entity.po.EbPayment;
 import com.electricitybill.mapper.EbPaymentMapper;
 import com.electricitybill.service.IEbPaymentService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;

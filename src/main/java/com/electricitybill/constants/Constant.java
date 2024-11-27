@@ -31,6 +31,11 @@ public interface Constant {
     String SERVER_INTER_ERROR = "服务器内部错误";
     String INVALID_USER_TYPE = "无效的用户类型";
     String INVALID_ROLE_TYPE = "无效的角色类型";
+    String ACCOUNT_NOT_EXIST = "账号不存在";
+    String ACCOUNT_DISABLED = "账号被禁用";
+    String Token_EXPIRED = "Token已过期";
+    String INVALID_TOKEN = "无效的Token";
+    String TOKEN_GENERATE_FAILED = "Token生成失败";
 
     interface Code{
         int SUCCESS = 200;

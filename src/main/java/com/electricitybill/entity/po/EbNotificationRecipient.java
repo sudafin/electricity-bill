@@ -1,4 +1,4 @@
-package com.electricitybill.entity.model;
+package com.electricitybill.entity.po;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
@@ -20,8 +20,8 @@ import lombok.experimental.Accessors;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("eb_role_permission")
-public class EbRolePermission implements Serializable {
+@TableName("eb_notification_recipient")
+public class EbNotificationRecipient implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -29,16 +29,33 @@ public class EbRolePermission implements Serializable {
     private Long id;
 
     /**
-     * 角色ID
+     * 通知ID
      */
-    private Long roleId;
+    private Long notificationId;
 
     /**
-     * 权限ID
+     * 接收对象类型:user/admin
      */
-    private Long permissionId;
+    private String recipientType;
+
+    /**
+     * 接收者ID
+     */
+    private Long recipientId;
+
+    /**
+     * 阅读状态:0未读/1已读
+     */
+    private Integer readStatus;
+
+    /**
+     * 阅读时间
+     */
+    private LocalDateTime readTime;
 
     private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
 
 
 }

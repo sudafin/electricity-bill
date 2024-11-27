@@ -1,6 +1,6 @@
 package com.electricitybill.service.impl;
 
-import com.electricitybill.entity.model.EbRolePermission;
+import com.electricitybill.entity.po.EbRolePermission;
 import com.electricitybill.mapper.EbRolePermissionMapper;
 import com.electricitybill.service.IEbRolePermissionService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;

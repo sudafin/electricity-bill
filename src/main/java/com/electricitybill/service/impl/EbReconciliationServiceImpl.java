@@ -1,6 +1,6 @@
 package com.electricitybill.service.impl;
 
-import com.electricitybill.entity.model.EbReconciliation;
+import com.electricitybill.entity.po.EbReconciliation;
 import com.electricitybill.mapper.EbReconciliationMapper;
 import com.electricitybill.service.IEbReconciliationService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;

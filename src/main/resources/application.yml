@@ -20,3 +20,10 @@ mybatis-plus:
   global-config:
     db-config:
       id-type: ASSIGN_ID
+jwt:
+  token:
+    expirationTime: 120000 # 以毫秒为单位，例如1分钟=60000毫秒
+    secret: ThisIsRandomSecretKey
+eb:
+  noAuthPaths:
+    - /admin/login

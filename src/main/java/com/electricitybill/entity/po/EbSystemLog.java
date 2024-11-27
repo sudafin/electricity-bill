@@ -1,4 +1,4 @@
-package com.electricitybill.entity.model;
+package com.electricitybill.entity.po;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;

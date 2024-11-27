@@ -1,6 +1,6 @@
 package com.electricitybill.mapper;
 
-import com.electricitybill.entity.model.EbSystemLog;
+import com.electricitybill.entity.po.EbSystemLog;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**

@@ -1,9 +1,13 @@
 package com.electricitybill.controller;
 
 
-import org.springframework.web.bind.annotation.RequestMapping;
+import com.electricitybill.entity.dto.AdminFormDTO;
+import com.electricitybill.entity.vo.LoginVO;
+import com.electricitybill.service.IEbAdminService;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
-import org.springframework.web.bind.annotation.RestController;
+import javax.annotation.Resource;
 
 /**
  * <p>
@@ -14,7 +18,12 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 2024-11-26
  */
 @RestController
-@RequestMapping("/eb-admin")
+@RequestMapping("/admin")
 public class EbAdminController {
-
+    @Resource
+    private IEbAdminService ebAdminService;
+    @PostMapping("/login")
+    public LoginVO login(@RequestBody @Validated AdminFormDTO adminFormDTO){
+        return ebAdminService.login(adminFormDTO);
+    }
 }

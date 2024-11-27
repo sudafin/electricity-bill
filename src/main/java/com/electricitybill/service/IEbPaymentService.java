@@ -1,6 +1,6 @@
 package com.electricitybill.service;
 
-import com.electricitybill.entity.model.EbPayment;
+import com.electricitybill.entity.po.EbPayment;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**

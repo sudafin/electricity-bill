@@ -1,9 +1,12 @@
 package com.electricitybill.controller;
 
 
+import com.electricitybill.service.IEbUserService;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.annotation.Resource;
 
 /**
  * <p>
@@ -14,7 +17,9 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 2024-11-26
  */
 @RestController
-@RequestMapping("/eb-user")
+@RequestMapping("/user")
 public class EbUserController {
+    @Resource
+    private IEbUserService ebUserService;
 
 }

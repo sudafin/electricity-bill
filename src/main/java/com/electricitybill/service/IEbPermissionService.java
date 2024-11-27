@@ -1,6 +1,6 @@
 package com.electricitybill.service;
 
-import com.electricitybill.entity.model.EbPermission;
+import com.electricitybill.entity.po.EbPermission;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**

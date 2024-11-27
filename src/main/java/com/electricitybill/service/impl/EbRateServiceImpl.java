@@ -1,6 +1,6 @@
 package com.electricitybill.service.impl;
 
-import com.electricitybill.entity.model.EbRate;
+import com.electricitybill.entity.po.EbRate;
 import com.electricitybill.mapper.EbRateMapper;
 import com.electricitybill.service.IEbRateService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;

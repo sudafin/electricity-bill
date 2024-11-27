@@ -1,9 +1,8 @@
-package com.electricitybill.entity.model;
+package com.electricitybill.entity.po;
 
 import java.math.BigDecimal;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
-import java.time.LocalDate;
 import com.baomidou.mybatisplus.annotation.TableId;
 import java.time.LocalDateTime;
 import java.io.Serializable;
@@ -22,8 +21,8 @@ import lombok.experimental.Accessors;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("eb_reconciliation")
-public class EbReconciliation implements Serializable {
+@TableName("eb_payment")
+public class EbPayment implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -31,59 +30,64 @@ public class EbReconciliation implements Serializable {
     private Long id;
 
     /**
-     * 对账单号
-     */
-    private String reconciliationNo;
-
-    /**
      * 用户ID
      */
     private Long userId;
 
     /**
-     * 开始日期
+     * 账单ID
      */
-    private LocalDate startDate;
+    private Long billId;
 
     /**
-     * 结束日期
+     * 订单号
      */
-    private LocalDate endDate;
+    private String orderNo;
 
     /**
-     * 总用电量
+     * 支付金额
      */
-    private BigDecimal totalUsage;
+    private BigDecimal amount;
 
     /**
-     * 总金额
+     * 支付方式
      */
-    private BigDecimal totalAmount;
+    private String paymentMethod;
 
     /**
-     * 状态:pending/completed
+     * 支付流水号
+     */
+    private String transactionNo;
+
+    /**
+     * 支付状态:pending/success/failed
      */
     private String status;
 
     /**
-     * 支付状态:unpaid/paid
+     * 失败原因
      */
-    private String paymentStatus;
+    private String failureReason;
 
     /**
-     * 审批人ID
+     * 支付时间
      */
-    private Long approverId;
+    private LocalDateTime paymentTime;
 
     /**
-     * 审批时间
+     * 退款状态:none/processing/success/failed
      */
-    private LocalDateTime approvalTime;
+    private String refundStatus;
 
     /**
-     * 审批意见
+     * 退款金额
      */
-    private String comment;
+    private BigDecimal refundAmount;
+
+    /**
+     * 退款时间
+     */
+    private LocalDateTime refundTime;
 
     private LocalDateTime createdAt;
 

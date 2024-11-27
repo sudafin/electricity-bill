@@ -1,8 +1,9 @@
-package com.electricitybill.entity.model;
+package com.electricitybill.entity.po;
 
 import java.math.BigDecimal;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
+import java.time.LocalDate;
 import com.baomidou.mybatisplus.annotation.TableId;
 import java.time.LocalDateTime;
 import java.io.Serializable;
@@ -21,8 +22,8 @@ import lombok.experimental.Accessors;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("eb_electricity_usage")
-public class EbElectricityUsage implements Serializable {
+@TableName("eb_reconciliation")
+public class EbReconciliation implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -30,46 +31,63 @@ public class EbElectricityUsage implements Serializable {
     private Long id;
 
     /**
+     * 对账单号
+     */
+    private String reconciliationNo;
+
+    /**
      * 用户ID
      */
     private Long userId;
 
     /**
-     * 电表编号
+     * 开始日期
      */
-    private String meterNo;
+    private LocalDate startDate;
 
     /**
-     * 用电量
+     * 结束日期
      */
-    private BigDecimal usageAmount;
+    private LocalDate endDate;
 
     /**
-     * 费率ID
+     * 总用电量
      */
-    private Long rateId;
+    private BigDecimal totalUsage;
 
     /**
-     * 电费金额
+     * 总金额
      */
-    private BigDecimal feeAmount;
+    private BigDecimal totalAmount;
 
     /**
-     * 用电开始时间
+     * 状态:pending/completed
      */
-    private LocalDateTime startTime;
+    private String status;
 
     /**
-     * 用电结束时间
+     * 支付状态:unpaid/paid
      */
-    private LocalDateTime endTime;
+    private String paymentStatus;
 
     /**
-     * 用电时段:peak/flat/valley
+     * 审批人ID
      */
-    private String timeSegment;
+    private Long approverId;
+
+    /**
+     * 审批时间
+     */
+    private LocalDateTime approvalTime;
+
+    /**
+     * 审批意见
+     */
+    private String comment;
 
     private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
 
 
 }

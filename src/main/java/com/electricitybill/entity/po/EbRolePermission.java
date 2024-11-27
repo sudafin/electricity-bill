@@ -1,4 +1,4 @@
-package com.electricitybill.entity.model;
+package com.electricitybill.entity.po;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
@@ -20,8 +20,8 @@ import lombok.experimental.Accessors;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("eb_permission")
-public class EbPermission implements Serializable {
+@TableName("eb_role_permission")
+public class EbRolePermission implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -29,28 +29,16 @@ public class EbPermission implements Serializable {
     private Long id;
 
     /**
-     * 权限名称
+     * 角色ID
      */
-    private String permissionName;
+    private Long roleId;
 
     /**
-     * 权限编码
+     * 权限ID
      */
-    private String permissionCode;
-
-    /**
-     * 权限类型:menu/action
-     */
-    private String permissionType;
-
-    /**
-     * 父权限ID
-     */
-    private Long parentId;
+    private Long permissionId;
 
     private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
 
 
 }
