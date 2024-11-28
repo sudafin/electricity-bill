@@ -26,4 +26,4 @@ jwt:
     secret: ThisIsRandomSecretKey
 eb:
   noAuthPaths:
-    - /admin/login
+    - /admin/**

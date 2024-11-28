@@ -3,7 +3,7 @@ package com.electricitybill.interceptor;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONUtil;
 import com.electricitybill.entity.dto.AdminDTO;
-import com.electricitybill.utils.UserContext;
+import com.electricitybill.utils.UserContextUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import javax.servlet.http.HttpServletRequest;
@@ -18,12 +18,12 @@ public class UserInfoInterceptor implements HandlerInterceptor {
             response.setStatus(401);
             return false;
         }
-        UserContext.setUser(adminDTO.getId());
+        UserContextUtils.setUser(adminDTO.getId());
         return true;
     }
     //拦截后
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
-        UserContext.removeUser();
+        UserContextUtils.removeUser();
     }
 }

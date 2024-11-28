@@ -1,5 +1,6 @@
 package com.electricitybill.filter;
 
+
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
@@ -17,6 +18,7 @@ import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import org.springframework.util.AntPathMatcher;
 
 @Slf4j
 @Component
@@ -25,7 +27,7 @@ public class AuthorizeFilter extends OncePerRequestFilter {
 
     @Resource
     private MyConfig myConfig;
-
+    private final AntPathMatcher antPathMatcher = new AntPathMatcher();
     @Resource
     private JwtUtils jwtUtils;
 
@@ -42,7 +44,7 @@ public class AuthorizeFilter extends OncePerRequestFilter {
         String[] noAuthPaths = myConfig.getNoAuthPaths();
 
         // 查看请求路径是否在这个白名单中
-        if (StrUtil.startWithAny(path, noAuthPaths)) {
+        if (isExclude(path)) {
             filterChain.doFilter(request, response);  // 白名单路径跳过过滤
             return;
         }
@@ -90,6 +92,16 @@ public class AuthorizeFilter extends OncePerRequestFilter {
         // TODO: 自定义鉴权操作
 
         filterChain.doFilter(request, response);  // 继续过滤链
+    }
+
+    private boolean isExclude (String path){
+        String[] excludePaths = myConfig.getNoAuthPaths();
+        for (String excludePath : excludePaths) {
+            if (antPathMatcher.match(excludePath,path)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 

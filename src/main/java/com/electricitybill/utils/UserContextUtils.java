@@ -1,6 +1,6 @@
 package com.electricitybill.utils;
 
-public class UserContext {
+public class UserContextUtils {
     private static final ThreadLocal<Long> TL = new ThreadLocal<>();
 
     /**

@@ -33,9 +33,10 @@ public interface Constant {
     String INVALID_ROLE_TYPE = "无效的角色类型";
     String ACCOUNT_NOT_EXIST = "账号不存在";
     String ACCOUNT_DISABLED = "账号被禁用";
-    String Token_EXPIRED = "Token已过期";
+    String TOKEN_EXPIRED = "Token已过期";
     String INVALID_TOKEN = "无效的Token";
     String TOKEN_GENERATE_FAILED = "Token生成失败";
+    String ACCOUNT_PASSWORD_ERROR = "账号或密码错误";
 
     interface Code{
         int SUCCESS = 200;

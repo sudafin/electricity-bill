@@ -67,20 +67,11 @@
         <artifactId>hutool-all</artifactId>
         <version>5.8.25</version>
         </dependency>
+        <!--        三者用于web配置和过滤器,拦截器-->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
             <version>5.3.22</version> <!-- 确保指定正确的版本 -->
-        </dependency>
-        <dependency>
-            <groupId>jakarta.validation</groupId>
-            <artifactId>jakarta.validation-api</artifactId>
-            <version>2.0.2</version><!-- 确保指定正确的版本 -->
-        </dependency>
-        <dependency>
-            <groupId>org.apache.tomcat.embed</groupId>
-            <artifactId>tomcat-embed-core</artifactId>
-            <version>9.0.78</version> <!-- 确保指定正确的版本 -->
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -88,10 +79,30 @@
             <version>5.3.23</version> <!-- 确保指定正确的版本 -->
         </dependency>
         <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-core</artifactId>
+            <version>9.0.78</version> <!-- 确保指定正确的版本 -->
+        </dependency>
+        <!--        用于前端传过来的数据进行校验-->
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+            <version>2.0.2</version><!-- 确保指定正确的版本 -->
+        </dependency>
+        <!--        用于时间格式的转换-->
+        <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
             <version>2.15.2</version> <!-- 确保指定正确的版本 -->
         </dependency>
+        <!--        用于账号密码的加密验证-->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-crypto</artifactId>
+        </dependency>
+
+
+
     </dependencies>
     <dependencyManagement>
         <dependencies>
