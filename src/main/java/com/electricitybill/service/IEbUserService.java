@@ -2,6 +2,7 @@ package com.electricitybill.service;
 
 import com.electricitybill.entity.po.EbUser;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.electricitybill.entity.vo.DashboardVO;
 
 /**
  * <p>
@@ -13,4 +14,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IEbUserService extends IService<EbUser> {
 
+    DashboardVO getDashboardInfo();
 }

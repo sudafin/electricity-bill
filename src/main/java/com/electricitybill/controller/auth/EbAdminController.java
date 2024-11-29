@@ -9,6 +9,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.security.KeyPair;
 
 /**
@@ -41,5 +42,10 @@ public class EbAdminController {
         String decryptedPassword = RSAUtils.decrypt(adminFormDTO.getPassword(), RSAUtils.getPrivateKey(keyPair));
         adminFormDTO.setPassword(decryptedPassword);
         return ebAdminService.login(adminFormDTO);
+    }
+    @PostMapping("/logout")
+    public void logout(HttpServletRequest httpServletRequest){
+        //清除session
+        httpServletRequest.getSession().invalidate();
     }
 }

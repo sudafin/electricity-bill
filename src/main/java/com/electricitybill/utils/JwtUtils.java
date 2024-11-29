@@ -39,7 +39,7 @@ public class JwtUtils {
 
     //解析token
     public AdminDTO parseToken(String token){
-        Object payload = JWT.of(token).getPayload("userDTO");
+        Object payload = JWT.of(token).getPayload("adminDTO");
         return BeanUtil.toBean(payload, AdminDTO.class);
     }
 

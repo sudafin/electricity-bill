@@ -20,10 +20,22 @@ mybatis-plus:
   global-config:
     db-config:
       id-type: ASSIGN_ID
+
+#日志配置
+logging:
+  level:
+#    把com.example.electricitybill包下的日志级别设置为debug
+    com.electricitybill: debug
+#    把org.springframework包下的日志级别设置为info
+    org.springframework: info
+
+#jwt配置
 jwt:
   token:
-    expirationTime: 120000 # 以毫秒为单位，例如1分钟=60000毫秒
-    secret: ThisIsRandomSecretKey
+    expirationTime: 1200000 # 以毫秒为单位，例如1分钟=60000毫秒
+    secret: ThisIsRandomSecretKey # 密钥，用于签名和验证token
+
+  #过滤器不拦截的路径,拦截器路径在MangerWebConfig中设置
 eb:
   noAuthPaths:
     - /admin/**

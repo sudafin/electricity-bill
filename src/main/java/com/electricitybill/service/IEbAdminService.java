@@ -16,4 +16,5 @@ import com.electricitybill.entity.vo.LoginVO;
 public interface IEbAdminService extends IService<EbAdmin> {
 
     LoginVO login(AdminFormDTO adminFormDTO);
+
 }

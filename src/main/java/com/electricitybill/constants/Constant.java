@@ -37,6 +37,7 @@ public interface Constant {
     String INVALID_TOKEN = "无效的Token";
     String TOKEN_GENERATE_FAILED = "Token生成失败";
     String ACCOUNT_PASSWORD_ERROR = "账号或密码错误";
+    String ROLE_NOT_EXIST = "角色不存在";;
 
     interface Code{
         int SUCCESS = 200;
