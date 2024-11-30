@@ -1,4 +1,4 @@
-package com.electricitybill.entity.vo;
+package com.electricitybill.entity.vo.dashboard;
 
 import lombok.Builder;
 import lombok.Data;

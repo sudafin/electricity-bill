@@ -1,6 +1,6 @@
 package com.electricitybill.controller.dashboard;
 
-import com.electricitybill.entity.vo.DashboardVO;
+import com.electricitybill.entity.vo.dashboard.DashboardVO;
 import com.electricitybill.service.IEbUserService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

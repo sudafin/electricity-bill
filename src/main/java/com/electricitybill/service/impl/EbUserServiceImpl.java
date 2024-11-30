@@ -1,31 +1,33 @@
 package com.electricitybill.service.impl;
 
-import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.electricitybill.entity.dto.PageDTO;
+import com.electricitybill.entity.dto.user.UserPageQuery;
 import com.electricitybill.entity.po.EbElectricityUsage;
 import com.electricitybill.entity.po.EbPayment;
 import com.electricitybill.entity.po.EbUser;
-import com.electricitybill.entity.vo.DashboardVO;
+import com.electricitybill.entity.vo.dashboard.DashboardVO;
+import com.electricitybill.entity.vo.user.UserPageVO;
 import com.electricitybill.enums.UserType;
 import com.electricitybill.mapper.EbElectricityUsageMapper;
 import com.electricitybill.mapper.EbPaymentMapper;
 import com.electricitybill.mapper.EbUserMapper;
-import com.electricitybill.service.IEbElectricityUsageService;
-import com.electricitybill.service.IEbPaymentService;
-import com.electricitybill.service.IEbRoleService;
 import com.electricitybill.service.IEbUserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.electricitybill.utils.BeanUtils;
 import com.electricitybill.utils.CollUtils;
+import com.electricitybill.utils.DateUtils;
+import com.electricitybill.utils.ObjectUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -101,6 +103,43 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
         dashboardVO.setTotalUser((long) totalUser);
         log.info("dashboardVO的对象数据:{}",dashboardVO);
         return dashboardVO;
+    }
+
+    @Override
+    public PageDTO<UserPageVO> queryUserPage(UserPageQuery userPageQuery) {
+        log.debug("userPageQuery:{}",userPageQuery);
+
+        /**
+         * new Page<>(PageNo, PageSize); 其中第一个参数是当前页，第二个参数是每页显示的条数
+         */
+
+        // 分页查询条件
+        Page<EbUser> ebUserPage = new Page<>(userPageQuery.getPageNo(), userPageQuery.getPageSize());
+        // 查询数据库条件
+        Page<EbUser> page = lambdaQuery()
+                .eq(StrUtil.isNotBlank(userPageQuery.getUserType()), EbUser::getUserType, userPageQuery.getUserType())
+                .eq(StrUtil.isNotBlank(userPageQuery.getPhone()), EbUser::getPhone, userPageQuery.getPhone())
+                .eq(StrUtil.isNotBlank(userPageQuery.getName()), EbUser::getUsername, userPageQuery.getName())
+                .eq(StrUtil.isNotBlank(userPageQuery.getMeterNumber()), EbUser::getMeterNo, userPageQuery.getMeterNumber())
+                .ge(userPageQuery.getStartDate() != null, EbUser::getLastPaymentDate, userPageQuery.getStartDate())
+                .le(userPageQuery.getEndDate() != null, EbUser::getLastPaymentDate, userPageQuery.getEndDate())
+                .page(ebUserPage);
+        //判断数据是否为空
+        /**
+         * page.getSize(): 每页的记录数 一页10条数据大小
+         * page.getTotal(): 总记录数  一共100条数据大小
+         * page.getRecords(): 当前页的数据列表 当前页的10条数据
+         * page.getCurrent(): 当前页码 当前显示的页码
+         * page.getPages(): 总页数 总共多少页
+         */
+        List<EbUser> ebUserList = page.getRecords();
+        if(CollUtils.isEmpty(ebUserList)){
+            //如果为空，则返回空分页
+            return PageDTO.empty(page);
+        }
+        List<UserPageVO> userPageVOList = BeanUtils.copyList(ebUserList, UserPageVO.class);
+        log.debug("userPageVOList的数据:{}",userPageVOList);
+        return PageDTO.of(page, userPageVOList);
     }
 
 }

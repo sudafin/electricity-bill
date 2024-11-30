@@ -1,8 +1,8 @@
 package com.electricitybill.controller.auth;
 
 
-import com.electricitybill.entity.dto.AdminFormDTO;
-import com.electricitybill.entity.vo.LoginVO;
+import com.electricitybill.entity.dto.admin.AdminFormDTO;
+import com.electricitybill.entity.vo.admin.LoginVO;
 import com.electricitybill.service.IEbAdminService;
 import com.electricitybill.utils.RSAUtils;
 import org.springframework.validation.annotation.Validated;

@@ -2,7 +2,7 @@ package com.electricitybill.interceptor;
 
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONUtil;
-import com.electricitybill.entity.dto.AdminDTO;
+import com.electricitybill.entity.dto.admin.AdminDTO;
 import com.electricitybill.utils.UserContextUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
 

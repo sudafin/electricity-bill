@@ -1,4 +1,4 @@
-package com.electricitybill.entity.dto;
+package com.electricitybill.entity.dto.admin;
 
 import lombok.Builder;
 import lombok.Data;

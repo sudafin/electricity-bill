@@ -1,7 +1,7 @@
-package com.electricitybill.entity.vo;
+package com.electricitybill.entity.vo.admin;
 
 
-import com.electricitybill.entity.dto.AdminDTO;
+import com.electricitybill.entity.dto.admin.AdminDTO;
 import lombok.Builder;
 import lombok.Data;
 
