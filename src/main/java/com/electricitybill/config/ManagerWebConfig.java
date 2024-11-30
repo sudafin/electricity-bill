@@ -6,6 +6,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import springfox.documentation.builders.ApiInfoBuilder;
+import springfox.documentation.builders.PathSelectors;
+import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.service.ApiInfo;
+import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spring.web.plugins.Docket;
 
 /**
  * 配置拦截器
@@ -16,7 +22,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class ManagerWebConfig implements WebMvcConfigurer {
 
     //拦截的时候过滤掉swagger相关路径和登录相关接口
-    private static final String[] EXCLUDE_PATH_PATTERNS = new String[]{"/swagger-ui.html",
+    private static final String[] EXCLUDE_PATH_PATTERNS = new String[]{"" +
+            "/swagger-ui.html",
             "/webjars/**",
             "/swagger-resources",
             "/v2/api-docs",
@@ -25,10 +32,10 @@ public class ManagerWebConfig implements WebMvcConfigurer {
             "/captcha",
             "/workspace/**"};
     //这里不能将UserInterceptor设为Component不然会出错,要么变为@bean,要么直接new
-   @Bean
+    @Bean
     public UserInfoInterceptor userInfoInterceptor(){
-       return new UserInfoInterceptor();
-   };
+        return new UserInfoInterceptor();
+    };
 
 
     @Override
@@ -36,4 +43,5 @@ public class ManagerWebConfig implements WebMvcConfigurer {
         // 用户信息拦截器
         registry.addInterceptor(userInfoInterceptor()).excludePathPatterns(EXCLUDE_PATH_PATTERNS).addPathPatterns("/**");
     }
+
 }

@@ -39,6 +39,9 @@ public interface Constant {
     String ACCOUNT_PASSWORD_ERROR = "账号或密码错误";
     String ROLE_NOT_EXIST = "角色不存在";;
 
+    String DATA_FIELD_NAME_CREATE_TIME = "createTime";
+    String REQUEST_ID_HEADER = "X-Request-ID";
+
     interface Code{
         int SUCCESS = 200;
         int FAIL = 500;

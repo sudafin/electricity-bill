@@ -5,7 +5,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.electricitybill.config.MyConfig;
-import com.electricitybill.entity.dto.AdminDTO;
+import com.electricitybill.entity.dto.admin.AdminDTO;
 import com.electricitybill.utils.JwtUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -32,16 +32,15 @@ public class AuthorizeFilter extends OncePerRequestFilter {
     private JwtUtils jwtUtils;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(HttpServletRequest request,  HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        log.info("请求路径:{}", request.getRequestURI());
+        log.debug("请求路径:{}", request.getRequestURI());
 
         // 获取请求路径
-        String path = request.getRequestURI();
+        String path  = request.getRequestURI();
 
-        // 获取配置文件中的白名单路径
-        String[] noAuthPaths = myConfig.getNoAuthPaths();
+
 
         // 查看请求路径是否在这个白名单中
         if (isExclude(path)) {
@@ -60,7 +59,7 @@ public class AuthorizeFilter extends OncePerRequestFilter {
         }
 
         // 校验 token
-        AdminDTO adminDTO = null;
+        AdminDTO adminDTO;
         try {
             boolean checkToken = jwtUtils.checkToken(token);
             if (!checkToken) {
@@ -95,6 +94,7 @@ public class AuthorizeFilter extends OncePerRequestFilter {
     }
 
     private boolean isExclude (String path){
+        // 获取配置文件中的白名单路径
         String[] excludePaths = myConfig.getNoAuthPaths();
         for (String excludePath : excludePaths) {
             if (antPathMatcher.match(excludePath,path)) {

@@ -1,8 +1,11 @@
-  #端口信息
+#端口信息
 server:
   port: 8080
   #数据库信息
 spring:
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
   datasource:
     url: jdbc:mysql://localhost:3306/electricity_bill
     username: root
@@ -12,10 +15,9 @@ spring:
 mybatis-plus:
   mapper-locations: classpath:/mapper/*.xml
   type-aliases-package: com.example.electricitybill.entity
-  configuration:
-    #在映射实体或者属性时，将数据库中表名和字段名中的下划线去掉，按照驼峰命名法映射
+  configuration: #在映射实体或者属性时，将数据库中表名和字段名中的下划线去掉，按照驼峰命名法映射
     map-underscore-to-camel-case: true
-#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    #    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
     log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
   global-config:
     db-config:
@@ -23,19 +25,32 @@ mybatis-plus:
 
 #日志配置
 logging:
-  level:
-#    把com.example.electricitybill包下的日志级别设置为debug
+  level: #    把com.example.electricitybill包下的日志级别设置为debug
     com.electricitybill: debug
-#    把org.springframework包下的日志级别设置为info
+    #    把org.springframework包下的日志级别设置为info
     org.springframework: info
 
 #jwt配置
 jwt:
   token:
-    expirationTime: 1200000 # 以毫秒为单位，例如1分钟=60000毫秒
+    expirationTime: 3600000 # 以毫秒为单位，例如1分钟=60000毫秒
     secret: ThisIsRandomSecretKey # 密钥，用于签名和验证token
 
   #过滤器不拦截的路径,拦截器路径在MangerWebConfig中设置
 eb:
   noAuthPaths:
     - /admin/**
+    - /doc.html
+    - /v2/api-docs
+    - /swagger-resources
+    - /webjars/**
+  swagger:
+    enable: true
+    enableResponseWrap: true
+    packagePath: com.electricitybill.controller
+    title: My API Documentation
+    description: API documentation for my project
+    contactName: John Doe
+    contactUrl: http://example.com
+    contactEmail: john@example.com
+    version: 1.0.0
