@@ -7,7 +7,7 @@ import com.electricitybill.entity.dto.admin.AdminFormDTO;
 import com.electricitybill.entity.po.EbAdmin;
 import com.electricitybill.entity.po.EbRole;
 import com.electricitybill.entity.vo.admin.LoginVO;
-import com.electricitybill.enums.StatusType;
+import com.electricitybill.enums.AdminStatusType;
 import com.electricitybill.expcetions.UnauthorizedException;
 import com.electricitybill.mapper.EbAdminMapper;
 import com.electricitybill.mapper.EbRoleMapper;
@@ -56,7 +56,7 @@ public class EbAdminServiceImpl extends ServiceImpl<EbAdminMapper, EbAdmin> impl
             throw new UnauthorizedException(Constant.ACCOUNT_PASSWORD_ERROR);
         }
         //判断是否启用
-        if (admin.getStatus() == StatusType.DISABLE.getValue()) {
+        if (admin.getStatus() == AdminStatusType.DISABLE.getValue()) {
             throw new UnauthorizedException(Constant.ACCOUNT_DISABLED);
         }
         EbRole ebRole = ebRoleMapper.selectOne(new LambdaQueryWrapper<EbRole>().eq(EbRole::getId, admin.getRoleId()));

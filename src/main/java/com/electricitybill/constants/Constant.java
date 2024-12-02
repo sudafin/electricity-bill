@@ -2,7 +2,7 @@ package com.electricitybill.constants;
 
 public interface Constant {
     String REQUEST_PARAM_MISSING = "缺少必要的参数";
-    String DB_SAVE_FAILURE = "数据库保存失败";
+    String DB_INSERT_FAILURE = "数据库保存失败";
     String DB_QUERY_FAILURE = "数据库查询失败";
     String DB_UPDATE_FAILURE = "数据库更新失败";
     String DB_DELETE_FAILURE = "数据库删除失败";
@@ -41,6 +41,10 @@ public interface Constant {
 
     String DATA_FIELD_NAME_CREATE_TIME = "createTime";
     String REQUEST_ID_HEADER = "X-Request-ID";
+    String USER_NOT_EXIST = "用户不存在";;
+    String CONVERT_ERROR = "数据转换错误";
+    String USER_EXIST = "用户已存在";
+    String PHONE_FORMAT_ERROR =  "手机号格式错误";
 
     interface Code{
         int SUCCESS = 200;

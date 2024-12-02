@@ -28,16 +28,14 @@ public class EbPayment implements Serializable {
 
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
-
+    /**
+     * 操作员ID
+     */
+    private Long operatorId;
     /**
      * 用户ID
      */
     private Long userId;
-
-    /**
-     * 账单ID
-     */
-    private Long billId;
 
     /**
      * 订单号
@@ -92,6 +90,10 @@ public class EbPayment implements Serializable {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+    /**
+     * 备注
+     */
+    private String remark;
 
 
 }
