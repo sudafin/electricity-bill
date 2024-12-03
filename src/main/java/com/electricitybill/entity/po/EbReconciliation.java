@@ -33,7 +33,7 @@ public class EbReconciliation implements Serializable {
     /**
      * 对账单号
      */
-    private String reconciliationNo;
+    private Long reconciliationNo;
 
     /**
      * 用户ID

@@ -45,6 +45,9 @@ public interface Constant {
     String CONVERT_ERROR = "数据转换错误";
     String USER_EXIST = "用户已存在";
     String PHONE_FORMAT_ERROR =  "手机号格式错误";
+    String RECONCILIATION_NOT_EXIST =  "对账单不存在";
+    String RECONCILIATION_STATUS_NOT_CHANGE = "对账单状态未改变";
+    String DATA_UPDATE_FAILURE = "数据更新失败";
 
     interface Code{
         int SUCCESS = 200;
