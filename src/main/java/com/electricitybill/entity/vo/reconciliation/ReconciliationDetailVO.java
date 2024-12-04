@@ -18,7 +18,6 @@ public class ReconciliationDetailVO {
     private LocalDateTime createTime;
     private BigDecimal balance;
     private String paymentStatus;
-    private BigDecimal electricityUsage;
     private LocalDateTime approvalTime;
     private String  approvalOperator;
     private String approvalComment;

@@ -139,15 +139,16 @@ public class EbReconciliationServiceImpl extends ServiceImpl<EbReconciliationMap
         }
         reconciliationDetailVO.setReconciliationNo(ebReconciliation.getReconciliationNo());
         reconciliationDetailVO.setUsername(ebUser.getUsername());
-        reconciliationDetailVO.setElectricityUsage(ebReconciliation.getTotalUsage());
         reconciliationDetailVO.setUserType(ebUser.getUserType());
         reconciliationDetailVO.setReconciliationStatus(ebReconciliation.getStatus());
         reconciliationDetailVO.setMeterNo(ebUser.getMeterNo());
         reconciliationDetailVO.setCreateTime(ebReconciliation.getCreatedAt());
         reconciliationDetailVO.setBalance(ebReconciliation.getTotalAmount());
         reconciliationDetailVO.setApprovalTime(ebReconciliation.getApprovalTime());
-        EbAdmin ebAdmin = adminMapper.selectById(ebReconciliation.getApproverId());
-        reconciliationDetailVO.setApprovalOperator(ebAdmin.getAccount());
+        if(ebReconciliation.getApproverId() != null) {
+            EbAdmin ebAdmin = adminMapper.selectById(ebReconciliation.getApproverId());
+            reconciliationDetailVO.setApprovalOperator(ebAdmin.getAccount());
+        }else reconciliationDetailVO.setApprovalOperator(null);
         reconciliationDetailVO.setApprovalComment(ebReconciliation.getComment());
         reconciliationDetailVO.setUserPaymentRecordVOList(recordVOArrayList);
         reconciliationDetailVO.setPaymentStatus(ebReconciliation.getPaymentStatus());
@@ -166,6 +167,7 @@ public class EbReconciliationServiceImpl extends ServiceImpl<EbReconciliationMap
         ebReconciliation.setStatus(approvalDTO.getStatus());
         ebReconciliation.setComment(approvalDTO.getComment());
         ebReconciliation.setApprovalTime(LocalDateTime.now());
+        Long user = UserContextUtils.getUser();
         ebReconciliation.setApproverId(UserContextUtils.getUser());
         int res = baseMapper.updateById(ebReconciliation);
         if (res <= 0) {

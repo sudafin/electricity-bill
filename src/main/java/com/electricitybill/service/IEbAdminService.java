@@ -1,5 +1,6 @@
 package com.electricitybill.service;
 
+import com.electricitybill.entity.R;
 import com.electricitybill.entity.dto.admin.AdminFormDTO;
 import com.electricitybill.entity.po.EbAdmin;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -15,6 +16,6 @@ import com.electricitybill.entity.vo.admin.LoginVO;
  */
 public interface IEbAdminService extends IService<EbAdmin> {
 
-    LoginVO login(AdminFormDTO adminFormDTO);
+    R<LoginVO> login(AdminFormDTO adminFormDTO);
 
 }

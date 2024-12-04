@@ -1,5 +1,7 @@
 package com.electricitybill.service.impl;
 
+import cn.hutool.core.lang.generator.UUIDGenerator;
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -8,10 +10,7 @@ import com.electricitybill.entity.R;
 import com.electricitybill.entity.dto.PageDTO;
 import com.electricitybill.entity.dto.user.UserDTO;
 import com.electricitybill.entity.dto.user.UserPageQuery;
-import com.electricitybill.entity.po.EbAdmin;
-import com.electricitybill.entity.po.EbElectricityUsage;
-import com.electricitybill.entity.po.EbPayment;
-import com.electricitybill.entity.po.EbUser;
+import com.electricitybill.entity.po.*;
 import com.electricitybill.entity.vo.dashboard.DashboardVO;
 import com.electricitybill.entity.vo.user.UserDetailVO;
 import com.electricitybill.entity.vo.user.UserPageVO;
@@ -21,10 +20,7 @@ import com.electricitybill.enums.UserStatusType;
 import com.electricitybill.enums.UserType;
 import com.electricitybill.expcetions.BizIllegalException;
 import com.electricitybill.expcetions.DbException;
-import com.electricitybill.mapper.EbAdminMapper;
-import com.electricitybill.mapper.EbElectricityUsageMapper;
-import com.electricitybill.mapper.EbPaymentMapper;
-import com.electricitybill.mapper.EbUserMapper;
+import com.electricitybill.mapper.*;
 import com.electricitybill.service.IEbUserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.electricitybill.utils.BeanUtils;
@@ -35,6 +31,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -58,7 +55,8 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
     private EbPaymentMapper paymentMapper;
     @Resource
     private EbAdminMapper adminMapper;
-
+    @Resource
+    private EbReconciliationMapper reconciliationMapper;
     @Override
     public DashboardVO getDashboardInfo() {
         /**
@@ -242,6 +240,30 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
         if (update != 1) {
             throw new DbException(Constant.DB_UPDATE_FAILURE);
         }
+        //生成对账单
+        EbReconciliation ebReconciliation = new EbReconciliation();;
+        //生成雪花算法
+        ebReconciliation.setReconciliationNo(IdUtil.getSnowflakeNextId());
+        ebReconciliation.setUserId(ebUser.getId());
+        ebReconciliation.setStartDate(LocalDate.now());
+        ebReconciliation.setEndDate(LocalDate.now().plusDays(7));
+        //如果是居民用户0.6,商业1.0
+        if(ebUser.getUserType().equals(UserType.RESIDENT.getDesc())){;
+            ebReconciliation.setTotalUsage(BigDecimal.valueOf(money * UserType.RESIDENT.getValue()));
+        }else if(ebUser.getUserType().equals(UserType.BUSINESSES.getDesc())){
+            ebReconciliation.setTotalUsage(BigDecimal.valueOf(money * UserType.BUSINESSES.getValue()));
+        }
+        ebReconciliation.setTotalAmount(BigDecimal.valueOf(money));
+        ebReconciliation.setStatus("待审批");
+        ebReconciliation.setPaymentStatus("已支付");
+        ebReconciliation.setApproverId(null);
+        ebReconciliation.setApprovalTime(null);
+        ebReconciliation.setComment(null);
+        int insert = reconciliationMapper.insert(ebReconciliation);
+        if (insert != 1) {
+            throw new DbException(Constant.DB_INSERT_FAILURE);
+        }
+
         return R.ok();
     }
 

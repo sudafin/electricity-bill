@@ -1,6 +1,7 @@
 package com.electricitybill.controller.auth;
 
 
+import com.electricitybill.entity.R;
 import com.electricitybill.entity.dto.admin.AdminFormDTO;
 import com.electricitybill.entity.vo.admin.LoginVO;
 import com.electricitybill.service.IEbAdminService;
@@ -37,7 +38,7 @@ public class EbAdminController {
     }
 
     @PostMapping("/login")
-    public LoginVO login(@RequestBody @Validated AdminFormDTO adminFormDTO) throws Exception {
+    public R<LoginVO> login(@RequestBody @Validated AdminFormDTO adminFormDTO) throws Exception {
         //将前端传递过来的加密密码解密
         String decryptedPassword = RSAUtils.decrypt(adminFormDTO.getPassword(), RSAUtils.getPrivateKey(keyPair));
         adminFormDTO.setPassword(decryptedPassword);

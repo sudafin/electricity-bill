@@ -41,7 +41,6 @@ public class AuthorizeFilter extends OncePerRequestFilter {
         String path  = request.getRequestURI();
 
 
-
         // 查看请求路径是否在这个白名单中
         if (isExclude(path)) {
             filterChain.doFilter(request, response);  // 白名单路径跳过过滤

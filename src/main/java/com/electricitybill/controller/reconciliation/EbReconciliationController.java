@@ -42,7 +42,7 @@ public class EbReconciliationController {
         return ebReconciliationService.queryApprovalReconciliationDetail(reconciliationId);
     }
     @PutMapping("approve/{id}")
-    public R approveReconciliation(@PathVariable(name = "id") Long reconciliationId, ApprovalDTO approvalDTO){
+    public R approveReconciliation(@PathVariable(name = "id") Long reconciliationId, @RequestBody ApprovalDTO approvalDTO){
         return ebReconciliationService.approveReconciliation(reconciliationId,approvalDTO);
     }
 }

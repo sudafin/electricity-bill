@@ -9,10 +9,10 @@ public enum AdminStatusType implements BaseEnum{
     DISABLE(0, "禁用"),
     ENABLE(1, "启用"),
     ;
-    private final int value;
+    private final double value;
     private final String desc;
 
-    public static AdminStatusType of(Integer value) {
+    public static AdminStatusType of(Double value) {
         if (value == null) {
             return null;
         }
@@ -24,7 +24,7 @@ public enum AdminStatusType implements BaseEnum{
         return null;
     }
 
-    public static String desc(Integer value) {
+    public static String desc(Double value) {
         AdminStatusType status = of(value);
         return status.getDesc();
     }

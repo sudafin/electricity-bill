@@ -7,20 +7,20 @@ import lombok.Getter;
 
 @Getter
 public enum RoleType implements BaseEnum {
-    ADMIN(1, "系统管理员"),
-    OPERATOR(2, "操作员"),
+    ADMIN(1.0, "系统管理员"),
+    OPERATOR(2.0, "操作员"),
             ;
     @EnumValue
     final
-    int value;
+    double value;
     final String desc;
 
-    RoleType(int value, String desc) {
+    RoleType(Double value, String desc) {
         this.value = value;
         this.desc = desc;
     }
 
-    public static RoleType of(int value) {
+    public static RoleType of(Double value) {
         for (RoleType type : RoleType.values()) {
             if (type.getValue() == value) {
                 return type;

@@ -7,25 +7,25 @@ import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 public enum UserType implements BaseEnum{
-    RESIDENT(1, "居民用户"),
-    BUSINESSES(2, "商业用户 "),
+    RESIDENT(0.6, "居民用户"),
+    BUSINESSES(1.0, "商业用户"),
     ;
     @EnumValue
-    final
-    int value;
-    String desc;
+    final double value;
+    final String desc;
 
-    UserType(int value, String desc) {
+    UserType(Double value, String desc) {
         this.value = value;
         this.desc = desc;
     }
 
-    public static UserType of(int value) {
+    public static UserType of(Double value) {
         for (UserType type : UserType.values()) {
-            if (type.getValue() == value) {
+            if (Objects.equals(type.getValue(), value)) {
                 return type;
             }
         }

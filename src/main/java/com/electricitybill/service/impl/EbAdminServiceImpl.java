@@ -2,12 +2,14 @@ package com.electricitybill.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.electricitybill.constants.Constant;
+import com.electricitybill.entity.R;
 import com.electricitybill.entity.dto.admin.AdminDTO;
 import com.electricitybill.entity.dto.admin.AdminFormDTO;
 import com.electricitybill.entity.po.EbAdmin;
 import com.electricitybill.entity.po.EbRole;
 import com.electricitybill.entity.vo.admin.LoginVO;
 import com.electricitybill.enums.AdminStatusType;
+import com.electricitybill.expcetions.ForbiddenException;
 import com.electricitybill.expcetions.UnauthorizedException;
 import com.electricitybill.mapper.EbAdminMapper;
 import com.electricitybill.mapper.EbRoleMapper;
@@ -40,7 +42,7 @@ public class EbAdminServiceImpl extends ServiceImpl<EbAdminMapper, EbAdmin> impl
     @Resource
     private EbRoleMapper ebRoleMapper;
     @Override
-    public LoginVO login(AdminFormDTO adminFormDTO) {
+    public R<LoginVO> login(AdminFormDTO adminFormDTO) {
         log.info("前端登录信息：{}", adminFormDTO);
         //根据账号密码查询用户
         String account = adminFormDTO.getAccount();
@@ -57,7 +59,7 @@ public class EbAdminServiceImpl extends ServiceImpl<EbAdminMapper, EbAdmin> impl
         }
         //判断是否启用
         if (admin.getStatus() == AdminStatusType.DISABLE.getValue()) {
-            throw new UnauthorizedException(Constant.ACCOUNT_DISABLED);
+            throw new ForbiddenException(Constant.ACCOUNT_DISABLED);
         }
         EbRole ebRole = ebRoleMapper.selectOne(new LambdaQueryWrapper<EbRole>().eq(EbRole::getId, admin.getRoleId()));
         if(ObjectUtils.isEmpty(ebRole)){
@@ -76,7 +78,7 @@ public class EbAdminServiceImpl extends ServiceImpl<EbAdminMapper, EbAdmin> impl
             throw new UnauthorizedException(Constant.TOKEN_GENERATE_FAILED);
         }
         log.debug("token:{}", token);
-        return LoginVO.builder().adminDTO(adminDTO).token(token).build();
+        return R.ok(LoginVO.builder().adminDTO(adminDTO).token(token).build());
     }
 
 }

@@ -7,13 +7,13 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum UserStatusType {
-    NORMAL(1, "正常"),
-    UNPAID(2, "欠费"),
+    NORMAL(1.0, "正常"),
+    UNPAID(2.0, "欠费"),
     ;
-    private final int value;
+    private final double value;
     private final String desc;
 
-    public static UserStatusType of(Integer value) {
+    public static UserStatusType of(Double value) {
         if (value == null) {
             return null;
         }
@@ -25,7 +25,7 @@ public enum UserStatusType {
         return null;
     }
 
-    public static String desc(Integer value) {
+    public static String desc(Double value) {
         UserStatusType status = of(value);
         return status.getDesc();
     }

@@ -12,6 +12,6 @@ public class ApprovalDetailVO {
     private BigDecimal balance;
     private String comment;
     private Boolean isApproved;
-private String status;
+    private String status;
     List<ApprovalRecordVO> approvalRecordList;
 }

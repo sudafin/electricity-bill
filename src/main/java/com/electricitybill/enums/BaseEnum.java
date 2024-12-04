@@ -1,10 +1,10 @@
 package com.electricitybill.enums;
 
 public interface BaseEnum {
-    int getValue();
+    double getValue();
     String getDesc();
 
-    default boolean equalsValue(Integer value){
+    default boolean equalsValue(Double value){
         if (value == null) {
             return false;
         }
