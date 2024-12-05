@@ -11,19 +11,19 @@ import java.util.Objects;
 
 @Getter
 public enum UserType implements BaseEnum{
-    RESIDENT(0.6, "居民用户"),
-    BUSINESSES(1.0, "商业用户"),
+    RESIDENT(1, "居民用户"),
+    BUSINESSES(2, "商业用户"),
     ;
     @EnumValue
-    final double value;
+    final int value;
     final String desc;
 
-    UserType(Double value, String desc) {
+    UserType(Integer value, String desc) {
         this.value = value;
         this.desc = desc;
     }
 
-    public static UserType of(Double value) {
+    public static UserType of(Integer value) {
         for (UserType type : UserType.values()) {
             if (Objects.equals(type.getValue(), value)) {
                 return type;

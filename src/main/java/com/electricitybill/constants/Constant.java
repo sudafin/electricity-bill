@@ -48,6 +48,7 @@ public interface Constant {
     String RECONCILIATION_NOT_EXIST =  "对账单不存在";
     String RECONCILIATION_STATUS_NOT_CHANGE = "对账单状态未改变";
     String DATA_UPDATE_FAILURE = "数据更新失败";
+    String NOTIFICATION_NOT_FOUND = "通知不存在";
 
     interface Code{
         int SUCCESS = 200;

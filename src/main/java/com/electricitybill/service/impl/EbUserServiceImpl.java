@@ -34,6 +34,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -57,6 +58,8 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
     private EbAdminMapper adminMapper;
     @Resource
     private EbReconciliationMapper reconciliationMapper;
+    @Resource
+    private EbRateMapper ebRateMapper;
     @Override
     public DashboardVO getDashboardInfo() {
         /**
@@ -247,11 +250,15 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
         ebReconciliation.setUserId(ebUser.getId());
         ebReconciliation.setStartDate(LocalDate.now());
         ebReconciliation.setEndDate(LocalDate.now().plusDays(7));
-        //如果是居民用户0.6,商业1.0
+        //查询电费单价
+        List<EbRate> ebRateList = ebRateMapper.selectList(new LambdaQueryWrapper<>());
+        //kv集合
+        Map<String, BigDecimal> map = ebRateList.stream().collect(Collectors.toMap(EbRate::getUserType, EbRate::getPrice));
+        BigDecimal moneyBigDecimal = BigDecimal.valueOf(money);
         if(ebUser.getUserType().equals(UserType.RESIDENT.getDesc())){;
-            ebReconciliation.setTotalUsage(BigDecimal.valueOf(money * UserType.RESIDENT.getValue()));
+            ebReconciliation.setTotalUsage(map.get(UserType.RESIDENT.getDesc()).multiply(moneyBigDecimal));
         }else if(ebUser.getUserType().equals(UserType.BUSINESSES.getDesc())){
-            ebReconciliation.setTotalUsage(BigDecimal.valueOf(money * UserType.BUSINESSES.getValue()));
+            ebReconciliation.setTotalUsage(map.get(UserType.BUSINESSES.getDesc()).multiply(moneyBigDecimal));
         }
         ebReconciliation.setTotalAmount(BigDecimal.valueOf(money));
         ebReconciliation.setStatus("待审批");
