@@ -35,7 +35,7 @@ public interface IEbUserService extends IService<EbUser> {
 
     R updateUser(UserDTO userDTO);
 
-    R pay(Long userId, Double money);
+    R pay(Long userId, Double money, String paymentMethod);
 
     UserPaymentVO queryUserPayment(Long userId);
 }

@@ -65,7 +65,7 @@ public class EbUserController {
     //要用RequestBody前端传数据就要用data类型,如果要用RequestParams前端传数据就要用params类型,get请求的前端传数据要用params类型
     //@RequestParam适合表单提交，@RequestBody适合json提交 ,@PathVariable适合路径参数 , 不用参数只能是get请求
     public R pay(@RequestParam("userId") Long userId, @RequestParam("money") Double money, @RequestParam("paymentMethod") String paymentMethod){
-        return ebUserService.pay(userId,money);
+        return ebUserService.pay(userId,money,paymentMethod);
     }
 
     @ApiOperation("查询用户缴费详情")

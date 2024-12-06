@@ -1,6 +1,5 @@
 package com.electricitybill.service.impl;
 
-import cn.hutool.core.lang.generator.UUIDGenerator;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -26,7 +25,9 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.electricitybill.utils.BeanUtils;
 import com.electricitybill.utils.CollUtils;
 import com.electricitybill.utils.ObjectUtils;
+import com.electricitybill.utils.UserContextUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -60,6 +61,10 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
     private EbReconciliationMapper reconciliationMapper;
     @Resource
     private EbRateMapper ebRateMapper;
+    private EbUserMapper ebUserMapper;
+    @Autowired
+    private EbPaymentMapper ebPaymentMapper;
+
     @Override
     public DashboardVO getDashboardInfo() {
         /**
@@ -232,7 +237,7 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
     }
 
     @Override
-    public R pay(Long userId,Double money) {
+    public R pay(Long userId, Double money, String paymentMethod) {
         EbUser ebUser = baseMapper.selectById(userId);
         //缴费
         ebUser.setBalance(ebUser.getBalance().add(new BigDecimal(money)));
@@ -243,16 +248,36 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
         if (update != 1) {
             throw new DbException(Constant.DB_UPDATE_FAILURE);
         }
+        //先将对账id生成
+        long reconciliationId = IdUtil.getSnowflakeNextId();
+        long paymentId = IdUtil.getSnowflakeNextId();
+        //生成支付账单
+        EbPayment ebPayment = new EbPayment();
+        ebPayment.setId(paymentId);
+        ebPayment.setUserId(ebUser.getId());
+        ebPayment.setAmount(new BigDecimal(money));
+        ebPayment.setPaymentMethod(paymentMethod);
+        ebPayment.setPaymentTime(LocalDateTime.now());
+        ebPayment.setReconciliationId(reconciliationId);
+        ebPayment.setStatus("已支付");
+        ebPayment.setOperatorId(UserContextUtils.getUser());
+        int paymentInsert = ebPaymentMapper.insert(ebPayment);
+        if (paymentInsert != 1) {
+            throw new DbException(Constant.DB_INSERT_FAILURE);
+        }
+
         //生成对账单
         EbReconciliation ebReconciliation = new EbReconciliation();;
-        //生成雪花算法
-        ebReconciliation.setReconciliationNo(IdUtil.getSnowflakeNextId());
+        ebReconciliation.setReconciliationNo(reconciliationId);
         ebReconciliation.setUserId(ebUser.getId());
         ebReconciliation.setStartDate(LocalDate.now());
         ebReconciliation.setEndDate(LocalDate.now().plusDays(7));
+        ebReconciliation.setStatus("待审批");
+        ebReconciliation.setPaymentStatus("已支付");
+        ebReconciliation.setPaymentId(paymentId);
         //查询电费单价
         List<EbRate> ebRateList = ebRateMapper.selectList(new LambdaQueryWrapper<>());
-        //kv集合
+        //各个用户类型的电费率kv集合
         Map<String, BigDecimal> map = ebRateList.stream().collect(Collectors.toMap(EbRate::getUserType, EbRate::getPrice));
         BigDecimal moneyBigDecimal = BigDecimal.valueOf(money);
         if(ebUser.getUserType().equals(UserType.RESIDENT.getDesc())){;
@@ -261,16 +286,10 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
             ebReconciliation.setTotalUsage(map.get(UserType.BUSINESSES.getDesc()).multiply(moneyBigDecimal));
         }
         ebReconciliation.setTotalAmount(BigDecimal.valueOf(money));
-        ebReconciliation.setStatus("待审批");
-        ebReconciliation.setPaymentStatus("已支付");
-        ebReconciliation.setApproverId(null);
-        ebReconciliation.setApprovalTime(null);
-        ebReconciliation.setComment(null);
         int insert = reconciliationMapper.insert(ebReconciliation);
         if (insert != 1) {
             throw new DbException(Constant.DB_INSERT_FAILURE);
         }
-
         return R.ok();
     }
 

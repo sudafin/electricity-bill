@@ -189,7 +189,7 @@ public class EbReconciliationServiceImpl extends ServiceImpl<EbReconciliationMap
         approvalDetailVO.setUsername(ebUser.getUsername());
         approvalDetailVO.setBalance(ebReconciliation.getTotalAmount());
         approvalDetailVO.setComment(ebReconciliation.getComment());
-        approvalDetailVO.setIsApproved(ebReconciliation.getStatus().equals("通过"));
+        approvalDetailVO.setIsApproved(!ebReconciliation.getStatus().equals("待审批") && !ebReconciliation.getStatus().equals("暂缓"));
         approvalDetailVO.setStatus(ebReconciliation.getStatus());
         List<EbReconciliation> list = lambdaQuery().eq(EbReconciliation::getUserId, ebReconciliation.getUserId()).list();
         //把当前的审批记录排除
@@ -199,11 +199,14 @@ public class EbReconciliationServiceImpl extends ServiceImpl<EbReconciliationMap
         }else{
             List<ApprovalRecordVO> approvalRecordVOList = list.stream().map(reconciliation -> {
                 ApprovalRecordVO approvalRecordVO = new ApprovalRecordVO();
-                approvalRecordVO.setReconciliationNo(reconciliation.getReconciliationNo());
-                approvalRecordVO.setApprovalStatus(reconciliation.getStatus());
-                approvalRecordVO.setApprovalTime(reconciliation.getApprovalTime());
-                approvalRecordVO.setApprovalOperator(adminMapper.selectById(reconciliation.getApproverId()).getAccount());
-                approvalRecordVO.setComment(reconciliation.getComment());
+                //审批人id需要判断存在, 不存在说明未审批
+                if(reconciliation.getApproverId() != null) {
+                    approvalRecordVO.setReconciliationNo(reconciliation.getReconciliationNo());
+                    approvalRecordVO.setApprovalStatus(reconciliation.getStatus());
+                    approvalRecordVO.setApprovalTime(reconciliation.getApprovalTime());
+                    approvalRecordVO.setApprovalOperator(adminMapper.selectById(reconciliation.getApproverId()).getAccount());
+                    approvalRecordVO.setComment(reconciliation.getComment());
+                }
                 return approvalRecordVO;
             }).collect(Collectors.toList());
             approvalDetailVO.setApprovalRecordList(approvalRecordVOList);

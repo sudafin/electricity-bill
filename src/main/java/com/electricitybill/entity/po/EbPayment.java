@@ -26,7 +26,7 @@ public class EbPayment implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id", type = IdType.INPUT)
     private Long id;
     /**
      * 操作员ID
@@ -40,7 +40,7 @@ public class EbPayment implements Serializable {
     /**
      * 订单号
      */
-    private String orderNo;
+    private Long reconciliationId;
 
     /**
      * 支付金额
