@@ -1,4 +1,4 @@
-package com.electricitybill.controller.auth;
+package com.electricitybill.controller.admin;
 
 
 import com.electricitybill.entity.R;
@@ -28,7 +28,7 @@ public class EbAdminController {
     private IEbAdminService ebAdminService;
 
     //生成RSA密钥对
-    private static final KeyPair keyPair = RSAUtils.generateKeyPair();
+    public static final KeyPair keyPair = RSAUtils.generateKeyPair();
 
 
     //将生成的RSA公钥接口暴露给前端,前端的密码需要加密传递

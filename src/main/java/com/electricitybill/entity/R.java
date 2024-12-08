@@ -39,6 +39,9 @@ public class R<T> {
         return new R<>(code, msg, null);
     }
 
+    public static <T> R<T> of(int code, String msg, T data) {
+        return new R<>(code, msg, data);
+    }
     public R() {
     }
 
