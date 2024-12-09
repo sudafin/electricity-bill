@@ -50,6 +50,7 @@ public interface Constant {
     String DATA_UPDATE_FAILURE = "数据更新失败";
     String NOTIFICATION_NOT_FOUND = "通知不存在";
     String PAYMENT_NOT_EXIST = "支付订单不存在";
+    String INVALID_Report_TYPE = "无效的报表类型";
 
     interface Code{
         int SUCCESS = 200;
