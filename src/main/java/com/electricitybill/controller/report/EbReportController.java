@@ -9,6 +9,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,6 +34,12 @@ public class EbReportController {
     @GetMapping
     public List<ReportDataVO> getReportData(ReportDTO reportDTO) {
         return ebElectricityUsageService.getReportData(reportDTO);
+    }
+
+    @GetMapping("/export")
+    @ApiOperation("导出运营数据报表")
+    public void export(ReportDTO reportDTO,HttpServletResponse response) throws IOException {
+        ebElectricityUsageService.export( reportDTO,response);
     }
 
 }

@@ -111,7 +111,37 @@
             <artifactId>swagger-annotations</artifactId>
             <version>1.5.22</version>
         </dependency>
+        <!-- poi -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>5.2.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.2.3</version>  <!-- 或者使用更新的版本 -->
+        </dependency>
+        <!-- Apache POI 图表支持依赖 -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml-schemas</artifactId>
+            <version>4.1.2</version> <!-- 版本应与 poi-ooxml 一致 -->
+        </dependency>
 
+        <!-- XMLBeans 依赖 -->
+        <dependency>
+            <groupId>org.apache.xmlbeans</groupId>
+            <artifactId>xmlbeans</artifactId>
+            <version>5.1.1</version> <!-- 版本应与 poi-ooxml 一致 -->
+        </dependency>
+
+        <!-- Commons Compress 依赖 -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>1.21</version> <!-- 版本应与 poi-ooxml 一致 -->
+        </dependency>
     </dependencies>
     <dependencyManagement>
         <dependencies>

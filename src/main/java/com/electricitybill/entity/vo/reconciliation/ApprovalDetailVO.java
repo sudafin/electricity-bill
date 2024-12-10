@@ -13,5 +13,5 @@ public class ApprovalDetailVO {
     private String comment;
     private Boolean isApproved;
     private String status;
-    List<ApprovalRecordVO> approvalRecordList;
+    private List<ApprovalRecordVO> approvalRecordList;
 }

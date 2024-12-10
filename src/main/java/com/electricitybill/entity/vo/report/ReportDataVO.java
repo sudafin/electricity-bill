@@ -8,6 +8,7 @@ import java.time.LocalDate;
 @Data
 public class ReportDataVO {
     private LocalDate date;
+    private String dateTimeStr;
     private BigDecimal feeAmount;
     private BigDecimal electricityUsage;
 }

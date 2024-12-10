@@ -8,6 +8,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.electricitybill.entity.vo.payment.PaymentDetailVO;
 import com.electricitybill.entity.vo.payment.PaymentPageVO;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -27,4 +29,6 @@ public interface IEbPaymentService extends IService<EbPayment> {
     R deleteUser(List<Long> ids);
 
     R refundPayment(Long paymentId);
+
+    void export(HttpServletResponse response) throws IOException;
 }

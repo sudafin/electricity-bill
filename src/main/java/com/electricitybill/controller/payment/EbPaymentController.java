@@ -7,9 +7,12 @@ import com.electricitybill.entity.dto.paymennt.PaymentPageQuery;
 import com.electricitybill.entity.vo.payment.PaymentDetailVO;
 import com.electricitybill.entity.vo.payment.PaymentPageVO;
 import com.electricitybill.service.IEbPaymentService;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -41,5 +44,10 @@ public class EbPaymentController {
     @PutMapping("refund/{id}")
     public R refundPayment(@PathVariable(name = "id") Long paymentId){
         return ebPaymentService.refundPayment(paymentId);
+    }
+    @GetMapping("/export")
+    @ApiOperation("导出运营数据报表")
+    public void export(HttpServletResponse response) throws IOException {
+        ebPaymentService.export(response);
     }
 }

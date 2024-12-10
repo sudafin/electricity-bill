@@ -7,14 +7,22 @@ import com.electricitybill.enums.ReportType;
 import com.electricitybill.mapper.EbElectricityUsageMapper;
 import com.electricitybill.service.IEbElectricityUsageService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.electricitybill.utils.CollUtils;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xddf.usermodel.PresetColor;
+import org.apache.poi.xddf.usermodel.XDDFColor;
+import org.apache.poi.xddf.usermodel.XDDFSolidFillProperties;
+import org.apache.poi.xddf.usermodel.chart.*;
+import org.apache.poi.xssf.usermodel.*;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.Month;
-import java.time.YearMonth;
+import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -93,4 +101,157 @@ public class EbElectricityUsageServiceImpl extends ServiceImpl<EbElectricityUsag
         }
         return reportDataVOS;
     }
+
+    @Override
+    public void export(ReportDTO reportDTO, HttpServletResponse response) throws IOException {
+        List<EbElectricityUsage> ebElectricityUsageList = lambdaQuery()
+                .between(EbElectricityUsage::getStartTime, reportDTO.getStartDate(), reportDTO.getEndDate())
+                .list();
+
+        // 获取报告类型和日期范围
+        LocalDateTime startDate = reportDTO.getStartDate();
+        LocalDateTime endDate = reportDTO.getEndDate();
+        List<ReportDataVO> reportDataVOS = new ArrayList<>();
+
+        // 根据报表类型获取数据
+        if (ReportType.DAILY.getDesc().equals(reportDTO.getReportType())) {
+            while (startDate.isBefore(endDate)) {
+                ReportDataVO reportDataVO = new ReportDataVO();
+                reportDataVO.setDate(startDate.toLocalDate());
+                // 设置日期时间格式为 "yyyy-MM-dd"
+                reportDataVO.setFeeAmount(BigDecimal.ZERO);
+                reportDataVO.setElectricityUsage(BigDecimal.ZERO);
+
+                LocalDateTime finalStartDate = startDate;
+                ebElectricityUsageList.stream()
+                        .filter(ebElectricityUsage -> finalStartDate.toLocalDate().equals(ebElectricityUsage.getStartTime().toLocalDate()))
+                        .forEach(ebElectricityUsage -> {
+                            reportDataVO.setFeeAmount(reportDataVO.getFeeAmount().add(ebElectricityUsage.getFeeAmount()));
+                            reportDataVO.setElectricityUsage(reportDataVO.getElectricityUsage().add(ebElectricityUsage.getUsageAmount()));
+                        });
+
+                reportDataVOS.add(reportDataVO);
+                startDate = startDate.plusDays(1);
+            }
+        } else if (ReportType.MONTHLY.getDesc().equals(reportDTO.getReportType())) {
+            YearMonth startYearMonth = YearMonth.from(startDate);
+            YearMonth endYearMonth = YearMonth.from(endDate);
+            while (!startYearMonth.isAfter(endYearMonth)) {
+                ReportDataVO reportDataVO = new ReportDataVO();
+                reportDataVO.setDate(startYearMonth.atDay(1));  // 设置为每月的第一天
+                // 设置日期时间格式为 "yyyy-MM"
+                reportDataVO.setDateTimeStr(startYearMonth.format(DateTimeFormatter.ofPattern("yyyy-MM")));
+                reportDataVO.setFeeAmount(BigDecimal.ZERO);
+                reportDataVO.setElectricityUsage(BigDecimal.ZERO);
+
+                YearMonth finalStartYearMonth = startYearMonth;
+                ebElectricityUsageList.stream()
+                        .filter(ebElectricityUsage -> YearMonth.from(ebElectricityUsage.getStartTime()).equals(finalStartYearMonth))
+                        .forEach(ebElectricityUsage -> {
+                            reportDataVO.setFeeAmount(reportDataVO.getFeeAmount().add(ebElectricityUsage.getFeeAmount()));
+                            reportDataVO.setElectricityUsage(reportDataVO.getElectricityUsage().add(ebElectricityUsage.getUsageAmount()));
+                        });
+
+                reportDataVOS.add(reportDataVO);
+                startYearMonth = startYearMonth.plusMonths(1);
+            }
+        } else if (ReportType.YEARLY.getDesc().equals(reportDTO.getReportType())) {
+            Year startYear = Year.from(startDate);
+            Year endYear = Year.from(endDate);
+            while (!startYear.isAfter(endYear)) {
+                ReportDataVO reportDataVO = new ReportDataVO();
+                reportDataVO.setDate(startYear.atDay(1));
+                // 设置日期时间格式为 "yyyy"
+                reportDataVO.setDateTimeStr(startYear.format(DateTimeFormatter.ofPattern("yyyy")));
+                reportDataVO.setFeeAmount(BigDecimal.ZERO);
+                reportDataVO.setElectricityUsage(BigDecimal.ZERO);
+
+                Year finalStartYear = startYear;
+                ebElectricityUsageList.stream()
+                        .filter(ebElectricityUsage -> finalStartYear.equals(Year.from(ebElectricityUsage.getStartTime())))
+                        .forEach(ebElectricityUsage -> {
+                            reportDataVO.setFeeAmount(reportDataVO.getFeeAmount().add(ebElectricityUsage.getFeeAmount()));
+                            reportDataVO.setElectricityUsage(reportDataVO.getElectricityUsage().add(ebElectricityUsage.getUsageAmount()));
+                        });
+
+                reportDataVOS.add(reportDataVO);
+                startYear = startYear.plusYears(1);
+            }
+        }
+
+        // 创建Excel文件
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Report Data");
+
+        // 设置表头
+        Row headerRow = sheet.createRow(0);
+        headerRow.createCell(0).setCellValue("日期");
+        headerRow.createCell(1).setCellValue("金额");
+        headerRow.createCell(2).setCellValue("用电量");
+
+        // 填充数据
+        int rowIndex = 1;
+        List<String> dates = new ArrayList<>();
+        List<Double> feeAmounts = new ArrayList<>();
+        List<Double> electricityUsages = new ArrayList<>();
+
+        for (ReportDataVO reportDataVO : reportDataVOS) {
+            Row row = sheet.createRow(rowIndex++);
+            // 使用 getDateTimeStr() 获取格式化后的日期时间字符串
+            row.createCell(0).setCellValue(reportDataVO.getDateTimeStr());
+            row.createCell(1).setCellValue(reportDataVO.getFeeAmount().doubleValue());
+            row.createCell(2).setCellValue(reportDataVO.getElectricityUsage().doubleValue());
+
+            dates.add(reportDataVO.getDateTimeStr());
+            feeAmounts.add(reportDataVO.getFeeAmount().doubleValue());
+            electricityUsages.add(reportDataVO.getElectricityUsage().doubleValue());
+        }
+
+        // 创建图表
+        XSSFDrawing drawing = (XSSFDrawing) sheet.createDrawingPatriarch();
+        XSSFClientAnchor anchor = drawing.createAnchor(0, 0, 0, 0, 5, 0, 15, 10);
+        XSSFChart chart = drawing.createChart(anchor);
+        chart.setTitleText("Report Chart");
+        chart.setTitleOverlay(false);
+
+        // 创建类别轴和数值轴
+        XDDFCategoryAxis categoryAxis = chart.createCategoryAxis(AxisPosition.BOTTOM);
+        categoryAxis.setTitle("Date");
+
+        XDDFValueAxis valueAxis = chart.createValueAxis(AxisPosition.LEFT);
+        valueAxis.setTitle("Amount");
+
+        // 创建数据源（从填充的数据中创建）
+        XDDFDataSource<String> dateSource = XDDFDataSourcesFactory.fromStringCellRange((XSSFSheet) sheet, new CellRangeAddress(1, rowIndex - 1, 0, 0)); // 日期列
+        XDDFNumericalDataSource<Double> feeAmountSource = XDDFDataSourcesFactory.fromNumericCellRange((XSSFSheet) sheet, new CellRangeAddress(1, rowIndex - 1, 1, 1)); // Fee Amount 列
+
+        // 创建柱状图数据
+        XDDFBarChartData barChartData = (XDDFBarChartData) chart.createData(ChartTypes.BAR, categoryAxis, valueAxis);
+        XDDFBarChartData.Series series1 = (XDDFBarChartData.Series) barChartData.addSeries(dateSource, feeAmountSource);
+        series1.setTitle("Fee Amount", null);
+
+        // 创建折线图数据
+        XDDFNumericalDataSource<Double> electricityUsageSource = XDDFDataSourcesFactory.fromNumericCellRange((XSSFSheet) sheet, new CellRangeAddress(1, rowIndex - 1, 2, 2)); // Electricity Usage 列
+
+        XDDFLineChartData lineChartData = (XDDFLineChartData) chart.createData(ChartTypes.LINE, categoryAxis, valueAxis);
+        XDDFLineChartData.Series series2 = (XDDFLineChartData.Series) lineChartData.addSeries(dateSource, electricityUsageSource);
+        series2.setTitle("Electricity Usage", null);
+
+        // 设置折线图样式
+        XDDFSolidFillProperties fill = new XDDFSolidFillProperties(XDDFColor.from(PresetColor.BLUE));
+        series2.setFillProperties(fill);
+
+        // 绘制图表
+        chart.plot(barChartData);
+        chart.plot(lineChartData);
+
+        // 设置响应头
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment; filename=report_data_with_chart.xlsx");
+
+        // 将工作簿写入输出流
+        workbook.write(response.getOutputStream());
+        workbook.close();
+    }
+
 }

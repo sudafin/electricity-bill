@@ -10,6 +10,9 @@ import com.electricitybill.entity.vo.reconciliation.ApprovalDetailVO;
 import com.electricitybill.entity.vo.reconciliation.ReconciliationDetailVO;
 import com.electricitybill.entity.vo.reconciliation.ReconciliationPageVO;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
 /**
  * <p>
  *  服务类
@@ -27,4 +30,6 @@ public interface IEbReconciliationService extends IService<EbReconciliation> {
     R approveReconciliation(Long reconciliationId, ApprovalDTO approvalDTO);
 
     ApprovalDetailVO queryApprovalReconciliationDetail(Long reconciliationId);
+
+    void export(HttpServletResponse response) throws IOException;
 }

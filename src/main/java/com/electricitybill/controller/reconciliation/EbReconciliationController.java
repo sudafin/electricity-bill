@@ -9,9 +9,12 @@ import com.electricitybill.entity.vo.reconciliation.ApprovalDetailVO;
 import com.electricitybill.entity.vo.reconciliation.ReconciliationDetailVO;
 import com.electricitybill.entity.vo.reconciliation.ReconciliationPageVO;
 import com.electricitybill.service.IEbReconciliationService;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 /**
  * <p>
@@ -44,5 +47,11 @@ public class EbReconciliationController {
     @PutMapping("approve/{id}")
     public R approveReconciliation(@PathVariable(name = "id") Long reconciliationId, @RequestBody ApprovalDTO approvalDTO){
         return ebReconciliationService.approveReconciliation(reconciliationId,approvalDTO);
+    }
+
+    @GetMapping("/export")
+    @ApiOperation("导出运营数据报表")
+    public void export(HttpServletResponse response) throws IOException {
+        ebReconciliationService.export(response);
     }
 }

@@ -7,6 +7,9 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.electricitybill.entity.vo.log.LogDetailVO;
 import com.electricitybill.entity.vo.log.LogPageVO;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
 /**
  * <p>
  *  服务类
@@ -20,4 +23,6 @@ public interface IEbSystemLogService extends IService<EbSystemLog> {
     PageDTO<LogPageVO> queryPage(LogPageQuery logPageQuery);
 
     LogDetailVO queryDetail(Long id);
+
+    void export(HttpServletResponse response) throws IOException;
 }
