@@ -1,11 +1,9 @@
 package com.electricitybill.interceptor;
 
 import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.json.JSONObject;
+
 import cn.hutool.json.JSONUtil;
 import com.electricitybill.entity.dto.admin.AdminDTO;
-import com.electricitybill.utils.BeanUtils;
-import com.electricitybill.utils.ObjectUtils;
 import com.electricitybill.utils.UserContextUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
 

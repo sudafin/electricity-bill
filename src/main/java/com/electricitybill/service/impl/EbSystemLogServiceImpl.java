@@ -4,23 +4,28 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.electricitybill.constants.Constant;
 import com.electricitybill.entity.dto.PageDTO;
+import com.electricitybill.entity.dto.log.LogDTO;
 import com.electricitybill.entity.dto.log.LogPageQuery;
+import com.electricitybill.entity.po.EbAdmin;
 import com.electricitybill.entity.po.EbSystemLog;
 import com.electricitybill.entity.vo.log.LogDetailVO;
 import com.electricitybill.entity.vo.log.LogPageVO;
 import com.electricitybill.expcetions.BadRequestException;
+import com.electricitybill.mapper.EbAdminMapper;
 import com.electricitybill.mapper.EbSystemLogMapper;
 import com.electricitybill.service.IEbSystemLogService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.electricitybill.utils.CollUtils;
 import com.electricitybill.utils.ObjectUtils;
 import com.electricitybill.utils.StringUtils;
+import com.electricitybill.utils.UserContextUtils;
 import nonapi.io.github.classgraph.json.JSONUtils;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -40,7 +45,8 @@ import java.util.function.Function;
  */
 @Service
 public class EbSystemLogServiceImpl extends ServiceImpl<EbSystemLogMapper, EbSystemLog> implements IEbSystemLogService {
-
+    @Resource
+    private EbAdminMapper ebAdminMapper;
     @Override
     public PageDTO<LogPageVO> queryPage(LogPageQuery logPageQuery) {
         Page<EbSystemLog> ebSystemLogPage = new Page<>(logPageQuery.getPageNo(), logPageQuery.getPageSize());
@@ -87,6 +93,7 @@ public class EbSystemLogServiceImpl extends ServiceImpl<EbSystemLogMapper, EbSys
         logDetailVO.setRequestParams(JSONUtil.escape(ebSystemLog.getRequestParams()));
         logDetailVO.setResponseData(ebSystemLog.getResponseData());
         logDetailVO.setErrorMsg(ebSystemLog.getErrorMsg());
+        logDetailVO.setRequestBody(ebSystemLog.getRequestBody());
         logDetailVO.setCreateTime(ebSystemLog.getCreatedAt());
         return logDetailVO;
     }
@@ -97,7 +104,7 @@ public class EbSystemLogServiceImpl extends ServiceImpl<EbSystemLogMapper, EbSys
         // 获取表的行数
         int row = list.size();
         // 获取表的各个列名
-        String[] columnName = {"Id", "操作人", "操作类型", "模块", "描述", "IP", "状态", "请求参数", "返回参数", "用户设备", "错误信息", "创建时间"};
+        String[] columnName = {"Id", "操作人", "操作类型", "模块", "描述", "IP", "状态", "请求参数","请求数据", "返回数据", "用户设备", "错误信息", "创建时间"};
 
         // 创建工作簿和表格
         Workbook excel = new XSSFWorkbook();
@@ -134,6 +141,7 @@ public class EbSystemLogServiceImpl extends ServiceImpl<EbSystemLogMapper, EbSys
         columnMap.put(5, EbSystemLog::getIp);
         columnMap.put(6, EbSystemLog::getStatus);
         columnMap.put(7, EbSystemLog::getRequestParams);
+        columnMap.put(9, EbSystemLog::getRequestBody);
         columnMap.put(8, EbSystemLog::getResponseData);
         columnMap.put(9, EbSystemLog::getUserAgent);
         columnMap.put(10, EbSystemLog::getErrorMsg);
@@ -170,6 +178,45 @@ public class EbSystemLogServiceImpl extends ServiceImpl<EbSystemLogMapper, EbSys
         // 写入输出流
         excel.write(response.getOutputStream());
         excel.close();
+    }
+
+    @Override
+    public void saveLog(LogDTO logDTO) {
+        EbSystemLog ebSystemLog = new EbSystemLog();
+        Long user = UserContextUtils.getUser();
+        EbAdmin ebAdmin = ebAdminMapper.selectById(user);
+        ebSystemLog.setOperatorId(ebAdmin.getId());
+        ebSystemLog.setOperatorName(ebAdmin.getAccount());
+        ebSystemLog.setRequestBody(logDTO.getRequestBody());
+        ebSystemLog.setRequestParams(logDTO.getRequestParamMap());
+        ebSystemLog.setResponseData(logDTO.getResponseBody());
+        ebSystemLog.setIp(logDTO.getIp());
+        ebSystemLog.setUserAgent(logDTO.getUserAgent());
+        ebSystemLog.setStatus("success");
+        ebSystemLog.setErrorMsg(logDTO.getErrorMsg());
+        //eg: /user/page ,拿到第一个字符串
+        String[] split = logDTO.getPath().split("/");
+        String module = split[1];
+        ebSystemLog.setModule(module);
+        String method = logDTO.getMethod();
+        switch (method) {
+            case "GET":
+                ebSystemLog.setOperationType("查询");
+                ebSystemLog.setDescription(ebAdmin.getAccount() +"查询" + module);
+            break;
+            case "POST": ebSystemLog.setOperationType("新增");
+            ebSystemLog.setDescription(ebAdmin.getAccount() +"新增" + module);
+            break;
+            case "PUT": ebSystemLog.setOperationType("修改");
+            ebSystemLog.setDescription(ebAdmin.getAccount() +"修改" + module);
+            break;
+            case "DELETE": ebSystemLog.setOperationType("删除");
+            ebSystemLog.setDescription(ebAdmin.getAccount() +"删除" + module);
+            break;
+            default: ebSystemLog.setOperationType("未知");
+            ebSystemLog.setDescription("未知");
+        }
+        save(ebSystemLog);
     }
 
 }

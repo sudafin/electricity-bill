@@ -8,6 +8,7 @@ import com.electricitybill.config.MyConfig;
 import com.electricitybill.entity.dto.admin.AdminDTO;
 import com.electricitybill.utils.JwtUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -22,7 +23,7 @@ import org.springframework.util.AntPathMatcher;
 
 @Slf4j
 @Component
-@WebFilter(urlPatterns = "/*")  // Filter will be applied to all incoming requests
+@WebFilter(urlPatterns = "/*")
 public class AuthorizeFilter extends OncePerRequestFilter {
 
     @Resource
@@ -34,13 +35,9 @@ public class AuthorizeFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request,  HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-
-        log.debug("请求路径:{}", request.getRequestURI());
-
+        HttpServletRequest requestWrapper = new CxmHttpServletRequestWrapper((HttpServletRequest) request);
         // 获取请求路径
         String path  = request.getRequestURI();
-
-
         // 查看请求路径是否在这个白名单中
         if (isExclude(path)) {
             filterChain.doFilter(request, response);  // 白名单路径跳过过滤
@@ -86,8 +83,6 @@ public class AuthorizeFilter extends OncePerRequestFilter {
         // 将用户信息放入请求头中，供后续处理使用
         request.setAttribute("userInfo", JSONUtil.toJsonStr(adminDTO));
 
-        // 可以在此做进一步的鉴权操作，决定是否允许继续访问
-        // TODO: 自定义鉴权操作
 
         filterChain.doFilter(request, response);  // 继续过滤链
     }

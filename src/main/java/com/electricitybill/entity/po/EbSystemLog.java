@@ -59,6 +59,11 @@ public class EbSystemLog implements Serializable {
     private String requestParams;
 
     /**
+     * 请求体
+     */
+    private String requestBody;
+
+    /**
      * 响应数据
      */
     private String responseData;

@@ -13,6 +13,7 @@ public class LogDetailVO {
     private String ip;
     private String status;
     private String requestParams;
+    private String requestBody;
     private String responseData;
     private String errorMsg;
     private LocalDateTime createTime;

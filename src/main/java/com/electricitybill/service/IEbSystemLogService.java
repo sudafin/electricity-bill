@@ -1,6 +1,7 @@
 package com.electricitybill.service;
 
 import com.electricitybill.entity.dto.PageDTO;
+import com.electricitybill.entity.dto.log.LogDTO;
 import com.electricitybill.entity.dto.log.LogPageQuery;
 import com.electricitybill.entity.po.EbSystemLog;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -25,4 +26,6 @@ public interface IEbSystemLogService extends IService<EbSystemLog> {
     LogDetailVO queryDetail(Long id);
 
     void export(HttpServletResponse response) throws IOException;
+
+    void saveLog(LogDTO logDTO);
 }

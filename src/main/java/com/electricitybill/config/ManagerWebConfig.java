@@ -1,7 +1,10 @@
 package com.electricitybill.config;
 
+import com.electricitybill.filter.CxmRequestValidFilter;
+import com.electricitybill.interceptor.RoleInterceptor;
 import com.electricitybill.interceptor.UserInfoInterceptor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -34,13 +37,29 @@ public class ManagerWebConfig implements WebMvcConfigurer {
     public UserInfoInterceptor userInfoInterceptor(){
         return new UserInfoInterceptor();
     };
-
+    @Bean
+    public RoleInterceptor roleInterceptor(){
+        return new RoleInterceptor();
+    }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         // 用户信息拦截器
-        registry.addInterceptor(userInfoInterceptor())
-                .excludePathPatterns(EXCLUDE_PATH_PATTERNS).addPathPatterns("/**");
+        registry.addInterceptor(userInfoInterceptor()).excludePathPatterns(EXCLUDE_PATH_PATTERNS).addPathPatterns("/**");
+        // 角色拦截器
+        registry.addInterceptor(roleInterceptor()).excludePathPatterns(EXCLUDE_PATH_PATTERNS).addPathPatterns("/**");
     }
+
+    @Bean
+    public FilterRegistrationBean<CxmRequestValidFilter> Filters() {
+        FilterRegistrationBean<CxmRequestValidFilter> register = new FilterRegistrationBean<CxmRequestValidFilter>();
+        register.setFilter(new CxmRequestValidFilter());
+        register.addUrlPatterns("/*");
+        // 初始化filter的参数
+        register.addInitParameter("profile", "profile");
+        register.setName("cxmRequestValidFilter");
+        return register;
+    }
+
 
 }
