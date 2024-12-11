@@ -162,6 +162,11 @@ public class EbRoleServiceImpl extends ServiceImpl<EbRoleMapper, EbRole> impleme
         if (ObjectUtils.isEmpty(ebRole)) {
             throw new BadRequestException(Constant.ROLE_NOT_EXIST);
         }
+        ebAdmin.setRoleId(ebRole.getId());
+        if(StringUtils.isNotBlank(roleEditDTO.getAccount())){
+            ebAdmin.setAccount(roleEditDTO.getAccount());
+        }
+        if(StringUtils.isNotBlank(roleEditDTO.getPassword())){
         //对密码解密
         try {
             //keyPair在EbAdminController中设为public static便于获取, 因为在需要用EbAdminController中用这个生成公钥密钥,我们才能使用RSA私钥解密
@@ -169,10 +174,9 @@ public class EbRoleServiceImpl extends ServiceImpl<EbRoleMapper, EbRole> impleme
             //对密码进行bcrypt加密
             String encodedPassword = passwordEncoder.encode(decryptedPassword);
             ebAdmin.setPassword(encodedPassword);
-            ebAdmin.setRoleId(ebRole.getId());
-            ebAdmin.setAccount(roleEditDTO.getAccount());
         } catch (Exception e) {
             throw new BizIllegalException("密码安全问题");
+        }
         }
         int update = ebAdminMapper.updateById(ebAdmin);
         if (update != 1) {
@@ -317,7 +321,7 @@ public class EbRoleServiceImpl extends ServiceImpl<EbRoleMapper, EbRole> impleme
      * @param permissionIds 当前有效的权限ID列表
      * @return 返回一个新的、经过过滤和排序的权限与角色映射
      */
-    private static Map<Long, List<Long>> currentPermissionRoleMap(Map<Long, List<Long>> permissionRoleMap, List<Long> permissionIds) {
+    public Map<Long, List<Long>> currentPermissionRoleMap(Map<Long, List<Long>> permissionRoleMap, List<Long> permissionIds) {
         //permissionIds和permissionRoleMap进行排除,
         //把permissionRoleMap中没有permissionIds的key去掉
         permissionRoleMap.keySet().removeIf(key -> !permissionIds.contains(key));
@@ -351,7 +355,7 @@ public class EbRoleServiceImpl extends ServiceImpl<EbRoleMapper, EbRole> impleme
      *
      * @return HashMap<Long, List<Long>> 返回一个HashMap，键为权限ID，值为子权限ID列表
      */
-    private Map<Long, List<Long>> permissionRoleIdToMap() {
+    public Map<Long, List<Long>> permissionRoleIdToMap() {
         // 查询所有权限记录
         List<EbPermission> ebPermissionList = ebPermissionMapper.selectList(new LambdaQueryWrapper<>());
         // 初始化权限映射HashMap

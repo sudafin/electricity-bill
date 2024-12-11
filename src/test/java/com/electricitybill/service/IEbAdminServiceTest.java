@@ -80,8 +80,8 @@ class IEbAdminServiceTest {
 
     @Test
     void testSpilt(){
-        String str ="/user/page";
-        String[] split = str.split("/");
+        String str ="page";
+        String[] split = str.split(":");
         System.out.println(Arrays.toString(split));
     }
 

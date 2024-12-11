@@ -13,6 +13,7 @@ import com.electricitybill.entity.vo.role.RoleInfoVO;
 import com.electricitybill.entity.vo.role.RolePageVO;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -39,4 +40,6 @@ public interface IEbRoleService extends IService<EbRole> {
     List<PermissionDTO> getPermissionList();
 
     List<RoleInfoVO> roleList();
+    Map<Long, List<Long>> permissionRoleIdToMap();
+    Map<Long, List<Long>> currentPermissionRoleMap(Map<Long, List<Long>> permissionRoleMap, List<Long> permissionIds);
 }

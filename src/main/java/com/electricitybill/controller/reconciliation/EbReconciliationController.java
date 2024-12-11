@@ -40,7 +40,7 @@ public class EbReconciliationController {
         return ebReconciliationService.queryReconciliationDetail(reconciliationId);
     }
 
-    @GetMapping("/approval/detail/{id}")
+    @GetMapping("/approve/detail/{id}")
     public ApprovalDetailVO queryApprovalReconciliationDetail(@PathVariable(name = "id") Long reconciliationId){
         return ebReconciliationService.queryApprovalReconciliationDetail(reconciliationId);
     }
