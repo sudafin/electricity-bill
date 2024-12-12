@@ -1,5 +1,9 @@
 package com.electricitybill.service.impl;
 
+import cn.hutool.captcha.CaptchaUtil;
+import cn.hutool.captcha.CircleCaptcha;
+import cn.hutool.captcha.GifCaptcha;
+import cn.hutool.captcha.ICaptcha;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.electricitybill.constants.Constant;
 import com.electricitybill.entity.R;
@@ -9,6 +13,7 @@ import com.electricitybill.entity.po.EbAdmin;
 import com.electricitybill.entity.po.EbRole;
 import com.electricitybill.entity.vo.admin.LoginVO;
 import com.electricitybill.enums.AdminStatusType;
+import com.electricitybill.expcetions.DbException;
 import com.electricitybill.expcetions.ForbiddenException;
 import com.electricitybill.expcetions.UnauthorizedException;
 import com.electricitybill.mapper.EbAdminMapper;
@@ -17,11 +22,18 @@ import com.electricitybill.service.IEbAdminService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.electricitybill.utils.JwtUtils;
 import com.electricitybill.utils.ObjectUtils;
+import com.electricitybill.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
@@ -41,6 +53,8 @@ public class EbAdminServiceImpl extends ServiceImpl<EbAdminMapper, EbAdmin> impl
     private PasswordEncoder passwordEncoder;
     @Resource
     private EbRoleMapper ebRoleMapper;
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
     @Override
     public R<LoginVO> login(AdminFormDTO adminFormDTO) {
         log.info("前端登录信息：{}", adminFormDTO);
@@ -50,12 +64,12 @@ public class EbAdminServiceImpl extends ServiceImpl<EbAdminMapper, EbAdmin> impl
         EbAdmin admin = lambdaQuery().eq(EbAdmin::getAccount, account).one();
         //判断账号是否存在
         if (ObjectUtils.isEmpty(admin)) {
-            throw new UnauthorizedException(Constant.ACCOUNT_NOT_EXIST);
+           R.error(4001,"账号不存在");
         }
         //判断密码是否正确,通过bcrypt加密的匹配password是真秘密, admin.getPassword()是加密后的密码,返回值判断是否匹配
         boolean matches = passwordEncoder.matches(password, admin.getPassword());
         if (!matches) {
-            throw new UnauthorizedException(Constant.ACCOUNT_PASSWORD_ERROR);
+            R.error(4001,"账号或密码错误");
         }
         //判断是否启用
         if (admin.getStatus() == AdminStatusType.DISABLE.getValue()) {
@@ -79,6 +93,45 @@ public class EbAdminServiceImpl extends ServiceImpl<EbAdminMapper, EbAdmin> impl
         }
         log.debug("token:{}", token);
         return R.ok(LoginVO.builder().adminDTO(adminDTO).token(token).build());
+    }
+
+    @Override
+    public void create(String key, HttpServletResponse response) throws IOException {
+        if (StringUtils.isBlank(key)) {
+            throw new DbException("验证码key不能为空");
+        }
+        //参数一是响应对象，参数二是验证码类型
+        setHeader(response, "png");
+        ICaptcha captcha = CaptchaUtil.createCircleCaptcha(150, 40, 4, 4);
+        stringRedisTemplate.opsForValue().set(key, (captcha.getCode()), 1, TimeUnit.MINUTES);
+        captcha.write(response.getOutputStream());
+    }
+
+    @Override
+    public boolean checkCaptcha(String key, String code) {
+        String captchaCode = stringRedisTemplate.opsForValue().get(key);
+        if(captchaCode == null){
+            //验证码过期
+            return false;
+        }
+        if(!StringUtils.equalsIgnoreCase(code,captchaCode)){
+            //验证码不对
+            return false;
+        }
+        //到现在增加验证码的有效时间,防止后面可能用户再次输入本验证码
+        stringRedisTemplate.expire(key, 5, TimeUnit.MINUTES);
+        return true;
+    }
+
+    private void setHeader(HttpServletResponse response, String type) {
+        if (StringUtils.equalsIgnoreCase(type, "gif")) {
+            response.setContentType(MediaType.IMAGE_GIF_VALUE);
+        } else {
+            response.setContentType(MediaType.IMAGE_PNG_VALUE);
+        }
+        response.setHeader(HttpHeaders.PRAGMA, "No-cache");
+        response.setHeader(HttpHeaders.CACHE_CONTROL, "No-cache");
+        response.setDateHeader(HttpHeaders.EXPIRES, 0L);
     }
 
 }

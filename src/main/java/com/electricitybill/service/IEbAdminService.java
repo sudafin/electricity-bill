@@ -6,6 +6,10 @@ import com.electricitybill.entity.po.EbAdmin;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.electricitybill.entity.vo.admin.LoginVO;
 
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.constraints.NotNull;
+import java.io.IOException;
+
 /**
  * <p>
  *  服务类
@@ -18,4 +22,7 @@ public interface IEbAdminService extends IService<EbAdmin> {
 
     R<LoginVO> login(AdminFormDTO adminFormDTO);
 
+    void create(String key, HttpServletResponse response) throws IOException;
+
+    boolean checkCaptcha(@NotNull(message = "验证码key不能为空") String key, @NotNull(message = "验证码不能为空") String code);
 }

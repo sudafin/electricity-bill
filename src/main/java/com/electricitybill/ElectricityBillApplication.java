@@ -6,7 +6,10 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.ServletComponentScan;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -14,6 +17,9 @@ import java.net.UnknownHostException;
 @SpringBootApplication
 @MapperScan("com.electricitybill.mapper")
 @ServletComponentScan
+@EnableTransactionManagement
+@EnableCaching
+@EnableScheduling
 @Slf4j
 public class ElectricityBillApplication {
     public static void main(String[] args) throws UnknownHostException {
