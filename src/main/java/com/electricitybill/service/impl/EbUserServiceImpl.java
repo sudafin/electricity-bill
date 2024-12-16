@@ -79,8 +79,28 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
             dashboardVO.setElectricityWeekUsageList(CollUtils.emptyList());
         } else {
             double totalElectricity = ebElectricityUsageList.stream().mapToDouble(usage -> new BigDecimal(String.valueOf(usage.getUsageAmount())).doubleValue()).sum();
-            //最近7天的用电量
-            List<Double> electricityWeekUsageList = ebElectricityUsageList.stream().mapToDouble(usage -> new BigDecimal(String.valueOf(usage.getUsageAmount())).doubleValue()).limit(7).boxed()  //因为mapToDouble返回的是DoubleStream,而collect方法需要的是Stream,所以使用了boxed()方将Double流转换为Double对象的流才能调用collect方法,
+            //将数据倒序,按时间降序,时间最新的在前面方便获取最新的7个数据
+            List<EbElectricityUsage> ebElectricityUsages = ebElectricityUsageList.stream()
+                    .sorted(Comparator.comparing(EbElectricityUsage::getEndTime)
+                            .reversed()).collect(Collectors.toList());
+            //拿到最近7天的数据,没有就设置为0
+            //因为mapToDouble返回的是DoubleStream,而collect方法需要的是Stream,所以使用了boxed()方将Double流转换为Double对象的流才能调用collect方法,
+            List<Double> electricityWeekUsageList = ebElectricityUsages.stream()
+                    //拿到前面最新日期的7个数据
+                    .limit(7)
+                    //再次把最新的日期放到列表最后面
+                    .sorted(Comparator.comparing(EbElectricityUsage::getEndTime))
+                    .mapToDouble(usage->{
+                        //查看最近7个的数据
+                        LocalDateTime endTime = usage.getEndTime();
+                        LocalDate endDate = endTime.toLocalDate();
+                        //如果是最近7天,就加入到list中,否则就跳过
+                        if (endDate.isAfter(LocalDate.now().minusDays(7))) {
+                            return usage.getUsageAmount().doubleValue();
+                        }
+                        return new BigDecimal(0).doubleValue();
+                    })
+                    .boxed()
                     .collect(toList());
             log.debug("总用电量:{}", totalElectricity);
             log.debug("最近7天的用电量:{}", electricityWeekUsageList);

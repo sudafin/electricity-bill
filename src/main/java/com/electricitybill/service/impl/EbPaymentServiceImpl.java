@@ -1,5 +1,6 @@
 package com.electricitybill.service.impl;
 
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.electricitybill.constants.Constant;
@@ -23,6 +24,7 @@ import com.electricitybill.utils.ObjectUtils;
 import com.electricitybill.utils.StringUtils;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -49,6 +51,8 @@ public class EbPaymentServiceImpl extends ServiceImpl<EbPaymentMapper, EbPayment
     private EbReconciliationMapper reconciliationMapper;
     @Resource
     private EbUserMapper ebUserMapper;
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
     @Override
     public PageDTO<PaymentPageVO> queryPage(PaymentPageQuery paymentPageQuery) {
         Page<EbPayment> ebPaymentPage = new Page<>(paymentPageQuery.getPageNo(), paymentPageQuery.getPageSize());
@@ -80,6 +84,10 @@ public class EbPaymentServiceImpl extends ServiceImpl<EbPaymentMapper, EbPayment
 
     @Override
     public PaymentDetailVO queryUserPayment(Long paymentId) {
+        if(Boolean.TRUE.equals(stringRedisTemplate.hasKey(Constant.PAYMENT_DETAIL_KEY))){
+            String paymentDetailJson = (String) stringRedisTemplate.opsForHash().get(Constant.PAYMENT_DETAIL_KEY, paymentId.toString());
+            return JSONUtil.toBean(paymentDetailJson, PaymentDetailVO.class);
+        }
         EbPayment ebPayment = baseMapper.selectById(paymentId);
         if(ObjectUtils.isEmpty(ebPayment)){
             throw new DbException(Constant.PAYMENT_NOT_EXIST);
@@ -100,15 +108,19 @@ public class EbPaymentServiceImpl extends ServiceImpl<EbPaymentMapper, EbPayment
             paymentDetailVO.setReconciliationStatus(ebReconciliation.getStatus());
         }
         paymentDetailVO.setIsReconciliate(ebPayment.getReconciliationId() != null);
+        //设置缓存
+        stringRedisTemplate.opsForHash().put(Constant.PAYMENT_DETAIL_KEY, paymentId.toString(), JSONUtil.toJsonStr(paymentDetailVO));
         return paymentDetailVO;
     }
 
     @Override
-    public R deleteUser(List<Long> ids) {
+    public R deletePayment(List<Long> ids) {
         int deleteBatchIds = baseMapper.deleteBatchIds(ids);
         if (deleteBatchIds != ids.size()) {
             throw new DbException(Constant.DB_DELETE_FAILURE);
         }
+        //删除缓存
+        stringRedisTemplate.delete(Constant.PAYMENT_DETAIL_KEY);
         return R.ok();
     }
 

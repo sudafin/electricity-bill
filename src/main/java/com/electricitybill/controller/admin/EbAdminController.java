@@ -46,7 +46,7 @@ public class EbAdminController {
     public R<LoginVO> login(@RequestBody @Validated AdminFormDTO adminFormDTO) throws Exception {
         //检查验证码
         if(!ebAdminService.checkCaptcha(adminFormDTO.getKey(), adminFormDTO.getCode())){
-            return R.error(4002,"验证码错误");
+            return R.error(4002,"验证码过期或错误");
         }
         //将前端传递过来的加密密码解密
         String decryptedPassword = RSAUtils.decrypt(adminFormDTO.getPassword(), RSAUtils.getPrivateKey(keyPair));

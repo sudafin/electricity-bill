@@ -49,6 +49,7 @@ eb:
     - /v2/api-docs
     - /swagger-resources
     - /webjars/**
+    - /error
 
   swagger:
     enable: true

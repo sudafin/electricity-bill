@@ -1,6 +1,9 @@
 package com.electricitybill.service.impl;
 
+import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.electricitybill.constants.Constant;
@@ -27,6 +30,9 @@ import com.electricitybill.mapper.EbRolePermissionMapper;
 import com.electricitybill.service.IEbRoleService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.electricitybill.utils.*;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import nonapi.io.github.classgraph.json.JSONUtils;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -56,6 +62,9 @@ public class EbRoleServiceImpl extends ServiceImpl<EbRoleMapper, EbRole> impleme
     private EbRoleMapper ebRoleMapper;
     @Resource
     private PasswordEncoder passwordEncoder;
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
+
     @Override
     public PermissionDetailVO editRoleAndAdminDetail(Long id) {
         //获取当前管理人员
@@ -309,6 +318,8 @@ public class EbRoleServiceImpl extends ServiceImpl<EbRoleMapper, EbRole> impleme
             if(CollUtils.isNotEmpty(value))
                 value.forEach(permissionId -> ebRolePermissionMapper.insert(new EbRolePermission().setRoleId(ebRoleId).setPermissionId(permissionId)));
         });
+        //删除缓存
+        stringRedisTemplate.delete(Constant.PERMISSION_ROLE_MAP);
         return R.ok();
     }
 
@@ -322,10 +333,17 @@ public class EbRoleServiceImpl extends ServiceImpl<EbRoleMapper, EbRole> impleme
      * @return 返回一个新的、经过过滤和排序的权限与角色映射
      */
     public Map<Long, List<Long>> currentPermissionRoleMap(Map<Long, List<Long>> permissionRoleMap, List<Long> permissionIds) {
-        //permissionIds和permissionRoleMap进行排除,
-        //把permissionRoleMap中没有permissionIds的key去掉
+        //获取redis的缓存数据
+        String permissionRoleMapJson = stringRedisTemplate.opsForValue().get(Constant.PERMISSION_ROLE_MAP);
+        //查看当前是否有缓存数据
+        if(StrUtil.isNotEmpty(permissionRoleMapJson)){
+            return JSONUtil.toBean(permissionRoleMapJson, new TypeReference<Map<Long, List<Long>>>() {},false);
+        }
+        //没有就重新获取
+            //permissionIds和permissionRoleMap进行排除,
+            //把permissionRoleMap中没有permissionIds的key去掉
         permissionRoleMap.keySet().removeIf(key -> !permissionIds.contains(key));
-        //把permissionRoleMap中list类型的value中没有permissionIds的值去掉
+            //把permissionRoleMap中list类型的value中没有permissionIds的值去掉
         permissionRoleMap.replaceAll((key, value) ->
                 value.stream()
                         .filter(permissionIds::contains)
@@ -344,8 +362,11 @@ public class EbRoleServiceImpl extends ServiceImpl<EbRoleMapper, EbRole> impleme
          *             entry.setValue(filteredValue);
          *         }
          */
-        //permissionRoleMap按key进行排序,通过TreeMap排序
-        return new TreeMap<>(permissionRoleMap);
+        //permissionRoleMap按key进行排序,通过TreeMap排序,并存入到redis缓存中,使用hash结构
+        Map<Long, List<Long>> orderMap = new TreeMap<>(permissionRoleMap);
+        //序列化后存入redis
+        stringRedisTemplate.opsForValue().set(Constant.PERMISSION_ROLE_MAP, JSONUtil.toJsonStr(orderMap));
+        return orderMap;
     }
 
     /**

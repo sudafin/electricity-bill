@@ -39,7 +39,7 @@ public class EbPaymentController {
     }
     @DeleteMapping("delete")
     public R deletePayment(@RequestParam(name = "ids") List<Long> ids){
-        return ebPaymentService.deleteUser(ids);
+        return ebPaymentService.deletePayment(ids);
     }
     @PutMapping("refund/{id}")
     public R refundPayment(@PathVariable(name = "id") Long paymentId){

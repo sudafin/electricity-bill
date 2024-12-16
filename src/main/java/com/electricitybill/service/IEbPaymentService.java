@@ -26,7 +26,7 @@ public interface IEbPaymentService extends IService<EbPayment> {
 
     PaymentDetailVO queryUserPayment(Long paymentId);
 
-    R deleteUser(List<Long> ids);
+    R deletePayment(List<Long> ids);
 
     R refundPayment(Long paymentId);
 

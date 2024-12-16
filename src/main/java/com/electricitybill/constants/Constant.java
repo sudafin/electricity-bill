@@ -53,6 +53,9 @@ public interface Constant {
     String INVALID_Report_TYPE = "无效的报表类型";
     String RATE_NOT_EXIST = "费率不存在";
     String LOG_NOT_EXIST = "日志不存在";
+    String PERMISSION_ROLE_MAP = "permission:role";
+    String RATE_LIST_KEY = "rate:detail";
+    String PAYMENT_DETAIL_KEY = "payment:detail";
 
     interface Code{
         int SUCCESS = 200;
