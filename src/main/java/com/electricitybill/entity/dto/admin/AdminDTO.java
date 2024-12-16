@@ -8,5 +8,6 @@ import lombok.Data;
 public class AdminDTO {
     private String roleName;
     private String userName;
+    private Boolean rememberMe;
     private Long id;
 }

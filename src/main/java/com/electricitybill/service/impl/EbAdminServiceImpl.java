@@ -9,6 +9,7 @@ import com.electricitybill.constants.Constant;
 import com.electricitybill.entity.R;
 import com.electricitybill.entity.dto.admin.AdminDTO;
 import com.electricitybill.entity.dto.admin.AdminFormDTO;
+import com.electricitybill.entity.dto.user.UserDTO;
 import com.electricitybill.entity.po.EbAdmin;
 import com.electricitybill.entity.po.EbRole;
 import com.electricitybill.entity.vo.admin.LoginVO;
@@ -23,7 +24,9 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.electricitybill.utils.JwtUtils;
 import com.electricitybill.utils.ObjectUtils;
 import com.electricitybill.utils.StringUtils;
+import com.electricitybill.utils.WebUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -83,10 +86,24 @@ public class EbAdminServiceImpl extends ServiceImpl<EbAdminMapper, EbAdmin> impl
                 .id(admin.getId())
                 .userName(admin.getAccount())
                 .roleName(ebRole.getRoleName())
+                .rememberMe(adminFormDTO.getRememberMe())
                 .build();
         String token;
         try {
+            //生成token
             token = jwtUtils.createToken(adminDTO);
+            //生成refreshToken
+            String refreshToken = jwtUtils.createRefreshToken(adminDTO);
+            //生成refreshToken在cookie的最大有效期
+            int maxAge = BooleanUtils.isTrue(adminDTO.getRememberMe()) ?
+                    (int)Constant.JWT_REMEMBER_ME_TTL.toSeconds() : -1;
+            //在Cookie中设置name  = "refresh" value = refreshToken
+            WebUtils.cookieBuilder()
+                    .name(Constant.REFRESH_HEADER)
+                    .value(refreshToken)
+                    .maxAge(maxAge)
+                    .httpOnly(true)
+                    .build();
         } catch (Exception e) {
             log.error("生成token失败", e);
             throw new UnauthorizedException(Constant.TOKEN_GENERATE_FAILED);
@@ -121,6 +138,44 @@ public class EbAdminServiceImpl extends ServiceImpl<EbAdminMapper, EbAdmin> impl
         //到现在增加验证码的有效时间,防止后面可能用户再次输入本验证码
         stringRedisTemplate.expire(key, 5, TimeUnit.MINUTES);
         return true;
+    }
+
+    @Override
+    public String refreshToken(String token) {
+        // 1.校验refresh-token,校验JTI
+        AdminDTO adminDTO = jwtUtils.parseRefreshToken(token);
+        // 2.生成新的access-token、refresh-token
+        return generateToken(adminDTO);
+    }
+
+    @Override
+    public void logout() {
+        // 删除jti
+        jwtUtils.cleanJtiCache();
+        // 删除cookie
+        WebUtils.cookieBuilder()
+                .name(Constant.REFRESH_HEADER)
+                .value("")
+                .maxAge(0)
+                .httpOnly(true)
+                .build();
+    }
+
+    private String generateToken(AdminDTO adminDTO) {
+        // 2.2.生成access-token
+        String token = jwtUtils.createToken(adminDTO);
+        // 2.3.生成refresh-token，将refresh-token的JTI 保存到Redis
+        String refreshToken = jwtUtils.createRefreshToken(adminDTO);
+        // 2.4.将refresh-token写入用户cookie，并设置HttpOnly为true
+        int maxAge = BooleanUtils.isTrue(adminDTO.getRememberMe()) ?
+                (int) Constant.JWT_REMEMBER_ME_TTL.toSeconds() : -1;
+        WebUtils.cookieBuilder()
+                .name(Constant.REFRESH_HEADER)
+                .value(refreshToken)
+                .maxAge(maxAge)
+                .httpOnly(true)
+                .build();
+        return token;
     }
 
     private void setHeader(HttpServletResponse response, String type) {

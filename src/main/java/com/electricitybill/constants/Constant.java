@@ -1,5 +1,8 @@
 package com.electricitybill.constants;
 
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
+
 public interface Constant {
     String REQUEST_PARAM_MISSING = "缺少必要的参数";
     String DB_INSERT_FAILURE = "数据库保存失败";
@@ -56,6 +59,11 @@ public interface Constant {
     String PERMISSION_ROLE_MAP = "permission:role";
     String RATE_LIST_KEY = "rate:detail";
     String PAYMENT_DETAIL_KEY = "payment:detail";
+    String REFRESH_HEADER = "refresh";
+    Duration JWT_REMEMBER_ME_TTL = Duration.ofDays(7);
+    Duration JWT_REFRESH_TTL = Duration.ofMinutes(30);
+    String JWT_REDIS_KEY_PREFIX = "jwt:uid:";
+    String PAYLOAD_JTI_KEY = "jti";
 
     interface Code{
         int SUCCESS = 200;

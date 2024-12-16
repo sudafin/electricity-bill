@@ -22,6 +22,9 @@ public interface ErrorInfo {
 
         String USER_NOT_EXISTS = "用户信息不存在";
         String INVALID_USER_TYPE = "无效的用户类型";
+        String INVALID_TOKEN = "无效的token";
+        String EXPIRED_TOKEN = "token已过期";
+        String INVALID_TOKEN_PAYLOAD = "token参数格式错误";
     }
 
     interface Code {

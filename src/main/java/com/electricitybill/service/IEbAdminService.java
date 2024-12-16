@@ -25,4 +25,8 @@ public interface IEbAdminService extends IService<EbAdmin> {
     void create(String key, HttpServletResponse response) throws IOException;
 
     boolean checkCaptcha(@NotNull(message = "验证码key不能为空") String key, @NotNull(message = "验证码不能为空") String code);
+
+    String refreshToken(String token);
+
+    void logout();
 }

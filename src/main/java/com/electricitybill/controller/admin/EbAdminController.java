@@ -1,12 +1,15 @@
 package com.electricitybill.controller.admin;
 
 
+import com.electricitybill.constants.Constant;
 import com.electricitybill.entity.R;
 import com.electricitybill.entity.dto.admin.AdminFormDTO;
 import com.electricitybill.entity.vo.admin.LoginVO;
+import com.electricitybill.expcetions.BadRequestException;
 import com.electricitybill.service.IEbAdminService;
 import com.electricitybill.utils.RSAUtils;
 
+import com.electricitybill.utils.WebUtils;
 import io.swagger.annotations.ApiOperation;
 
 import org.springframework.validation.annotation.Validated;
@@ -54,14 +57,29 @@ public class EbAdminController {
         return ebAdminService.login(adminFormDTO);
     }
     @PostMapping("/logout")
-    public void logout(HttpServletRequest httpServletRequest){
+    public void logout(){
         //清除session
-        httpServletRequest.getSession().invalidate();
+        ebAdminService.logout();
     }
     @ApiOperation(value = "验证码", notes = "验证码")
     @GetMapping(value = "/captcha", produces = "image/png")
     public void captcha(@RequestParam(value = "key") String key, HttpServletResponse response) throws IOException {
         ebAdminService.create(key, response);
     }
-  
+
+    /**
+     * authToken我们需要设置短一点, 这样可以减少服务器的资源开销,而refreshToken我们可以设置长一点,用来防止用户总是登录
+     * 只要authToken一过期,后端就会访问refresh接口, 通过refresh来创建新的authToken和新的refreshToken
+     * @param adminToken 前端传过来的refreshToken,这个refreshToken我们在登录时已经创建
+     * @return 返回新的authToken
+     */
+    @ApiOperation("刷新token")
+    @GetMapping(value = "/refresh")
+    public String refreshToken(@CookieValue(value = Constant.REFRESH_HEADER, required = false) String adminToken) {
+        if(adminToken == null){
+            throw new BadRequestException("登录超时");
+        }
+        return ebAdminService.refreshToken(WebUtils.cookieBuilder().decode(adminToken));
+    }
+
 }

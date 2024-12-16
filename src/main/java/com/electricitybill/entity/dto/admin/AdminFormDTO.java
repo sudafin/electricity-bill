@@ -18,4 +18,6 @@ public class AdminFormDTO {
 
     @NotNull(message = "验证码key不能为空")
     private String key;
+
+    private Boolean rememberMe;
 }

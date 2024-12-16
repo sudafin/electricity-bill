@@ -17,6 +17,7 @@ spring:
     password: 123
     driver-class-name: com.mysql.cj.jdbc.Driver
   #mybatis-plus配置
+
 mybatis-plus:
   mapper-locations: classpath:/mapper/*.xml
   type-aliases-package: com.example.electricitybill.entity
@@ -38,7 +39,7 @@ logging:
 #jwt配置
 jwt:
   token:
-    expirationTime: 360000000 # 以毫秒为单位，例如1分钟=60000毫秒
+    expirationTime: 3600000 # 以毫秒为单位，例如1分钟=60000毫秒
     secret: ThisIsRandomSecretKey # 密钥，用于签名和验证token
 
   #过滤器不拦截的路径,拦截器路径在MangerWebConfig中设置
