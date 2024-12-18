@@ -1,6 +1,7 @@
 package com.electricitybill.controller.payment;
 
 
+import com.electricitybill.annotation.ExportExcel;
 import com.electricitybill.entity.R;
 import com.electricitybill.entity.dto.PageDTO;
 import com.electricitybill.entity.dto.paymennt.PaymentPageQuery;
@@ -8,12 +9,15 @@ import com.electricitybill.entity.vo.payment.PaymentDetailVO;
 import com.electricitybill.entity.vo.payment.PaymentPageVO;
 import com.electricitybill.service.IEbPaymentService;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 /**
  * <p>
@@ -25,6 +29,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/payment")
+@Slf4j
 public class EbPaymentController {
     @Resource
     private IEbPaymentService ebPaymentService;
@@ -47,7 +52,9 @@ public class EbPaymentController {
     }
     @GetMapping("/export")
     @ApiOperation("导出运营数据报表")
-    public void export(HttpServletResponse response) throws IOException {
-        ebPaymentService.export(response);
+    @ExportExcel
+    public String export() throws IOException, ExecutionException, InterruptedException {
+          Future<String> future =ebPaymentService.export();
+        return future.get();
     }
 }

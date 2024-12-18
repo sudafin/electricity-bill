@@ -27,6 +27,7 @@ import com.electricitybill.utils.ObjectUtils;
 import com.electricitybill.utils.StringUtils;
 import com.electricitybill.utils.UserContextUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -110,6 +111,7 @@ public class EbNotificationServiceImpl extends ServiceImpl<EbNotificationMapper,
     }
 
     @Override
+    @Transactional
     public R create(NotificationDTO notificationDTO) {
         EbNotification ebNotification = new EbNotification();
         long id = IdUtil.getSnowflakeNextId();

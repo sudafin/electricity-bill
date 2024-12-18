@@ -1,22 +1,19 @@
 package com.electricitybill.service.impl;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.math.BigDecimal;
 
 import com.electricitybill.entity.R;
 import com.electricitybill.entity.dto.reconciliation.ApprovalDTO;
 import com.electricitybill.entity.po.EbAdmin;
-import com.electricitybill.entity.vo.payment.PaymentDetailVO;
 import com.electricitybill.entity.vo.reconciliation.ApprovalDetailVO;
 import com.electricitybill.entity.vo.reconciliation.ApprovalRecordVO;
 import com.electricitybill.entity.vo.user.UserPaymentRecordVO;
-import com.electricitybill.enums.UserStatusType;
 import com.electricitybill.expcetions.BadRequestException;
 import com.electricitybill.mapper.EbAdminMapper;
 import com.electricitybill.utils.UserContextUtils;
-import com.google.common.collect.Lists;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -41,11 +38,13 @@ import com.electricitybill.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletResponse;
 import java.util.*;
+import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -163,7 +162,6 @@ public class EbReconciliationServiceImpl extends ServiceImpl<EbReconciliationMap
         ebReconciliation.setStatus(approvalDTO.getStatus());
         ebReconciliation.setComment(approvalDTO.getComment());
         ebReconciliation.setApprovalTime(LocalDateTime.now());
-        Long user = UserContextUtils.getUser();
         ebReconciliation.setApproverId(UserContextUtils.getUser());
         int res = baseMapper.updateById(ebReconciliation);
         if (res <= 0) {
@@ -211,7 +209,8 @@ public class EbReconciliationServiceImpl extends ServiceImpl<EbReconciliationMap
     }
 
     @Override
-    public void export(HttpServletResponse response) throws IOException {
+    @Async("generateReportExecutor")
+    public Future<String> export() throws IOException {
         // 对账单字段名
         List<String> fieldNames = new ArrayList<>();
         fieldNames.add("对账单号");
@@ -294,13 +293,16 @@ public class EbReconciliationServiceImpl extends ServiceImpl<EbReconciliationMap
             }
         }
 
-        // 设置响应头
-        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        response.setHeader("Content-Disposition", "attachment; filename=\"reconciliation_details.xlsx\"");
-
-        // 写入输出流
-        excel.write(response.getOutputStream());
+        //把execl保存到临时文件中
+        String tempDir = System.getProperty("java.io.tmpdir");
+        String fileName = "report_" + System.currentTimeMillis() + ".xlsx";
+        String filePath = tempDir + File.separator + fileName;
+        FileOutputStream outputStream = new FileOutputStream(filePath);
+        excel.write(outputStream);
         excel.close();
+        outputStream.close();
+        log.info("文件路径：{}", filePath);
+        return new AsyncResult<>(filePath);
     }
 
 

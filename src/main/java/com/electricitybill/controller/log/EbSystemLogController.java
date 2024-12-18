@@ -1,6 +1,7 @@
 package com.electricitybill.controller.log;
 
 
+import com.electricitybill.annotation.ExportExcel;
 import com.electricitybill.entity.R;
 import com.electricitybill.entity.dto.PageDTO;
 import com.electricitybill.entity.dto.log.LogPageQuery;
@@ -14,6 +15,8 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 /**
  * <p>
@@ -42,8 +45,10 @@ public class EbSystemLogController {
         return ebSystemLogService.removeBatchByIds(ids) ? R.ok() : R.error("删除失败");
     }
     @GetMapping("/export")
-    @ApiOperation("导出运营数据报表")
-    public void export(HttpServletResponse response) throws IOException {
-        ebSystemLogService.export(response);
+    @ExportExcel
+    @ApiOperation("导出日志报表")
+    public String export() throws IOException, ExecutionException, InterruptedException {
+        Future<String> future = ebSystemLogService.export();
+        return future.get();
     }
 }

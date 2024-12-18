@@ -7,7 +7,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -18,8 +20,9 @@ import java.net.UnknownHostException;
 @MapperScan("com.electricitybill.mapper")
 @ServletComponentScan
 @EnableTransactionManagement
-@EnableCaching
 @EnableScheduling
+@EnableAsync
+@EnableAspectJAutoProxy
 @Slf4j
 public class ElectricityBillApplication {
     public static void main(String[] args) throws UnknownHostException {

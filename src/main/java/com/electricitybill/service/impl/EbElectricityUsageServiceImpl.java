@@ -7,6 +7,7 @@ import com.electricitybill.enums.ReportType;
 import com.electricitybill.mapper.EbElectricityUsageMapper;
 import com.electricitybill.service.IEbElectricityUsageService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -16,16 +17,19 @@ import org.apache.poi.xddf.usermodel.XDDFColor;
 import org.apache.poi.xddf.usermodel.XDDFSolidFillProperties;
 import org.apache.poi.xddf.usermodel.chart.*;
 import org.apache.poi.xssf.usermodel.*;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.concurrent.Future;
 
 /**
  * <p>
@@ -36,6 +40,7 @@ import java.util.stream.Collectors;
  * @since 2024-11-26
  */
 @Service
+@Slf4j
 public class EbElectricityUsageServiceImpl extends ServiceImpl<EbElectricityUsageMapper, EbElectricityUsage> implements IEbElectricityUsageService {
 
     @Override
@@ -101,9 +106,9 @@ public class EbElectricityUsageServiceImpl extends ServiceImpl<EbElectricityUsag
         }
         return reportDataVOS;
     }
-
     @Override
-    public void export(ReportDTO reportDTO, HttpServletResponse response) throws IOException {
+    @Async("generateReportExecutor")
+    public Future<String> export(ReportDTO reportDTO) throws IOException {
         List<EbElectricityUsage> ebElectricityUsageList = lambdaQuery()
                 .between(EbElectricityUsage::getStartTime, reportDTO.getStartDate(), reportDTO.getEndDate())
                 .list();
@@ -245,13 +250,16 @@ public class EbElectricityUsageServiceImpl extends ServiceImpl<EbElectricityUsag
         chart.plot(barChartData);
         chart.plot(lineChartData);
 
-        // 设置响应头
-        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        response.setHeader("Content-Disposition", "attachment; filename=report_data_with_chart.xlsx");
-
-        // 将工作簿写入输出流
-        workbook.write(response.getOutputStream());
+        //把execl保存到临时文件中
+        String tempDir = System.getProperty("java.io.tmpdir");
+        String fileName = "report_" + System.currentTimeMillis() + ".xlsx";
+        String filePath = tempDir + File.separator + fileName;
+        FileOutputStream outputStream = new FileOutputStream(filePath);
+        workbook.write(outputStream);
         workbook.close();
+        outputStream.close();
+        log.info("文件路径：{}", filePath);
+        return new AsyncResult<>(filePath);
     }
 
 }

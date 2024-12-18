@@ -8,8 +8,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.electricitybill.entity.vo.log.LogDetailVO;
 import com.electricitybill.entity.vo.log.LogPageVO;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.concurrent.Future;
 
 /**
  * <p>
@@ -25,7 +25,7 @@ public interface IEbSystemLogService extends IService<EbSystemLog> {
 
     LogDetailVO queryDetail(Long id);
 
-    void export(HttpServletResponse response) throws IOException;
+    Future<String> export() throws IOException;
 
     void saveLog(LogDTO logDTO);
 }

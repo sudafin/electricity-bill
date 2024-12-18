@@ -5,10 +5,9 @@ import com.electricitybill.entity.po.EbElectricityUsage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.electricitybill.entity.vo.report.ReportDataVO;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.Future;
 
 /**
  * <p>
@@ -22,5 +21,5 @@ public interface IEbElectricityUsageService extends IService<EbElectricityUsage>
 
     List<ReportDataVO> getReportData(ReportDTO reportDTO);
 
-    void export(ReportDTO reportDTO,HttpServletResponse response) throws IOException;
+    Future<String> export(ReportDTO reportDTO) throws IOException;
 }

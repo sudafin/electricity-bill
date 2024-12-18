@@ -10,8 +10,8 @@ import com.electricitybill.entity.vo.reconciliation.ApprovalDetailVO;
 import com.electricitybill.entity.vo.reconciliation.ReconciliationDetailVO;
 import com.electricitybill.entity.vo.reconciliation.ReconciliationPageVO;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.concurrent.Future;
 
 /**
  * <p>
@@ -31,5 +31,5 @@ public interface IEbReconciliationService extends IService<EbReconciliation> {
 
     ApprovalDetailVO queryApprovalReconciliationDetail(Long reconciliationId);
 
-    void export(HttpServletResponse response) throws IOException;
+    Future<String> export() throws IOException;
 }

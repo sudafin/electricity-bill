@@ -1,6 +1,7 @@
 package com.electricitybill.controller.reconciliation;
 
 
+import com.electricitybill.annotation.ExportExcel;
 import com.electricitybill.entity.R;
 import com.electricitybill.entity.dto.PageDTO;
 import com.electricitybill.entity.dto.reconciliation.ApprovalDTO;
@@ -10,11 +11,14 @@ import com.electricitybill.entity.vo.reconciliation.ReconciliationDetailVO;
 import com.electricitybill.entity.vo.reconciliation.ReconciliationPageVO;
 import com.electricitybill.service.IEbReconciliationService;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 /**
  * <p>
@@ -26,6 +30,7 @@ import java.io.IOException;
  */
 @RestController
 @RequestMapping("/reconciliation")
+@Slf4j
 public class EbReconciliationController {
     @Resource
     private IEbReconciliationService ebReconciliationService;
@@ -50,8 +55,10 @@ public class EbReconciliationController {
     }
 
     @GetMapping("/export")
-    @ApiOperation("导出运营数据报表")
-    public void export(HttpServletResponse response) throws IOException {
-        ebReconciliationService.export(response);
+    @ApiOperation("导出对账数据报表")
+    @ExportExcel
+    public String export() throws IOException, ExecutionException, InterruptedException {
+       Future<String> future = ebReconciliationService.export();
+       return future.get();
     }
 }

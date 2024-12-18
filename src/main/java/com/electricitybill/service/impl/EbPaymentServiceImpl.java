@@ -22,19 +22,24 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.electricitybill.utils.CollUtils;
 import com.electricitybill.utils.ObjectUtils;
 import com.electricitybill.utils.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Future;
 import java.util.function.Function;
 
 /**
@@ -46,6 +51,7 @@ import java.util.function.Function;
  * @since 2024-11-26
  */
 @Service
+@Slf4j
 public class EbPaymentServiceImpl extends ServiceImpl<EbPaymentMapper, EbPayment> implements IEbPaymentService {
     @Resource
     private EbReconciliationMapper reconciliationMapper;
@@ -145,7 +151,8 @@ public class EbPaymentServiceImpl extends ServiceImpl<EbPaymentMapper, EbPayment
     }
 
     @Override
-    public void export(HttpServletResponse response) throws IOException, IOException {
+    @Async("generateReportExecutor")
+    public Future<String> export() throws IOException, IOException {
         // 支付详情字段名
         List<String> fieldNames = new ArrayList<>();
         fieldNames.add("支付单号");
@@ -229,13 +236,16 @@ public class EbPaymentServiceImpl extends ServiceImpl<EbPaymentMapper, EbPayment
             }
         }
 
-        // 设置响应头
-        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-        response.setHeader("Content-Disposition", "attachment; filename=\"payment_details.xlsx\"");
-
-        // 写入输出流
-        excel.write(response.getOutputStream());
+        //把execl保存到临时文件中
+        String tempDir = System.getProperty("java.io.tmpdir");
+        String fileName = "report_" + System.currentTimeMillis() + ".xlsx";
+        String filePath = tempDir + File.separator + fileName;
+        FileOutputStream outputStream = new FileOutputStream(filePath);
+        excel.write(outputStream);
         excel.close();
+        outputStream.close();
+        log.info("文件路径：{}", filePath);
+        return new AsyncResult<>(filePath);
     }
 
     public List<PaymentDetailVO> getAllPaymentDetails() {

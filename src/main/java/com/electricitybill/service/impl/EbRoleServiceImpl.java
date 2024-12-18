@@ -35,6 +35,7 @@ import nonapi.io.github.classgraph.json.JSONUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -66,6 +67,7 @@ public class EbRoleServiceImpl extends ServiceImpl<EbRoleMapper, EbRole> impleme
     private StringRedisTemplate stringRedisTemplate;
 
     @Override
+    @Transactional
     public PermissionDetailVO editRoleAndAdminDetail(Long id) {
         //获取当前管理人员
         EbAdmin ebAdmin = ebAdminMapper.selectById(id);
@@ -161,6 +163,7 @@ public class EbRoleServiceImpl extends ServiceImpl<EbRoleMapper, EbRole> impleme
     }
 
     @Override
+    @Transactional
     public R editRole(Long id, RoleEditDTO roleEditDTO) {
         EbAdmin ebAdmin = ebAdminMapper.selectById(id);
         if (ObjectUtils.isEmpty(ebAdmin)) {
