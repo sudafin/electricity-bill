@@ -13,8 +13,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @SpringBootTest
 class IEbAdminServiceTest {
@@ -89,5 +92,11 @@ class IEbAdminServiceTest {
     void testJson(){
         String str = "PageDTO(total=8, pages=2, list=[UserPageVO(id=1, username=张三, phone=13812345678, address=上海市黄浦区人民广场123号, meterNo=METER1001, accountStatus=正常, electricityUsage=500.00, userType=商业用户, balance=1380.50, lastPaymentDate=2023-05-01T10:00), UserPageVO(id=2, username=李四, phone=13912345678, address=上海市徐汇区虹桥路456号, meterNo=METER1002, accountStatus=正常, electricityUsage=800.00, userType=商业用户, balance=50.00, lastPaymentDate=2023-04-15T15:30), UserPageVO(id=3, username=王五, phone=13712345678, address=上海市长宁区延安西路789号, meterNo=METER1003, accountStatus=正常, electricityUsage=200.00, userType=居民用户, balance=300.00, lastPaymentDate=2023-05-10T09:15), UserPageVO(id=6, username=丽丽, phone=1231231312, address=3123123123, meterNo=3213, accountStatus=正常, electricityUsage=0.00, userType=居民用户, balance=0.00, lastPaymentDate=2024-12-02T14:30:34), UserPageVO(id=7, username=哈, phone=123123, address=123123123, meterNo=12313, accountStatus=欠费, electricityUsage=0.00, userType=居民用户, balance=0.00, lastPaymentDate=2024-12-02T14:31:12)])";
         System.out.println(JSONUtil.parse(str));
+    }
+    @Test
+    void test_date(){
+        // 假设你已经有一个List<LocalDate> recentDates
+        Map<LocalDate, Optional<BigDecimal>> dateToValueMap = IntStream.range(0, 7).mapToObj(LocalDate.now()::minusDays).collect(Collectors.toMap(date -> date, date -> Optional.empty()));
+        System.out.println(dateToValueMap);
     }
 }

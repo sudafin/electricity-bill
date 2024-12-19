@@ -36,6 +36,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -83,25 +84,36 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
             List<EbElectricityUsage> ebElectricityUsages = ebElectricityUsageList.stream()
                     .sorted(Comparator.comparing(EbElectricityUsage::getEndTime)
                             .reversed()).collect(Collectors.toList());
-            //拿到最近7天的数据,没有就设置为0
-            //因为mapToDouble返回的是DoubleStream,而collect方法需要的是Stream,所以使用了boxed()方将Double流转换为Double对象的流才能调用collect方法,
-            List<Double> electricityWeekUsageList = ebElectricityUsages.stream()
-                    //拿到前面最新日期的7个数据
+            //拿到最近7天的数据,设置为0
+            // 生成最近7天的日期列表
+            List<LocalDate> recentDates = IntStream.range(0, 7)
+                    .mapToObj(LocalDate.now()::minusDays)
+                    .sorted()
+                    .collect(Collectors.toList());
+            // 生成 Map<LocalDate, BigDecimal>，这里假设 BigDecimal 的值为每个日期的日期差的 BigDecimal 表示
+            Map<LocalDate, BigDecimal> dateToValueMap = recentDates.stream()
+                    .collect(Collectors.toMap(
+                            date -> date, // 使用日期作为 key
+                            date -> BigDecimal.ZERO, // 初始值为 0
+                            (existing, replacement) -> existing, // 处理键冲突的策略
+                            LinkedHashMap::new // 使用 LinkedHashMap 保持插入顺序
+                    ));
+            ebElectricityUsages.stream()
                     .limit(7)
                     //再次把最新的日期放到列表最后面
                     .sorted(Comparator.comparing(EbElectricityUsage::getEndTime))
-                    .mapToDouble(usage->{
-                        //查看最近7个的数据
-                        LocalDateTime endTime = usage.getEndTime();
-                        LocalDate endDate = endTime.toLocalDate();
+                    .forEach(usage->{
+                        //拿到当前用电量的日期
+                        LocalDate endDate =  usage.getEndTime().toLocalDate();
                         //如果是最近7天,就加入到list中,否则就跳过
-                        if (endDate.isAfter(LocalDate.now().minusDays(7))) {
-                            return usage.getUsageAmount().doubleValue();
+                        if (dateToValueMap.containsKey(endDate)) {
+                            dateToValueMap.put(endDate,usage.getUsageAmount());
                         }
-                        return new BigDecimal(0).doubleValue();
-                    })
-                    .boxed()
-                    .collect(toList());
+                    });
+            //将dateToValueMap的value转为list
+            List<Double> electricityWeekUsageList = dateToValueMap.values().stream()
+                    //日期排序
+                    .map(BigDecimal::doubleValue).collect(toList());
             log.debug("总用电量:{}", totalElectricity);
             log.debug("最近7天的用电量:{}", electricityWeekUsageList);
             dashboardVO.setTotalElectricityUsage((long) totalElectricity);
