@@ -4,11 +4,10 @@ package com.electricitybill.filter;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
-import com.electricitybill.config.MyConfig;
+import com.electricitybill.config.properties.AuthProperties;
 import com.electricitybill.entity.dto.admin.AdminDTO;
 import com.electricitybill.utils.JwtUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -27,7 +26,7 @@ import org.springframework.util.AntPathMatcher;
 public class AuthorizeFilter extends OncePerRequestFilter {
 
     @Resource
-    private MyConfig myConfig;
+    private AuthProperties authProperties;
     private final AntPathMatcher antPathMatcher = new AntPathMatcher();
     @Resource
     private JwtUtils jwtUtils;
@@ -89,7 +88,7 @@ public class AuthorizeFilter extends OncePerRequestFilter {
 
     private boolean isExclude (String path){
         // 获取配置文件中的白名单路径
-        String[] excludePaths = myConfig.getNoAuthPaths();
+        String[] excludePaths = authProperties.getNoAuthPaths();
         for (String excludePath : excludePaths) {
             if (antPathMatcher.match(excludePath,path)) {
                 return true;

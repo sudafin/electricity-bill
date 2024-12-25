@@ -63,3 +63,19 @@ eb:
     contactUrl: http://example.com
     contactEmail: john@example.com
     version: 1.0.0
+
+# 设置redis缓存过期时间
+redis:
+  ttl:
+    default-range:
+      min: 3600    # 1小时
+      max: 7200    # 2小时
+    short-range:
+      min: 60      # 1分钟
+      max: 300     # 5分钟
+    long-range:
+      min: 7200    # 2小时
+      max: 14400   # 4小时
+    temp-range:
+      min: 10      # 10秒
+      max: 30      # 30秒

@@ -145,11 +145,11 @@ public class EbSystemLogServiceImpl extends ServiceImpl<EbSystemLogMapper, EbSys
         columnMap.put(5, EbSystemLog::getIp);
         columnMap.put(6, EbSystemLog::getStatus);
         columnMap.put(7, EbSystemLog::getRequestParams);
-        columnMap.put(9, EbSystemLog::getRequestBody);
-        columnMap.put(8, EbSystemLog::getResponseData);
-        columnMap.put(9, EbSystemLog::getUserAgent);
-        columnMap.put(10, EbSystemLog::getErrorMsg);
-        columnMap.put(11, log -> String.valueOf(log.getCreatedAt()));
+        columnMap.put(8, EbSystemLog::getRequestBody);
+        columnMap.put(9, EbSystemLog::getResponseData);
+        columnMap.put(10, EbSystemLog::getUserAgent);
+        columnMap.put(11, EbSystemLog::getErrorMsg);
+        columnMap.put(12, log -> String.valueOf(log.getCreatedAt()));
 
         // 设置数据行的样式
         CellStyle dataStyle = excel.createCellStyle();
@@ -184,6 +184,7 @@ public class EbSystemLogServiceImpl extends ServiceImpl<EbSystemLogMapper, EbSys
         excel.close();
         outputStream.close();
         log.info("文件路径：{}", filePath);
+        //异步操作结果封装
         return new AsyncResult<>(filePath);
     }
 

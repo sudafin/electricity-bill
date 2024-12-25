@@ -1,16 +1,15 @@
 package com.electricitybill.interceptor;
 
 import cn.hutool.json.JSONUtil;
-import com.electricitybill.entity.R;
+
 import com.electricitybill.entity.dto.log.LogDTO;
 import com.electricitybill.service.IEbPermissionService;
-import com.electricitybill.service.IEbRoleService;
+
 import com.electricitybill.service.IEbSystemLogService;
 import com.electricitybill.utils.UserContextUtils;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.util.ContentCachingRequestWrapper;
+
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -20,7 +19,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-import java.util.Map;
 
 @Slf4j
 public class RoleInterceptor implements HandlerInterceptor {

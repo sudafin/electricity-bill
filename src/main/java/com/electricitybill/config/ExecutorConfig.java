@@ -12,19 +12,28 @@ import java.util.concurrent.ThreadPoolExecutor;
 @Configuration
 public class ExecutorConfig {
     @Bean
+    //对于执行IO密集型任务, 线程池线程数设置为CPU核心数的两倍
     public Executor generateReportExecutor(){
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        // 1.核心线程池大小
-        executor.setCorePoolSize(2);
-        // 2.最大线程池大小
-        executor.setMaxPoolSize(5);
-        // 3.队列大小
-        executor.setQueueCapacity(200);
-        // 4.线程名称
-        executor.setThreadNamePrefix("report-export");
-        // 5.拒绝策略
+        // 获取CPU核心数
+        int cpuCores = Runtime.getRuntime().availableProcessors();
+        // 核心线程数 = CPU核心数 * 2
+        executor.setCorePoolSize(cpuCores * 2);
+        // 最大线程数 = 核心线程数 * 2
+        executor.setMaxPoolSize(cpuCores * 4);
+        // 队列容量
+        executor.setQueueCapacity(50);
+        // 线程名称前缀
+        executor.setThreadNamePrefix("report-export-");
+        // 线程空闲时间，超过该时间空闲线程会被回收（单位：秒）
+        executor.setKeepAliveSeconds(60);
+        // 允许核心线程超时，这样空闲的核心线程也会被回收
+        executor.setAllowCoreThreadTimeOut(true);
+        // 拒绝策略：由调用者所在的线程来执行任务
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        // 初始化线程池
         executor.initialize();
+
         return executor;
     }
 }

@@ -1,15 +1,12 @@
 package com.electricitybill.service.impl;
 
 import cn.hutool.captcha.CaptchaUtil;
-import cn.hutool.captcha.CircleCaptcha;
-import cn.hutool.captcha.GifCaptcha;
 import cn.hutool.captcha.ICaptcha;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.electricitybill.constants.Constant;
 import com.electricitybill.entity.R;
 import com.electricitybill.entity.dto.admin.AdminDTO;
 import com.electricitybill.entity.dto.admin.AdminFormDTO;
-import com.electricitybill.entity.dto.user.UserDTO;
 import com.electricitybill.entity.po.EbAdmin;
 import com.electricitybill.entity.po.EbRole;
 import com.electricitybill.entity.vo.admin.LoginVO;
@@ -127,19 +124,19 @@ public class EbAdminServiceImpl extends ServiceImpl<EbAdminMapper, EbAdmin> impl
     }
 
     @Override
-    public boolean checkCaptcha(String key, String code) {
+    public R checkCaptcha(String key, String code) {
         String captchaCode = stringRedisTemplate.opsForValue().get(key);
         if(captchaCode == null){
             //验证码过期
-            return false;
+            return R.error(4001,"验证码过期");
         }
         if(!StringUtils.equalsIgnoreCase(code,captchaCode)){
             //验证码不对
-            return false;
+            return R.error(4001,"验证码错误");
         }
         //到现在增加验证码的有效时间,防止后面可能用户再次输入本验证码
         stringRedisTemplate.expire(key, 5, TimeUnit.MINUTES);
-        return true;
+        return R.ok();
     }
 
     @Override

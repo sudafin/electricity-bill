@@ -1,7 +1,6 @@
 package com.electricitybill.constants;
 
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
 
 public interface Constant {
     String REQUEST_PARAM_MISSING = "缺少必要的参数";

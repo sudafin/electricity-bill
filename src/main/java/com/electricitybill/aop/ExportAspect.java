@@ -19,11 +19,12 @@ import java.util.Objects;
 @Component
 public class ExportAspect {
 
-    //注解所在的方法上
+    //切面点
     @Pointcut("@annotation(com.electricitybill.annotation.ExportExcel)")
     public void exportExcelPointcut() {
     }
-    
+
+    // 后置通知
     @AfterReturning(pointcut = "exportExcelPointcut()", returning = "filePath")
     public void afterExportExcel(JoinPoint joinPoint, String filePath) throws Exception {
         HttpServletResponse response = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getResponse();

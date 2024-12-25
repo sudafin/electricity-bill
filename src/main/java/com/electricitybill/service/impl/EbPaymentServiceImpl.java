@@ -22,6 +22,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.electricitybill.utils.CollUtils;
 import com.electricitybill.utils.ObjectUtils;
 import com.electricitybill.utils.StringUtils;
+import com.electricitybill.utils.TTLGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -40,6 +41,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 /**
@@ -116,6 +118,7 @@ public class EbPaymentServiceImpl extends ServiceImpl<EbPaymentMapper, EbPayment
         paymentDetailVO.setIsReconciliate(ebPayment.getReconciliationId() != null);
         //设置缓存
         stringRedisTemplate.opsForHash().put(Constant.PAYMENT_DETAIL_KEY, paymentId.toString(), JSONUtil.toJsonStr(paymentDetailVO));
+        stringRedisTemplate.expire(Constant.PAYMENT_DETAIL_KEY, TTLGenerator.generateDefaultRandomTTL(), TimeUnit.SECONDS);
         return paymentDetailVO;
     }
 

@@ -39,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.electricitybill.controller.admin.EbAdminController.keyPair;
@@ -368,7 +369,7 @@ public class EbRoleServiceImpl extends ServiceImpl<EbRoleMapper, EbRole> impleme
         //permissionRoleMap按key进行排序,通过TreeMap排序,并存入到redis缓存中,使用hash结构
         Map<Long, List<Long>> orderMap = new TreeMap<>(permissionRoleMap);
         //序列化后存入redis
-        stringRedisTemplate.opsForValue().set(Constant.PERMISSION_ROLE_MAP, JSONUtil.toJsonStr(orderMap));
+        stringRedisTemplate.opsForValue().set(Constant.PERMISSION_ROLE_MAP, JSONUtil.toJsonStr(orderMap),TTLGenerator.generateDefaultRandomTTL(), TimeUnit.SECONDS);
         return orderMap;
     }
 

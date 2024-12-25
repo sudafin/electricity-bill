@@ -11,12 +11,14 @@ import com.electricitybill.service.IEbRateService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.electricitybill.utils.CollUtils;
 import com.electricitybill.utils.ObjectUtils;
+import com.electricitybill.utils.TTLGenerator;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -31,6 +33,7 @@ import java.util.stream.Collectors;
 public class EbRateServiceImpl extends ServiceImpl<EbRateMapper, EbRate> implements IEbRateService {
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+
     @Override
     public List<RateInfoVO> getRate() {
         String rateInfoJson = stringRedisTemplate.opsForValue().get(Constant.RATE_LIST_KEY);
@@ -49,7 +52,7 @@ public class EbRateServiceImpl extends ServiceImpl<EbRateMapper, EbRate> impleme
             return rateInfoVO;
         }).collect(Collectors.toList());
         //缓存到redis
-        stringRedisTemplate.opsForValue().set(Constant.RATE_LIST_KEY, JSONUtil.toJsonStr(rateInfoVOList));
+        stringRedisTemplate.opsForValue().set(Constant.RATE_LIST_KEY, JSONUtil.toJsonStr(rateInfoVOList),TTLGenerator.generateDefaultRandomTTL(), TimeUnit.SECONDS);
         return rateInfoVOList;
     }
 
