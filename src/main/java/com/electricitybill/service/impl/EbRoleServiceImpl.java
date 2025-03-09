@@ -191,12 +191,9 @@ public class EbRoleServiceImpl extends ServiceImpl<EbRoleMapper, EbRole> impleme
             throw new BizIllegalException("密码安全问题");
         }
         }
-        int update = ebAdminMapper.updateById(ebAdmin);
-        if (update != 1) {
-            throw new DbException(Constant.DB_UPDATE_FAILURE);
-        }
-        if(UserContextUtils.getUser().equals(ebAdmin.getId())){
-            return R.of(401, "当前用户信息过期", null);
+        ebAdminMapper.updateById(ebAdmin);
+        if(StringUtils.isNotBlank(roleEditDTO.getPassword()) && UserContextUtils.getUser().equals(ebAdmin.getId())){
+            return R.of(401, "当前用户登录过期", null);
         }
         return R.ok();
     }
@@ -251,7 +248,7 @@ public class EbRoleServiceImpl extends ServiceImpl<EbRoleMapper, EbRole> impleme
 
     @Override
     public List<RoleInfoVO> roleList() {
-        List<EbRole> list = list();
+        List<EbRole> list = list(); 
         ArrayList<RoleInfoVO> roleInfoVOS = new ArrayList<>();
         list.forEach(ebRole -> {
             RoleInfoVO roleInfoVO = new RoleInfoVO();

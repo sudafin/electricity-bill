@@ -92,8 +92,8 @@ public class EbPaymentServiceImpl extends ServiceImpl<EbPaymentMapper, EbPayment
 
     @Override
     public PaymentDetailVO queryUserPayment(Long paymentId) {
-        if(Boolean.TRUE.equals(stringRedisTemplate.hasKey(Constant.PAYMENT_DETAIL_KEY))){
-            String paymentDetailJson = (String) stringRedisTemplate.opsForHash().get(Constant.PAYMENT_DETAIL_KEY, paymentId.toString());
+        String paymentDetailJson = (String) stringRedisTemplate.opsForHash().get(Constant.PAYMENT_DETAIL_KEY, paymentId.toString());
+        if(paymentDetailJson != null && !paymentDetailJson.isEmpty()){
             return JSONUtil.toBean(paymentDetailJson, PaymentDetailVO.class);
         }
         EbPayment ebPayment = baseMapper.selectById(paymentId);
@@ -139,9 +139,11 @@ public class EbPaymentServiceImpl extends ServiceImpl<EbPaymentMapper, EbPayment
         if(ObjectUtils.isEmpty(ebPayment)){
             throw new DbException(Constant.PAYMENT_NOT_EXIST);
         }
-        EbReconciliation ebReconciliation = reconciliationMapper.selectOne(new LambdaQueryWrapper<EbReconciliation>().eq(EbReconciliation::getReconciliationNo, ebPayment.getReconciliationId()));
-        if(!ebReconciliation.getStatus().equals("退回")){
-            throw new BadRequestException("该账单未审批");
+        EbReconciliation ebReconciliation = reconciliationMapper.
+                selectOne(new LambdaQueryWrapper<EbReconciliation>()
+                        .eq(EbReconciliation::getReconciliationNo, ebPayment.getReconciliationId()));
+        if(ebReconciliation.getStatus().equals("通过") || ebReconciliation.getPaymentStatus().equals("暂缓")){
+            throw new BadRequestException("审批状态不是退回或者是拒绝状态, 无法执行退款操作");
         }
         ebPayment.setStatus("退款");
         ebPayment.setRefundAmount(ebPayment.getAmount());

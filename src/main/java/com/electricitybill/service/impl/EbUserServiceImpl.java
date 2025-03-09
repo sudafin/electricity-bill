@@ -162,7 +162,7 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
         Page<EbUser> page = lambdaQuery()
                 .eq(StrUtil.isNotBlank(userPageQuery.getUserType()), EbUser::getUserType, userPageQuery.getUserType())
                 .eq(StrUtil.isNotBlank(userPageQuery.getPhone()), EbUser::getPhone, userPageQuery.getPhone())
-                .eq(StrUtil.isNotBlank(userPageQuery.getName()), EbUser::getUsername, userPageQuery.getName())
+                .like(StrUtil.isNotBlank(userPageQuery.getName()), EbUser::getUsername, userPageQuery.getName())
                 .eq(StrUtil.isNotBlank(userPageQuery.getMeterNumber()), EbUser::getMeterNo, userPageQuery.getMeterNumber())
                 .ge(userPageQuery.getStartDate() != null, EbUser::getLastPaymentDate, userPageQuery.getStartDate())
                 .le(userPageQuery.getEndDate() != null, EbUser::getLastPaymentDate, userPageQuery.getEndDate())

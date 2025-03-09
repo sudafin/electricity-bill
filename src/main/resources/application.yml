@@ -7,7 +7,7 @@ spring:
       matching-strategy: ant_path_matcher
 #redis配置
   redis:
-    host: 192.168.150.101
+    host: 127.0.0.1
     port: 6379
     password: 123456
 

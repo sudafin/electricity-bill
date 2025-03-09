@@ -11,6 +11,7 @@ import com.electricitybill.service.IEbRateService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.electricitybill.utils.CollUtils;
 import com.electricitybill.utils.ObjectUtils;
+import com.electricitybill.utils.StringUtils;
 import com.electricitybill.utils.TTLGenerator;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -37,7 +38,7 @@ public class EbRateServiceImpl extends ServiceImpl<EbRateMapper, EbRate> impleme
     @Override
     public List<RateInfoVO> getRate() {
         String rateInfoJson = stringRedisTemplate.opsForValue().get(Constant.RATE_LIST_KEY);
-        if(rateInfoJson != null){
+        if(StringUtils.isNotBlank(rateInfoJson)){
             return JSONUtil.toList(rateInfoJson, RateInfoVO.class);
         }
         List<EbRate> list = list();
@@ -63,8 +64,9 @@ public class EbRateServiceImpl extends ServiceImpl<EbRateMapper, EbRate> impleme
             throw new BadRequestException(Constant.RATE_NOT_EXIST);
         }
         ebRate.setPrice(rateValue);
-        //删除删除
-        stringRedisTemplate.delete(Constant.RATE_LIST_KEY);
+        updateById(ebRate);
+        //重新设置缓存
+        stringRedisTemplate.opsForValue().set(Constant.RATE_LIST_KEY, "",TTLGenerator.generateDefaultRandomTTL(), TimeUnit.SECONDS);
         return R.ok();
     }
 }

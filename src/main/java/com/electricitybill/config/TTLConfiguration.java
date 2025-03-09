@@ -16,6 +16,7 @@ public class TTLConfiguration {
         this.ttlProperties = ttlProperties;
     }
 
+    //PostConstruct注解，在bean初始化后执行
     @PostConstruct
     public void init() {
         TTLGenerator.initProperties(ttlProperties);

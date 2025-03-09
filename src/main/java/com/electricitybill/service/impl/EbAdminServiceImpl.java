@@ -24,6 +24,7 @@ import com.electricitybill.utils.StringUtils;
 import com.electricitybill.utils.WebUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
+import org.redisson.api.RedissonClient;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -65,7 +66,7 @@ public class EbAdminServiceImpl extends ServiceImpl<EbAdminMapper, EbAdmin> impl
         EbAdmin admin = lambdaQuery().eq(EbAdmin::getAccount, account).one();
         //判断账号是否存在
         if (ObjectUtils.isEmpty(admin)) {
-           R.error(4001,"账号不存在");
+            R.error(4001,"账号不存在");
         }
         //判断密码是否正确,通过bcrypt加密的匹配password是真秘密, admin.getPassword()是加密后的密码,返回值判断是否匹配
         boolean matches = passwordEncoder.matches(password, admin.getPassword());
@@ -93,8 +94,8 @@ public class EbAdminServiceImpl extends ServiceImpl<EbAdminMapper, EbAdmin> impl
             //生成refreshToken
             String refreshToken = jwtUtils.createRefreshToken(adminDTO);
             //生成refreshToken在cookie的最大有效期
-            int maxAge = BooleanUtils.isTrue(adminDTO.getRememberMe()) ?
-                    (int)Constant.JWT_REMEMBER_ME_TTL.toSeconds() : -1;
+            int maxAge = Math.toIntExact(BooleanUtils.isTrue(adminDTO.getRememberMe()) ?
+                    Constant.JWT_REMEMBER_ME_TTL.getSeconds() : -1);
             //在Cookie中设置name  = "refresh" value = refreshToken
             WebUtils.cookieBuilder()
                     .name(Constant.REFRESH_HEADER)

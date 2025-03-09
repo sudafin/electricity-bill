@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 
 @Data
 @Component
-@Configuration
 @ConfigurationProperties(prefix = "eb")  //这是一级前缀
 //获取不需要验证的网址
 public class AuthProperties {
