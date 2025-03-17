@@ -10,6 +10,7 @@ import com.electricitybill.service.IEbAdminService;
 import com.electricitybill.utils.RSAUtils;
 
 import com.electricitybill.utils.WebUtils;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
 import org.springframework.validation.annotation.Validated;
@@ -31,6 +32,7 @@ import java.security.KeyPair;
  */
 @RestController
 @RequestMapping("/admin")
+@Api(tags = "管理员管理")
 public class EbAdminController {
     @Resource
     private IEbAdminService ebAdminService;

@@ -1,4 +1,4 @@
-package com.electricitybill.controller.dashboard;
+package com.electricitybill.controller.admin;
 
 import com.electricitybill.entity.vo.dashboard.DashboardVO;
 import com.electricitybill.service.IEbUserService;
@@ -11,6 +11,7 @@ import javax.annotation.Resource;
 
 @RequestMapping("/dashboard")
 @RestController
+
 public class DashboardController {
     @Resource
     private IEbUserService eBUserService;

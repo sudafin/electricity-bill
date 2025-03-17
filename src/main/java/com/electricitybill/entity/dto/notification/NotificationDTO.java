@@ -10,7 +10,7 @@ public class NotificationDTO {
     private String title;
     private String content;
     private String type;
-    private String level;
+    private String senderType;
     private LocalDateTime expireTime;
     private List<String> senderList;
 }

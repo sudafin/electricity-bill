@@ -10,7 +10,6 @@ public class PaymentDetailVO {
     private Long paymentId;
     private String username;
     private String userStatus;
-    private BigDecimal balance;
     private String paymentMethod;
     private String status;
     private LocalDateTime paymentTime;

@@ -1,7 +1,9 @@
 package com.electricitybill.entity.po;
 
+import java.math.BigDecimal;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
+import java.time.LocalDate;
 import com.baomidou.mybatisplus.annotation.TableId;
 import java.time.LocalDateTime;
 import java.io.Serializable;
@@ -22,33 +24,39 @@ import lombok.experimental.Accessors;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("eb_notification_recipient")
-@ApiModel(value="EbNotificationRecipient对象", description="")
-public class EbNotificationRecipient implements Serializable {
+@TableName("eb_bill")
+@ApiModel(value="EbBill对象", description="")
+public class EbBill implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @ApiModelProperty(value = "接收记录ID")
+    @ApiModelProperty(value = "账单ID")
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    @ApiModelProperty(value = "通知ID")
-    private Long notificationId;
+    @ApiModelProperty(value = "用户ID")
+    private Long userId;
 
-    @ApiModelProperty(value = "接收者类型: user（用户）/admin（管理员）")
-    private String recipientType;
+    @ApiModelProperty(value = "账单编号")
+    private String billNo;
 
-    @ApiModelProperty(value = "接收者ID")
-    private Long recipientId;
+    @ApiModelProperty(value = "账单开始日期")
+    private LocalDate startDate;
 
-    @ApiModelProperty(value = "优先级: 1普通/2重要/3紧急")
-    private Integer priority;
+    @ApiModelProperty(value = "账单结束日期")
+    private LocalDate endDate;
 
-    @ApiModelProperty(value = "阅读状态: 0未读/1已读")
-    private Integer readStatus;
+    @ApiModelProperty(value = "用电量（度）")
+    private BigDecimal usageAmount;
 
-    @ApiModelProperty(value = "阅读时间")
-    private LocalDateTime readTime;
+    @ApiModelProperty(value = "总金额")
+    private BigDecimal totalAmount;
+
+    @ApiModelProperty(value = "状态: 未支付/已支付/逾期")
+    private String status;
+
+    @ApiModelProperty(value = "支付记录ID")
+    private Long paymentId;
 
     @ApiModelProperty(value = "创建时间")
     private LocalDateTime createdAt;

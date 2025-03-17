@@ -1,4 +1,4 @@
-package com.electricitybill.controller.reconciliation;
+package com.electricitybill.controller.admin;
 
 
 import com.electricitybill.annotation.ExportExcel;
@@ -10,12 +10,12 @@ import com.electricitybill.entity.vo.reconciliation.ApprovalDetailVO;
 import com.electricitybill.entity.vo.reconciliation.ReconciliationDetailVO;
 import com.electricitybill.entity.vo.reconciliation.ReconciliationPageVO;
 import com.electricitybill.service.IEbReconciliationService;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -31,6 +31,7 @@ import java.util.concurrent.Future;
 @RestController
 @RequestMapping("/reconciliation")
 @Slf4j
+@Api(tags = "对账管理")
 public class EbReconciliationController {
     @Resource
     private IEbReconciliationService ebReconciliationService;

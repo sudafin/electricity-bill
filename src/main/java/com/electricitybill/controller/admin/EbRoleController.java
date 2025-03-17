@@ -1,4 +1,4 @@
-package com.electricitybill.controller.role;
+package com.electricitybill.controller.admin;
 
 
 import com.electricitybill.entity.R;
@@ -11,6 +11,7 @@ import com.electricitybill.entity.vo.role.PermissionDetailVO;
 import com.electricitybill.entity.vo.role.RoleInfoVO;
 import com.electricitybill.entity.vo.role.RolePageVO;
 import com.electricitybill.service.IEbRoleService;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +28,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/role")
+@Api(tags = "角色管理")
 public class EbRoleController {
     @Resource
     private IEbRoleService ebRoleService;

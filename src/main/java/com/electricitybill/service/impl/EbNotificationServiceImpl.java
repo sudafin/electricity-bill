@@ -14,7 +14,6 @@ import com.electricitybill.entity.po.EbNotificationRecipient;
 import com.electricitybill.entity.po.EbRole;
 import com.electricitybill.entity.vo.notification.NotificationDetailVO;
 import com.electricitybill.entity.vo.notification.NotificationPageVO;
-import com.electricitybill.enums.RoleType;
 import com.electricitybill.expcetions.DbException;
 import com.electricitybill.mapper.EbAdminMapper;
 import com.electricitybill.mapper.EbNotificationMapper;
@@ -70,7 +69,6 @@ public class EbNotificationServiceImpl extends ServiceImpl<EbNotificationMapper,
                     .filter(ebNotificationRecipient -> ebNotificationRecipient.getNotificationId().equals(ebNotification.getId())).findFirst().ifPresent(ebNotificationRecipient -> {
                         notificationPageVO.setTitle(ebNotification.getTitle());
                         notificationPageVO.setId(ebNotification.getId());
-                        notificationPageVO.setLevel(ebNotification.getLevel());
                         notificationPageVO.setType(ebNotification.getType());
                         notificationPageVO.setContent(ebNotification.getContent());
                         notificationPageVO.setCreateTime(ebNotification.getCreatedAt());
@@ -103,15 +101,14 @@ public class EbNotificationServiceImpl extends ServiceImpl<EbNotificationMapper,
         notificationDetailVO.setSenderRole(ebRole.getRoleName());
         notificationDetailVO.setContent(ebNotification.getContent());
         notificationDetailVO.setType(ebNotification.getType());
-        notificationDetailVO.setLevel(ebNotification.getLevel());
         notificationDetailVO.setTitle(ebNotification.getTitle());
         notificationDetailVO.setCreateTime(ebNotification.getCreatedAt());
-        notificationDetailVO.setExpireTime(ebNotification.getExpireTime());
         return notificationDetailVO;
     }
 
     @Override
     @Transactional
+    //TODO 需要修改
     public R create(NotificationDTO notificationDTO) {
         EbNotification ebNotification = new EbNotification();
         long id = IdUtil.getSnowflakeNextId();
@@ -119,9 +116,8 @@ public class EbNotificationServiceImpl extends ServiceImpl<EbNotificationMapper,
         ebNotification.setTitle(notificationDTO.getTitle());
         ebNotification.setContent(notificationDTO.getContent());
         ebNotification.setType(notificationDTO.getType());
-        ebNotification.setLevel(notificationDTO.getLevel());
+        ebNotification.setSenderType(notificationDTO.getSenderType());
         ebNotification.setSenderId(UserContextUtils.getUser());
-        ebNotification.setExpireTime(notificationDTO.getExpireTime());
         int insert = baseMapper.insert(ebNotification);
         if (insert != 1) {
             throw new DbException(Constant.DB_INSERT_FAILURE);

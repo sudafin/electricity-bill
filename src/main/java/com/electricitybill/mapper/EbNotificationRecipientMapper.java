@@ -1,7 +1,7 @@
 package com.electricitybill.mapper;
 
-import com.electricitybill.entity.po.EbNotificationRecipient;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.electricitybill.entity.po.EbNotificationRecipient;
 
 /**
  * <p>

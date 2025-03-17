@@ -7,6 +7,8 @@ import java.time.LocalDate;
 import com.baomidou.mybatisplus.annotation.TableId;
 import java.time.LocalDateTime;
 import java.io.Serializable;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -17,78 +19,59 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author huangdada
- * @since 2024-11-26
+ * @since 2025-03-17
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @TableName("eb_reconciliation")
+@ApiModel(value="EbReconciliation对象", description="")
 public class EbReconciliation implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @TableId(value = "id", type = IdType.AUTO)
+    @ApiModelProperty(value = "对账单ID")
+    @TableId(value = "id", type = IdType.ASSIGN_ID)
     private Long id;
 
-    /**
-     * 对账单号
-     */
-    private Long reconciliationNo;
-
-    private Long paymentId;
-    /**
-     * 用户ID
-     */
+    @ApiModelProperty(value = "用户ID")
     private Long userId;
 
-    /**
-     * 开始日期
-     */
+    @ApiModelProperty(value = "开始日期")
     private LocalDate startDate;
 
-    /**
-     * 结束日期
-     */
+    @ApiModelProperty(value = "结束日期")
     private LocalDate endDate;
 
-    /**
-     * 总用电量
-     */
+    @ApiModelProperty(value = "总用电量")
     private BigDecimal totalUsage;
 
-    /**
-     * 总金额
-     */
+    @ApiModelProperty(value = "总金额")
     private BigDecimal totalAmount;
 
-    /**
-     * 状态:pending/completed
-     */
+    @ApiModelProperty(value = "状态: pending（待处理）/completed（已完成）")
     private String status;
 
-    /**
-     * 支付状态:unpaid/paid
-     */
+    @ApiModelProperty(value = "支付状态: unpaid（未支付）/paid（已支付）")
     private String paymentStatus;
 
-    /**
-     * 审批人ID
-     */
+    @ApiModelProperty(value = "审批人ID")
     private Long approverId;
 
-    /**
-     * 审批时间
-     */
+    @ApiModelProperty(value = "审批时间")
     private LocalDateTime approvalTime;
 
-    /**
-     * 审批意见
-     */
+    @ApiModelProperty(value = "审批意见")
     private String comment;
 
+    @ApiModelProperty(value = "创建时间")
     private LocalDateTime createdAt;
 
+    @ApiModelProperty(value = "更新时间")
     private LocalDateTime updatedAt;
+
+    @ApiModelProperty(value = "支付记录ID")
+    private Long paymentId;
 
 
 }

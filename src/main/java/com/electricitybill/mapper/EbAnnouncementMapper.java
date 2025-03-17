@@ -1,7 +1,7 @@
 package com.electricitybill.mapper;
 
+import com.electricitybill.entity.po.EbAnnouncement;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.electricitybill.entity.po.EbUser;
 
 /**
  * <p>
@@ -9,8 +9,8 @@ import com.electricitybill.entity.po.EbUser;
  * </p>
  *
  * @author huangdada
- * @since 2024-11-26
+ * @since 2025-03-17
  */
-public interface EbUserMapper extends BaseMapper<EbUser> {
+public interface EbAnnouncementMapper extends BaseMapper<EbAnnouncement> {
 
 }

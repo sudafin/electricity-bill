@@ -8,6 +8,8 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import java.time.LocalTime;
 import java.time.LocalDateTime;
 import java.io.Serializable;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -18,76 +20,58 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author huangdada
- * @since 2024-11-26
+ * @since 2025-03-17
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @TableName("eb_rate")
+@ApiModel(value="EbRate对象", description="")
 public class EbRate implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    @ApiModelProperty(value = "费率ID")
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    /**
-     * 费率名称
-     */
+    @ApiModelProperty(value = "费率名称")
     private String rateName;
 
-    /**
-     * 用户类型
-     */
+    @ApiModelProperty(value = "用户类型: 居民用户/商业用户")
     private String userType;
 
-    /**
-     * 每度电费价格
-     */
+    @ApiModelProperty(value = "每度电费价格")
     private BigDecimal price;
 
-    /**
-     * 开始时间
-     */
+    @ApiModelProperty(value = "开始时间")
     private LocalTime startTime;
 
-    /**
-     * 结束时间
-     */
+    @ApiModelProperty(value = "结束时间")
     private LocalTime endTime;
 
-    /**
-     * 峰时价格
-     */
+    @ApiModelProperty(value = "峰时价格")
     private BigDecimal peakPrice;
 
-    /**
-     * 平时价格
-     */
+    @ApiModelProperty(value = "平时价格")
     private BigDecimal flatPrice;
 
-    /**
-     * 谷时价格
-     */
+    @ApiModelProperty(value = "谷时价格")
     private BigDecimal valleyPrice;
 
-    /**
-     * 状态:0禁用/1启用
-     */
+    @ApiModelProperty(value = "状态: 0禁用/1启用")
     private Integer status;
 
-    /**
-     * 生效日期
-     */
+    @ApiModelProperty(value = "生效日期")
     private LocalDate effectiveDate;
 
-    /**
-     * 失效日期
-     */
+    @ApiModelProperty(value = "失效日期")
     private LocalDate expireDate;
 
+    @ApiModelProperty(value = "创建时间")
     private LocalDateTime createdAt;
 
+    @ApiModelProperty(value = "更新时间")
     private LocalDateTime updatedAt;
 
 

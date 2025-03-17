@@ -1,9 +1,10 @@
-package com.electricitybill.controller.config;
+package com.electricitybill.controller.admin;
 
 
 import com.electricitybill.entity.R;
 import com.electricitybill.entity.vo.rate.RateInfoVO;
 import com.electricitybill.service.IEbRateService;
+import io.swagger.annotations.Api;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -20,6 +21,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/rate")
+@Api(tags = "费率管理")
 public class EbRateController {
     @Resource
     private IEbRateService ebRateService;

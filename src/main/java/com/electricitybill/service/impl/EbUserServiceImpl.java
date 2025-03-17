@@ -234,7 +234,6 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
             throw new DbException(Constant.USER_EXIST);
         }
         EbUser user = BeanUtils.copyBean(userDTO, EbUser.class);
-        user.setElectricityUsage(new BigDecimal(0));
         user.setLastPaymentDate(LocalDateTime.now());
         int insert = baseMapper.insert(user);
         if (insert != 1) {
@@ -272,10 +271,9 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
     public R pay(Long userId, Double money, String paymentMethod) {
         EbUser ebUser = baseMapper.selectById(userId);
         //缴费
-        ebUser.setBalance(ebUser.getBalance().add(new BigDecimal(money)));
-        if(ebUser.getBalance().compareTo(new BigDecimal(0)) > 0){
-            ebUser.setAccountStatus(UserStatusType.NORMAL.getDesc());
-        }
+//        if(ebUser.getBalance().compareTo(new BigDecimal(0)) > 0){
+//            ebUser.setAccountStatus(UserStatusType.NORMAL.getDesc());
+//        }
         int update = baseMapper.update(ebUser, new LambdaQueryWrapper<EbUser>().eq(EbUser::getId, userId));
         if (update != 1) {
             throw new DbException(Constant.DB_UPDATE_FAILURE);
@@ -300,7 +298,7 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
 
         //生成对账单
         EbReconciliation ebReconciliation = new EbReconciliation();;
-        ebReconciliation.setReconciliationNo(reconciliationId);
+        ebReconciliation.setId(reconciliationId);
         ebReconciliation.setUserId(ebUser.getId());
         ebReconciliation.setStartDate(LocalDate.now());
         ebReconciliation.setEndDate(LocalDate.now().plusDays(7));
@@ -326,6 +324,7 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
     }
 
     @Override
+    //TODO需要修改
     public UserPaymentVO queryUserPayment(Long userId) {
         EbUser ebUser = baseMapper.selectById(userId);
         if (ObjectUtils.isEmpty(ebUser)) {
@@ -335,13 +334,13 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
         userPaymentVO.setUsername(ebUser.getUsername());
         userPaymentVO.setUserType(ebUser.getUserType());
         userPaymentVO.setMeterNo(ebUser.getMeterNo());
-        if(ebUser.getAccountStatus().equals("欠费")){
-            userPaymentVO.setUnpaidAmount(ebUser.getBalance());
-            userPaymentVO.setBalance(new BigDecimal(0));
-        }else{
-            userPaymentVO.setBalance(ebUser.getBalance());
-            userPaymentVO.setUnpaidAmount(new BigDecimal(0));
-        }
+//        if(ebUser.getAccountStatus().equals("欠费")){
+//            userPaymentVO.setUnpaidAmount(ebUser.getBalance());
+//            userPaymentVO.setBalance(new BigDecimal(0));
+//        }else{
+//            userPaymentVO.setBalance(ebUser.getBalance());
+//            userPaymentVO.setUnpaidAmount(new BigDecimal(0));
+//        }
         return userPaymentVO;
     }
 

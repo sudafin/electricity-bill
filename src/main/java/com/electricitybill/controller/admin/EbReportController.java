@@ -1,19 +1,16 @@
-package com.electricitybill.controller.report;
+package com.electricitybill.controller.admin;
 
 
 import com.electricitybill.annotation.ExportExcel;
 import com.electricitybill.entity.dto.report.ReportDTO;
 import com.electricitybill.entity.vo.report.ReportDataVO;
 import com.electricitybill.service.IEbElectricityUsageService;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -28,6 +25,7 @@ import java.util.concurrent.Future;
  */
 @RestController
 @RequestMapping("/report")
+@Api(tags = "报表管理")
 public class EbReportController {
     @Resource
     private IEbElectricityUsageService ebElectricityUsageService;

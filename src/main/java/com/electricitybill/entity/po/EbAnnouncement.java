@@ -22,33 +22,30 @@ import lombok.experimental.Accessors;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("eb_notification_recipient")
-@ApiModel(value="EbNotificationRecipient对象", description="")
-public class EbNotificationRecipient implements Serializable {
+@TableName("eb_announcement")
+@ApiModel(value="EbAnnouncement对象", description="")
+public class EbAnnouncement implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @ApiModelProperty(value = "接收记录ID")
+    @ApiModelProperty(value = "公告ID")
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    @ApiModelProperty(value = "通知ID")
-    private Long notificationId;
+    @ApiModelProperty(value = "标题")
+    private String title;
 
-    @ApiModelProperty(value = "接收者类型: user（用户）/admin（管理员）")
-    private String recipientType;
+    @ApiModelProperty(value = "内容")
+    private String content;
 
-    @ApiModelProperty(value = "接收者ID")
-    private Long recipientId;
+    @ApiModelProperty(value = "开始时间")
+    private LocalDateTime startTime;
 
-    @ApiModelProperty(value = "优先级: 1普通/2重要/3紧急")
-    private Integer priority;
+    @ApiModelProperty(value = "结束时间")
+    private LocalDateTime endTime;
 
-    @ApiModelProperty(value = "阅读状态: 0未读/1已读")
-    private Integer readStatus;
-
-    @ApiModelProperty(value = "阅读时间")
-    private LocalDateTime readTime;
+    @ApiModelProperty(value = "状态: 有效/过期")
+    private String status;
 
     @ApiModelProperty(value = "创建时间")
     private LocalDateTime createdAt;

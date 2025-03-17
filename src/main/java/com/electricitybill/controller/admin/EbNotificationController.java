@@ -1,4 +1,4 @@
-package com.electricitybill.controller.notification;
+package com.electricitybill.controller.admin;
 
 
 import com.electricitybill.entity.R;
@@ -8,6 +8,7 @@ import com.electricitybill.entity.dto.notification.NotificationPageQuery;
 import com.electricitybill.entity.vo.notification.NotificationDetailVO;
 import com.electricitybill.entity.vo.notification.NotificationPageVO;
 import com.electricitybill.service.IEbNotificationService;
+import io.swagger.annotations.Api;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -23,6 +24,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/notification")
+@Api(tags = "通知管理")
 public class EbNotificationController {
 
     @Resource

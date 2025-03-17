@@ -84,7 +84,6 @@ public class EbPaymentServiceImpl extends ServiceImpl<EbPaymentMapper, EbPayment
             paymentPageVO.setStatus(ebPayment.getStatus());
             EbUser ebUser = ebUserMapper.selectById(ebPayment.getUserId());
             paymentPageVO.setUsername(ebUser.getUsername());
-            paymentPageVO.setBalance(ebUser.getBalance());
             pageVOArrayList.add(paymentPageVO);
         });
         return PageDTO.of(paymentPage, pageVOArrayList);
@@ -105,12 +104,11 @@ public class EbPaymentServiceImpl extends ServiceImpl<EbPaymentMapper, EbPayment
         EbUser ebUser = ebUserMapper.selectById(ebPayment.getUserId());
         paymentDetailVO.setUsername(ebUser.getUsername());
         paymentDetailVO.setUserStatus(ebUser.getAccountStatus());
-        paymentDetailVO.setBalance(ebUser.getBalance());
         paymentDetailVO.setPaymentMethod(ebPayment.getPaymentMethod());
         paymentDetailVO.setStatus(ebPayment.getStatus());
         paymentDetailVO.setPaymentTime(ebPayment.getPaymentTime());
         if(ebPayment.getReconciliationId() != null) {
-            EbReconciliation ebReconciliation = reconciliationMapper.selectOne(new LambdaQueryWrapper<EbReconciliation>().eq(EbReconciliation::getReconciliationNo, ebPayment.getReconciliationId()));
+            EbReconciliation ebReconciliation = reconciliationMapper.selectOne(new LambdaQueryWrapper<EbReconciliation>().eq(EbReconciliation::getId, ebPayment.getReconciliationId()));
             paymentDetailVO.setReconciliationId(ebPayment.getId());
             paymentDetailVO.setReconciliationRemark(ebReconciliation.getComment());
             paymentDetailVO.setReconciliationStatus(ebReconciliation.getStatus());
@@ -141,7 +139,7 @@ public class EbPaymentServiceImpl extends ServiceImpl<EbPaymentMapper, EbPayment
         }
         EbReconciliation ebReconciliation = reconciliationMapper.
                 selectOne(new LambdaQueryWrapper<EbReconciliation>()
-                        .eq(EbReconciliation::getReconciliationNo, ebPayment.getReconciliationId()));
+                        .eq(EbReconciliation::getId, ebPayment.getReconciliationId()));
         if(ebReconciliation.getStatus().equals("通过") || ebReconciliation.getPaymentStatus().equals("暂缓")){
             throw new BadRequestException("审批状态不是退回或者是拒绝状态, 无法执行退款操作");
         }
@@ -208,14 +206,13 @@ public class EbPaymentServiceImpl extends ServiceImpl<EbPaymentMapper, EbPayment
         columnMap.put(0, PaymentDetailVO::getPaymentId);
         columnMap.put(1, PaymentDetailVO::getUsername);
         columnMap.put(2, PaymentDetailVO::getUserStatus);
-        columnMap.put(3, PaymentDetailVO::getBalance);
-        columnMap.put(4, PaymentDetailVO::getPaymentMethod);
-        columnMap.put(5, PaymentDetailVO::getPaymentTime);
-        columnMap.put(6, PaymentDetailVO::getStatus);
-        columnMap.put(7, PaymentDetailVO::getReconciliationId);
-        columnMap.put(8, PaymentDetailVO::getReconciliationStatus);
-        columnMap.put(9, PaymentDetailVO::getReconciliationRemark);
-        columnMap.put(10, PaymentDetailVO::getIsReconciliate);
+        columnMap.put(3, PaymentDetailVO::getPaymentMethod);
+        columnMap.put(4, PaymentDetailVO::getPaymentTime);
+        columnMap.put(5, PaymentDetailVO::getStatus);
+        columnMap.put(6, PaymentDetailVO::getReconciliationId);
+        columnMap.put(7, PaymentDetailVO::getReconciliationStatus);
+        columnMap.put(8, PaymentDetailVO::getReconciliationRemark);
+        columnMap.put(9, PaymentDetailVO::getIsReconciliate);
 
         // 设置数据行的样式
         CellStyle dataStyle = excel.createCellStyle();
@@ -263,8 +260,6 @@ public class EbPaymentServiceImpl extends ServiceImpl<EbPaymentMapper, EbPayment
             EbUser ebUser = ebUserMapper.selectById(ebPayment.getUserId());
             paymentDetailVO.setUsername(ebUser.getUsername());
             paymentDetailVO.setUserStatus(ebUser.getAccountStatus());
-            paymentDetailVO.setBalance(ebUser.getBalance());
-
             paymentDetailVO.setPaymentMethod(ebPayment.getPaymentMethod());
             paymentDetailVO.setStatus(ebPayment.getStatus());
             paymentDetailVO.setPaymentTime(ebPayment.getPaymentTime());
@@ -272,7 +267,7 @@ public class EbPaymentServiceImpl extends ServiceImpl<EbPaymentMapper, EbPayment
             if (ebPayment.getReconciliationId() != null) {
                 EbReconciliation ebReconciliation = reconciliationMapper.selectOne(
                         new LambdaQueryWrapper<EbReconciliation>()
-                                .eq(EbReconciliation::getReconciliationNo, ebPayment.getReconciliationId())
+                                .eq(EbReconciliation::getId, ebPayment.getReconciliationId())
                 );
                 paymentDetailVO.setReconciliationId(ebPayment.getReconciliationId()); // 修正这里应该是 ebPayment.getReconciliationId()
                 paymentDetailVO.setReconciliationRemark(ebReconciliation.getComment());

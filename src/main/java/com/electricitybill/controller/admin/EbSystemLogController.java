@@ -1,4 +1,4 @@
-package com.electricitybill.controller.log;
+package com.electricitybill.controller.admin;
 
 
 import com.electricitybill.annotation.ExportExcel;
@@ -8,11 +8,11 @@ import com.electricitybill.entity.dto.log.LogPageQuery;
 import com.electricitybill.entity.vo.log.LogDetailVO;
 import com.electricitybill.entity.vo.log.LogPageVO;
 import com.electricitybill.service.IEbSystemLogService;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -28,6 +28,7 @@ import java.util.concurrent.Future;
  */
 @RestController
 @RequestMapping("/log")
+@Api("日志管理")
 public class EbSystemLogController {
     @Resource
     private IEbSystemLogService ebSystemLogService;
