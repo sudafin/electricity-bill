@@ -37,7 +37,7 @@ public class EbElectricityUsage implements Serializable {
     private Long userId;
 
     @ApiModelProperty(value = "电表编号")
-    private String meterNo;
+    private String meterId;
 
     @ApiModelProperty(value = "用电量（度）")
     private BigDecimal usageAmount;

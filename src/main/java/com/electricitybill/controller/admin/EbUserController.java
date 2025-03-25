@@ -1,4 +1,4 @@
-package com.electricitybill.controller.user;
+package com.electricitybill.controller.admin;
 
 
 import com.electricitybill.entity.R;
@@ -7,7 +7,7 @@ import com.electricitybill.entity.dto.user.UserDTO;
 import com.electricitybill.entity.dto.user.UserPageQuery;
 import com.electricitybill.entity.vo.user.UserDetailVO;
 import com.electricitybill.entity.vo.user.UserPageVO;
-import com.electricitybill.entity.vo.user.UserPaymentVO;
+import com.electricitybill.entity.vo.user.UserBillVO;
 import com.electricitybill.service.IEbUserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -26,7 +26,7 @@ import java.util.List;
  * @since 2024-11-26
  */
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/admin/user")
 @Api(tags = "用户管理")
 public class EbUserController {
     @Resource
@@ -60,17 +60,9 @@ public class EbUserController {
         return ebUserService.updateUser(userDTO);
     }
 
-    @ApiOperation("缴费")
-    @PutMapping("/pay")
-    //要用RequestBody前端传数据就要用data类型,如果要用RequestParams前端传数据就要用params类型,get请求的前端传数据要用params类型
-    //@RequestParam适合表单提交，@RequestBody适合json提交 ,@PathVariable适合路径参数 , 不用参数只能是get请求
-    public R pay(@RequestParam("userId") Long userId, @RequestParam("money") Double money, @RequestParam("paymentMethod") String paymentMethod){
-        return ebUserService.pay(userId,money,paymentMethod);
-    }
-
-    @ApiOperation("查询用户缴费详情")
+    @ApiOperation("查询用户账单详情")
     @GetMapping("/bill/{userId}")
-    public UserPaymentVO queryUserPayment(@PathVariable @NotNull Long userId){
-        return ebUserService.queryUserPayment(userId);
+    public List<UserBillVO> queryUserBill(@PathVariable @NotNull Long userId){
+        return ebUserService.queryUserBill(userId);
     }
 }

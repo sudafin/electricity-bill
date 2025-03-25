@@ -9,7 +9,7 @@ import com.electricitybill.entity.po.EbUser;
 import com.electricitybill.entity.vo.dashboard.DashboardVO;
 import com.electricitybill.entity.vo.user.UserDetailVO;
 import com.electricitybill.entity.vo.user.UserPageVO;
-import com.electricitybill.entity.vo.user.UserPaymentVO;
+import com.electricitybill.entity.vo.user.UserBillVO;
 
 import java.util.List;
 
@@ -35,7 +35,5 @@ public interface IEbUserService extends IService<EbUser> {
 
     R updateUser(UserDTO userDTO);
 
-    R pay(Long userId, Double money, String paymentMethod);
-
-    UserPaymentVO queryUserPayment(Long userId);
+    List<UserBillVO> queryUserBill(Long userId);
 }

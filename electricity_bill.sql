@@ -85,7 +85,6 @@ VALUES (1, 'M001', 100.50, 1, 60.30, '2025-03-01 08:00:00', '2025-03-01 22:00:00
 CREATE TABLE `eb_meter`
 (
     `id`           bigint(20)  NOT NULL AUTO_INCREMENT COMMENT '电表ID',
-    `meter_no`     varchar(50) NOT NULL COMMENT '电表编号',
     `model`        varchar(50)          DEFAULT NULL COMMENT '电表型号',
     `install_date` date                 DEFAULT NULL COMMENT '安装日期',
     `status`       varchar(20) NOT NULL DEFAULT '正常' COMMENT '状态: 正常/故障/停用',
@@ -93,13 +92,12 @@ CREATE TABLE `eb_meter`
     `created_at`   datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     `updated_at`   datetime    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
-    UNIQUE KEY `meter_no` (`meter_no`),
     KEY `idx_user_id` (`user_id`),
     KEY `idx_status` (`status`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8;
             
-INSERT INTO `eb_meter` (`meter_no`, `model`, `install_date`, `status`, `user_id`, `created_at`, `updated_at`)
+INSERT INTO `eb_meter` (`id`, `model`, `install_date`, `status`, `user_id`, `created_at`, `updated_at`)
 VALUES ('M001', 'SmartMeterX1', '2024-12-01', '正常', 1, '2024-12-01 10:00:00', '2024-12-01 10:00:00'),
        ('M002', 'SmartMeterX2', '2025-01-15', '正常', 2, '2025-01-15 09:00:00', '2025-01-15 09:00:00'),
        ('M003', 'SmartMeterX1', '2025-02-01', '正常', 3, '2025-02-01 11:00:00', '2025-02-01 11:00:00'),
@@ -640,3 +638,37 @@ VALUES ('停电通知', '3月20日8:00-12:00停电，请做好准备', '2025-03-
         '2025-03-09 10:00:00'),
        ('节电倡议', '倡导绿色用电，从我做起', '2025-03-15 00:00:00', NULL, '有效', '2025-03-14 13:00:00',
         '2025-03-14 13:00:00');
+
+
+-- 定时任务表（精简版）
+CREATE TABLE `eb_scheduled_task` (
+                                     `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '任务ID',
+                                     `task_name` varchar(100) NOT NULL COMMENT '任务名称',
+                                     `task_type` varchar(30) NOT NULL COMMENT '任务类型: notification（通知）/report（报表）/billing（账单生成）/meter_reading（抄表）/reminder（催缴）',
+                                     `business_id` bigint(20) DEFAULT NULL COMMENT '关联业务ID，如通知ID、报表配置ID等',
+                                     `task_desc` varchar(255) DEFAULT NULL COMMENT '任务描述',
+                                     `cron_expression` varchar(50) NOT NULL COMMENT 'Cron表达式',
+                                     `task_status` tinyint(4) DEFAULT '1' COMMENT '状态: 0停用/1启用',
+                                     `created_by` bigint(20) DEFAULT NULL COMMENT '创建人ID',
+                                     `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                     `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+                                     PRIMARY KEY (`id`),
+                                     KEY `idx_task_status` (`task_status`),
+                                     KEY `idx_task_type` (`task_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+INSERT INTO `eb_scheduled_task`
+(`task_name`, `task_type`, `business_id`, `task_desc`, `cron_expression`, `task_status`, `created_by`, `created_at`, `updated_at`)
+VALUES
+    ('月度电费账单生成', 'billing', NULL, '每月1日凌晨自动生成上月电费账单', '0 0 1 * *', 1, 1001, '2023-01-15 10:00:00', '2023-01-15 10:00:00'),
+    ('电费缴纳提醒', 'notification', 1001, '每月账单生成后向用户发送缴费提醒', '0 10 1 * *', 1, 1001, '2023-01-15 10:05:00', '2023-01-15 10:05:00'),
+    ('缴费截止提醒', 'reminder', 1002, '账单逾期前3天发送提醒', '0 10 18 * *', 1, 1001, '2023-01-15 10:10:00', '2023-01-15 10:10:00'),
+    ('用电异常检测', 'meter_reading', NULL, '每天检测异常用电情况', '0 2 * * *', 1, 1002, '2023-01-20 14:30:00', '2023-01-20 14:30:00'),
+    ('月度统计报表生成', 'report', 2001, '每月生成电费统计报表', '0 5 1 * *', 1, 1002, '2023-02-01 09:20:00', '2023-02-01 09:20:00'),
+    ('季度统计报表生成', 'report', 2002, '每季度生成电费统计报表', '0 6 1 1,4,7,10 *', 1, 1002, '2023-02-01 09:25:00', '2023-02-01 09:25:00'),
+    ('系统维护通知', 'notification', 1003, '系统维护通知发送', '0 0 20 * * 1', 0, 1003, '2023-03-10 15:40:00', '2023-03-10 15:40:00'),
+    ('电表自检任务', 'meter_reading', NULL, '每周六凌晨执行电表自检', '0 1 * * 6', 1, 1003, '2023-04-05 11:00:00', '2023-04-05 11:00:00'),
+    ('年度数据归档', 'report', 2003, '每年1月2日对上一年数据进行归档', '0 3 2 1 *', 1, 1001, '2023-05-12 16:30:00', '2023-05-12 16:30:00'),
+    ('重要通知推送', 'notification', 1004, '电费政策变动通知', '0 0 12 15 * *', 1, 1001, '2023-06-20 10:45:00', '2023-06-20 10:45:00');

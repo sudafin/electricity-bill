@@ -33,9 +33,6 @@ public class EbMeter implements Serializable {
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    @ApiModelProperty(value = "电表编号")
-    private String meterNo;
-
     @ApiModelProperty(value = "电表型号")
     private String model;
 
@@ -54,5 +51,7 @@ public class EbMeter implements Serializable {
     @ApiModelProperty(value = "更新时间")
     private LocalDateTime updatedAt;
 
+    @ApiModelProperty(value = "最近读数时间")
+    private LocalDateTime lastMeterReadingDate;
 
 }

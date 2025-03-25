@@ -63,6 +63,9 @@ public interface Constant {
     Duration JWT_REFRESH_TTL = Duration.ofMinutes(30);
     String JWT_REDIS_KEY_PREFIX = "jwt:uid:";
     String PAYLOAD_JTI_KEY = "jti";
+    String METER_NOT_EXIST = "电表不存在";
+    String USER_INVALID = "用户状态无效";
+    String BILL_NOT_EXIST = "账单不存在";
 
     interface Code{
         int SUCCESS = 200;

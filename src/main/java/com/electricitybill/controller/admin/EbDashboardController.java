@@ -12,7 +12,7 @@ import javax.annotation.Resource;
 @RequestMapping("/dashboard")
 @RestController
 
-public class DashboardController {
+public class EbDashboardController {
     @Resource
     private IEbUserService eBUserService;
 

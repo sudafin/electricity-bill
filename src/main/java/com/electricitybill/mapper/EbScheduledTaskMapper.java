@@ -1,7 +1,7 @@
 package com.electricitybill.mapper;
 
+import com.electricitybill.entity.po.EbScheduledTask;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.electricitybill.entity.po.EbBill;
 
 /**
  * <p>
@@ -9,8 +9,8 @@ import com.electricitybill.entity.po.EbBill;
  * </p>
  *
  * @author huangdada
- * @since 2025-03-17
+ * @since 2025-03-24
  */
-public interface EbBillMapper extends BaseMapper<EbBill> {
+public interface EbScheduledTaskMapper extends BaseMapper<EbScheduledTask> {
 
 }

@@ -1,5 +1,6 @@
 package com.electricitybill.service;
 
+import com.electricitybill.entity.po.EbScheduledTask;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -8,8 +9,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * </p>
  *
  * @author huangdada
- * @since 2025-03-17
+ * @since 2025-03-24
  */
-public interface IEbBillService extends IService<EbBill> {
+public interface IEbScheduledTaskService extends IService<EbScheduledTask> {
 
 }

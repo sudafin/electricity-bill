@@ -8,6 +8,10 @@ import java.math.BigDecimal;
 @Data
 public class UserDTO {
     /**
+     * 身份证号
+     */
+    public String getIdCardNo;
+    /**
      * 用户名
      */
     private String username;
@@ -23,18 +27,11 @@ public class UserDTO {
      * 电表编号
      */
     private String meterNo;
-    /**
-     * 用户状态
-     */
-    private String accountStatus;
 
     /**
      * 用户类型
      */
     private String userType;
-    /**
-     * 电费余额
-     */
-    private BigDecimal balance;
+
 
 }
