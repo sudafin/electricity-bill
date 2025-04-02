@@ -1,5 +1,8 @@
 package com.electricitybill.entity.po;
 
+import java.math.BigDecimal;
+
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
 import java.time.LocalDate;
@@ -9,8 +12,6 @@ import java.io.Serializable;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.experimental.Accessors;
 
 /**
  * <p>
@@ -18,13 +19,11 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author huangdada
- * @since 2025-03-17
+ * @since 2025-03-26
  */
-@Data
-@EqualsAndHashCode(callSuper = false)
-@Accessors(chain = true)
 @TableName("eb_meter")
 @ApiModel(value="EbMeter对象", description="")
+@Data
 public class EbMeter implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -34,24 +33,46 @@ public class EbMeter implements Serializable {
     private Long id;
 
     @ApiModelProperty(value = "电表型号")
+    @TableField("model")
     private String model;
 
     @ApiModelProperty(value = "安装日期")
+    @TableField("install_date")
     private LocalDate installDate;
 
     @ApiModelProperty(value = "状态: 正常/故障/停用")
+    @TableField("status")
     private String status;
 
     @ApiModelProperty(value = "用户ID")
+    @TableField("user_id")
     private Long userId;
 
+    @ApiModelProperty(value = "周期最后一次抄表时间")
+    @TableField("last_meter_reading_date")
+    private LocalDateTime lastMeterReadingDate;
+
+    @ApiModelProperty(value = "周期内开始读表的时间")
+    @TableField("start_meter_reading_date")
+    private LocalDateTime startMeterReadingDate;
+
     @ApiModelProperty(value = "创建时间")
+    @TableField("created_at")
     private LocalDateTime createdAt;
 
     @ApiModelProperty(value = "更新时间")
+    @TableField("updated_at")
     private LocalDateTime updatedAt;
 
-    @ApiModelProperty(value = "最近读数时间")
-    private LocalDateTime lastMeterReadingDate;
+    @ApiModelProperty(value = "一个周期内读表开始的度数")
+    @TableField("start_reading")
+    private BigDecimal startReading;
 
+    @ApiModelProperty(value = "一个周期内读表现在的度数")
+    @TableField("ending_reading")
+    private BigDecimal endingReading;
+
+    @ApiModelProperty(value = "检查电表的id")
+    @TableField("inspection_id")
+    private Long inspectionId;
 }

@@ -49,11 +49,10 @@ public class EbRateServiceImpl extends ServiceImpl<EbRateMapper, EbRate> impleme
             RateInfoVO rateInfoVO = new RateInfoVO();
             rateInfoVO.setRateId(ebRate.getId());
             rateInfoVO.setRateName(ebRate.getRateName());
-            rateInfoVO.setRateValue(ebRate.getPrice());
             return rateInfoVO;
         }).collect(Collectors.toList());
         //缓存到redis
-        stringRedisTemplate.opsForValue().set(Constant.RATE_LIST_KEY, JSONUtil.toJsonStr(rateInfoVOList),TTLGenerator.generateDefaultRandomTTL(), TimeUnit.SECONDS);
+        stringRedisTemplate.opsForValue().set(Constant.RATE_LIST_KEY, JSONUtil.toJsonStr(rateInfoVOList),TTLGenerator.generateDays(30,180), TimeUnit.SECONDS);
         return rateInfoVOList;
     }
 
@@ -63,7 +62,6 @@ public class EbRateServiceImpl extends ServiceImpl<EbRateMapper, EbRate> impleme
         if(ObjectUtils.isEmpty(ebRate)){
             throw new BadRequestException(Constant.RATE_NOT_EXIST);
         }
-        ebRate.setPrice(rateValue);
         updateById(ebRate);
         //重新设置缓存
         stringRedisTemplate.opsForValue().set(Constant.RATE_LIST_KEY, "",TTLGenerator.generateDefaultRandomTTL(), TimeUnit.SECONDS);

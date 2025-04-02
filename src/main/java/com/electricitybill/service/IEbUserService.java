@@ -35,5 +35,4 @@ public interface IEbUserService extends IService<EbUser> {
 
     R updateUser(UserDTO userDTO);
 
-    List<UserBillVO> queryUserBill(Long userId);
 }

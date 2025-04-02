@@ -221,24 +221,5 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
     }
 
 
-    @Override
-    //TODO需要修改
-    public List<UserBillVO> queryUserBill(Long userId) {
-        EbUser ebUser = baseMapper.selectById(userId);
-        if (ObjectUtils.isEmpty(ebUser)) {
-            throw new DbException(Constant.USER_NOT_EXIST);
-        }
-        List<EbBill> ebBills = ebBillMapper.selectList(new LambdaQueryWrapper<EbBill>().eq(EbBill::getUserId, userId));
-        if (CollUtils.isEmpty(ebBills)) {
-            throw new BizIllegalException(Constant.BILL_NOT_EXIST);
-        }
-        List<UserBillVO> userBillVOS = BeanUtils.copyList(ebBills, UserBillVO.class);
-        userBillVOS.forEach(userBillVO -> {
-            userBillVO.setUserType(ebUser.getUserType());
-            userBillVO.setMeterId(ebUser.getMeterId());
-            userBillVO.setUsername(ebUser.getUsername());
-        });
-        return userBillVOS;
-    }
 
 }

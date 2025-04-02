@@ -40,7 +40,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static com.electricitybill.controller.admin.EbAdminController.keyPair;
+import static com.electricitybill.controller.EbLoginController.keyPair;
 
 /**
  * <p>

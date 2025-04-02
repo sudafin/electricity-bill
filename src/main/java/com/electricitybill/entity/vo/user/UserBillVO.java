@@ -41,4 +41,7 @@ public class UserBillVO {
 
     private LocalDateTime dueDate;
 
+    private BigDecimal startReading; //开始读数
+
+    private BigDecimal endReading;  // 结束读数
 }

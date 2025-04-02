@@ -1,4 +1,4 @@
-package com.electricitybill.controller.admin;
+package com.electricitybill.controller;
 
 
 import com.electricitybill.entity.R;
@@ -26,43 +26,39 @@ import java.util.List;
  * @since 2024-11-26
  */
 @RestController
-@RequestMapping("/admin/user")
+@RequestMapping("/user")
 @Api(tags = "用户管理")
 public class EbUserController {
     @Resource
     private IEbUserService ebUserService;
 
-    @ApiOperation("分页查询用户")
-    @GetMapping("/page")
+    @ApiOperation("管理端分页查询用户")
+    @GetMapping("admin/page")
     public PageDTO<UserPageVO> queryUserPage( UserPageQuery userPageQuery){
         return ebUserService.queryUserPage(userPageQuery);
     }
 
-    @ApiOperation("查询用户详情")
-    @GetMapping("/detail/{userId}")
+    @ApiOperation("管理端查询用户详情")
+    @GetMapping("admin/detail/{userId}")
     public UserDetailVO queryUserDetail(@PathVariable @NotNull Long userId){
         return ebUserService.queryUserDetail(userId);
     }
 
-    @ApiOperation("插入用户")
-    @PostMapping("/create")
+    @ApiOperation("管理端创建用户")
+    @PostMapping("admin/create")
     public R insertUser(@RequestBody @NotNull UserDTO userDTO){
         return ebUserService.insertUser(userDTO);
     }
-    @ApiOperation("删除用户")
-    @DeleteMapping("/delete")
+    @ApiOperation("管理端删除用户")
+    @DeleteMapping("admin/delete")
     public R deleteUser(@RequestParam("userIds")  List<Long> userIds){
         return ebUserService.deleteUser(userIds);
     }
-    @ApiOperation("更新用户信息")
-    @PutMapping("/edit")
+    @ApiOperation("管理端更新用户信息")
+    @PutMapping("admin/edit")
     public R updateUser(@RequestBody @NotNull UserDTO userDTO){
         return ebUserService.updateUser(userDTO);
     }
 
-    @ApiOperation("查询用户账单详情")
-    @GetMapping("/bill/{userId}")
-    public List<UserBillVO> queryUserBill(@PathVariable @NotNull Long userId){
-        return ebUserService.queryUserBill(userId);
-    }
+
 }

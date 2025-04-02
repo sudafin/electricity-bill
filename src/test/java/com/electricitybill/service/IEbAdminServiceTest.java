@@ -2,6 +2,8 @@ package com.electricitybill.service;
 
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.electricitybill.entity.po.EbPermission;
+import com.electricitybill.entity.po.EbRolePermission;
 import com.electricitybill.mapper.EbPermissionMapper;
 import com.electricitybill.mapper.EbRolePermissionMapper;
 import com.electricitybill.utils.StringUtils;

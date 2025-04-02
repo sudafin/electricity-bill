@@ -72,7 +72,7 @@ public class EbReconciliationServiceImpl extends ServiceImpl<EbReconciliationMap
         log.debug("queryPage:{}", reconciliationPageQuery);
         Page<EbReconciliation> ebReconciliationPage = new Page<>(reconciliationPageQuery.getPageNo(), reconciliationPageQuery.getPageSize());
         //reconciliation只有userId如果想要通过用户名查找需要先查询用户的信息
-        List<EbUser> ebUserList = ebUserMapper.selectList(new LambdaQueryWrapper<EbUser>().eq(StringUtils.isNotBlank(reconciliationPageQuery.getMeterNo()), EbUser::getMeterNo, reconciliationPageQuery.getMeterNo()).eq(StringUtils.isNotBlank(reconciliationPageQuery.getUsername()), EbUser::getUsername, reconciliationPageQuery.getUsername()).eq(StringUtils.isNotBlank(reconciliationPageQuery.getUserType()), EbUser::getUserType, reconciliationPageQuery.getUserType()));
+        List<EbUser> ebUserList = ebUserMapper.selectList(new LambdaQueryWrapper<EbUser>().eq(StringUtils.isNotBlank(reconciliationPageQuery.getMeterNo()), EbUser::getMeterId, reconciliationPageQuery.getMeterNo()).eq(StringUtils.isNotBlank(reconciliationPageQuery.getUsername()), EbUser::getUsername, reconciliationPageQuery.getUsername()).eq(StringUtils.isNotBlank(reconciliationPageQuery.getUserType()), EbUser::getUserType, reconciliationPageQuery.getUserType()));
         if (CollUtils.isEmpty(ebUserList) && StringUtils.isNotBlank(reconciliationPageQuery.getUsername())) {
             throw new DbException(Constant.USER_NOT_EXIST);
         }
@@ -94,7 +94,7 @@ public class EbReconciliationServiceImpl extends ServiceImpl<EbReconciliationMap
             reconciliationPageVO.setBalance(reconciliation.getTotalAmount());
             ebUserList.stream().filter(ebUser -> ebUser.getId().equals(reconciliation.getUserId())).findFirst().ifPresent(ebUser -> {
                 reconciliationPageVO.setUsername(ebUser.getUsername());
-                reconciliationPageVO.setMeterNo(ebUser.getMeterNo());
+                reconciliationPageVO.setMeterNo(ebUser.getMeterId());
                 reconciliationPageVO.setUserType(ebUser.getUserType());
             });
             return reconciliationPageVO;
@@ -136,7 +136,7 @@ public class EbReconciliationServiceImpl extends ServiceImpl<EbReconciliationMap
         reconciliationDetailVO.setUsername(ebUser.getUsername());
         reconciliationDetailVO.setUserType(ebUser.getUserType());
         reconciliationDetailVO.setReconciliationStatus(ebReconciliation.getStatus());
-        reconciliationDetailVO.setMeterNo(ebUser.getMeterNo());
+        reconciliationDetailVO.setMeterNo(ebUser.getMeterId());
         reconciliationDetailVO.setCreateTime(ebReconciliation.getCreatedAt());
         reconciliationDetailVO.setBalance(ebReconciliation.getTotalAmount());
         reconciliationDetailVO.setApprovalTime(ebReconciliation.getApprovalTime());
@@ -322,7 +322,7 @@ public class EbReconciliationServiceImpl extends ServiceImpl<EbReconciliationMap
             reconciliationDetailVO.setUsername(ebUser.getUsername());
             reconciliationDetailVO.setUserType(ebUser.getUserType());
             reconciliationDetailVO.setReconciliationStatus(ebReconciliation.getStatus());
-            reconciliationDetailVO.setMeterNo(ebUser.getMeterNo());
+            reconciliationDetailVO.setMeterNo(ebUser.getMeterId());
             reconciliationDetailVO.setCreateTime(ebReconciliation.getCreatedAt());
             reconciliationDetailVO.setBalance(ebReconciliation.getTotalAmount());
             reconciliationDetailVO.setApprovalTime(ebReconciliation.getApprovalTime());

@@ -66,6 +66,11 @@ public interface Constant {
     String METER_NOT_EXIST = "电表不存在";
     String USER_INVALID = "用户状态无效";
     String BILL_NOT_EXIST = "账单不存在";
+    String INVALID_PERIOD_TYPE = "不合法的计算类型";
+    String RATE_USER_TYPE = "用户类型的费率";
+    String RATE_USER_TYPE_NOT_EXIST = "用户类型不存在";
+    String INVALID_DATE_TYPE = "不合法的日期类型";
+
 
     interface Code{
         int SUCCESS = 200;

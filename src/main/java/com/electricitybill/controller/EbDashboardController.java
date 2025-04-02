@@ -1,4 +1,4 @@
-package com.electricitybill.controller.admin;
+package com.electricitybill.controller;
 
 import com.electricitybill.entity.vo.dashboard.DashboardVO;
 import com.electricitybill.service.IEbUserService;

@@ -1,4 +1,4 @@
-package com.electricitybill.controller.admin;
+package com.electricitybill.controller;
 
 
 import com.electricitybill.constants.Constant;
@@ -17,7 +17,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.KeyPair;
@@ -31,9 +30,9 @@ import java.security.KeyPair;
  * @since 2024-11-26
  */
 @RestController
-@RequestMapping("/admin")
+@RequestMapping("/login")
 @Api(tags = "管理员管理")
-public class EbAdminController {
+public class EbLoginController {
     @Resource
     private IEbAdminService ebAdminService;
 

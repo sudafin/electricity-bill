@@ -22,4 +22,8 @@ public interface IEbElectricityUsageService extends IService<EbElectricityUsage>
     List<ReportDataVO> getReportData(ReportDTO reportDTO);
 
     Future<String> export(ReportDTO reportDTO) throws IOException;
+
+    void calculateElectricityUsageSummaryDay();
+
+    void calculateElectricityUsageSummaryMonth();
 }

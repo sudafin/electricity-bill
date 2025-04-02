@@ -1,6 +1,8 @@
 package com.electricitybill.entity.po;
 
 import java.math.BigDecimal;
+
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -30,7 +32,7 @@ public class EbElectricityUsage implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @ApiModelProperty(value = "用电记录ID")
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id", type = IdType.ASSIGN_ID)
     private Long id;
 
     @ApiModelProperty(value = "用户ID")
@@ -45,9 +47,6 @@ public class EbElectricityUsage implements Serializable {
     @ApiModelProperty(value = "费率ID")
     private Long rateId;
 
-    @ApiModelProperty(value = "电费金额")
-    private BigDecimal feeAmount;
-
     @ApiModelProperty(value = "用电开始时间")
     private LocalDateTime startTime;
 
@@ -55,7 +54,8 @@ public class EbElectricityUsage implements Serializable {
     private LocalDateTime endTime;
 
     @ApiModelProperty(value = "用电时段: peak（峰）/flat（平）/valley（谷）")
-    private String timeSegment;
+    @TableField("period_type")
+    private String periodType;
 
     @ApiModelProperty(value = "创建时间")
     private LocalDateTime createdAt;

@@ -47,7 +47,9 @@ public class ManagerWebConfig implements WebMvcConfigurer {
             "/admin/**",
             "/admin/captcha",
             "/doc.html",
+            "/alipay/**",
             "/error",
+            "/ws/**",
             "/workspace/**"};
     //这里不能将UserInterceptor设为Component不然会出错,要么变为@bean,要么直接new
     @Bean

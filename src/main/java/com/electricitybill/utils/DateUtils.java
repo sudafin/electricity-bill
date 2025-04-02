@@ -4,6 +4,7 @@ import cn.hutool.core.date.LocalDateTimeUtil;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 
 /**
@@ -40,6 +41,7 @@ public class DateUtils extends LocalDateTimeUtil {
             DateTimeFormatter.ofPattern(":yyyyMM");
 
     public static final String TIME_ZONE_8 = "GMT+8";
+    public static final ZoneId zoneId = ZoneId.of("Asia/Shanghai");
 
     /**
      * 获取utc时间
@@ -110,6 +112,7 @@ public class DateUtils extends LocalDateTimeUtil {
     }
 
     public static LocalDateTime getMonthBeginTime(LocalDate date) {
+
         return LocalDate.of(date.getYear(), date.getMonth(), 1).atStartOfDay();
     }
 
@@ -147,4 +150,6 @@ public class DateUtils extends LocalDateTimeUtil {
         // 4.返回结果
         return days;
     }
+
+
 }
