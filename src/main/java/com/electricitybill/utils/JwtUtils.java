@@ -161,6 +161,6 @@ public class JwtUtils {
         return adminDTO;
     }
     public void cleanJtiCache() {
-        stringRedisTemplate.delete(Constant.JWT_REDIS_KEY_PREFIX + UserContextUtils.getUser());
+        stringRedisTemplate.delete(Constant.JWT_REDIS_KEY_PREFIX + AdminContextUtils.getAdminId());
     }
 }

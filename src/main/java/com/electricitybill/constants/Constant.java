@@ -70,6 +70,9 @@ public interface Constant {
     String RATE_USER_TYPE = "用户类型的费率";
     String RATE_USER_TYPE_NOT_EXIST = "用户类型不存在";
     String INVALID_DATE_TYPE = "不合法的日期类型";
+    String NOTIFICATION_TYPE_ERROR = "不合法的通知类型";
+    String NOTIFICATION_SENDER_LIST_EMPTY = "通知发送人列表为空";
+    String ADMIN_NOT_EXIST = "管理员不存在";
 
 
     interface Code{

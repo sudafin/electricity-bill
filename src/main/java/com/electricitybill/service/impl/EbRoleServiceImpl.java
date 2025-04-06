@@ -190,7 +190,7 @@ public class EbRoleServiceImpl extends ServiceImpl<EbRoleMapper, EbRole> impleme
         }
         }
         ebAdminMapper.updateById(ebAdmin);
-        if(StringUtils.isNotBlank(roleEditDTO.getPassword()) && UserContextUtils.getUser().equals(ebAdmin.getId())){
+        if(StringUtils.isNotBlank(roleEditDTO.getPassword()) && AdminContextUtils.getAdminId().equals(ebAdmin.getId())){
             return R.of(401, "当前用户登录过期", null);
         }
         return R.ok();

@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * @author huangdada
  * @version 1.0
- * @description TODO
+
  * 2025/03/27/11:13
  */
 class RateCacheDTOTest {

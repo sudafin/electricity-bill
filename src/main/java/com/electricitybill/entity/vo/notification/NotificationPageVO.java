@@ -13,4 +13,6 @@ public class NotificationPageVO {
     private String title;
     private LocalDateTime createTime;
     private Integer readStatus;
+    //TODO 新增字段
+    private LocalDateTime expireTime;
 }

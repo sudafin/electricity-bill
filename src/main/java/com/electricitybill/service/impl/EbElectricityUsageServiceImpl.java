@@ -4,18 +4,14 @@ package com.electricitybill.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.electricitybill.constants.Constant;
 import com.electricitybill.entity.dto.report.ReportDTO;
-import com.electricitybill.entity.po.EbUsageSummary;
-import com.electricitybill.entity.po.EbElectricityUsage;
-import com.electricitybill.entity.po.EbUser;
+import com.electricitybill.entity.po.*;
 import com.electricitybill.entity.vo.report.ReportDataVO;
-import com.electricitybill.enums.DateType;
-import com.electricitybill.enums.PeriodType;
-import com.electricitybill.enums.ReportType;
-import com.electricitybill.enums.UserType;
+import com.electricitybill.enums.*;
 import com.electricitybill.expcetions.DbException;
 import com.electricitybill.mapper.EbElectricityUsageMapper;
 import com.electricitybill.mapper.EbMeterMapper;
 import com.electricitybill.mapper.EbUserMapper;
+import com.electricitybill.service.IEbBillService;
 import com.electricitybill.service.IEbUsageSummaryService;
 import com.electricitybill.service.IEbElectricityUsageService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -31,9 +27,11 @@ import org.apache.poi.xddf.usermodel.XDDFColor;
 import org.apache.poi.xddf.usermodel.XDDFSolidFillProperties;
 import org.apache.poi.xddf.usermodel.chart.*;
 import org.apache.poi.xssf.usermodel.*;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.io.File;
@@ -66,8 +64,11 @@ public class EbElectricityUsageServiceImpl extends ServiceImpl<EbElectricityUsag
     private EbMeterMapper ebMeterMapper;
     @Resource
     private EbUserMapper ebUserMapper;
-    @Resource
+    @Resource(name = "ebUsageSummaryServiceA")
     private IEbUsageSummaryService ebUsageSummaryService;
+    @Resource(name = "ebBillServiceA")
+    private IEbBillService ebBillService;
+
     @Override
     public List<ReportDataVO> getReportData(ReportDTO reportDTO) {
         List<EbElectricityUsage> ebElectricityUsageList = lambdaQuery().between(EbElectricityUsage::getStartTime, reportDTO.getStartDate(), reportDTO.getEndDate()).list();
@@ -101,12 +102,10 @@ public class EbElectricityUsageServiceImpl extends ServiceImpl<EbElectricityUsag
                 reportDataVO.setElectricityUsage(BigDecimal.ZERO);
 
                 YearMonth finalStartYearMonth = startYearMonth;
-                ebElectricityUsageList.stream()
-                        .filter(ebElectricityUsage -> YearMonth.from(ebElectricityUsage.getStartTime()).equals(finalStartYearMonth))
-                        .forEach(ebElectricityUsage -> {
-                            // 将这个月份的数据相加
-                            reportDataVO.setElectricityUsage(reportDataVO.getElectricityUsage().add(ebElectricityUsage.getUsageAmount()));
-                        });
+                ebElectricityUsageList.stream().filter(ebElectricityUsage -> YearMonth.from(ebElectricityUsage.getStartTime()).equals(finalStartYearMonth)).forEach(ebElectricityUsage -> {
+                    // 将这个月份的数据相加
+                    reportDataVO.setElectricityUsage(reportDataVO.getElectricityUsage().add(ebElectricityUsage.getUsageAmount()));
+                });
                 reportDataVOS.add(reportDataVO);
                 startYearMonth = startYearMonth.plusMonths(1); // 递增一个月
             }
@@ -128,12 +127,11 @@ public class EbElectricityUsageServiceImpl extends ServiceImpl<EbElectricityUsag
         }
         return reportDataVOS;
     }
+
     @Override
     @Async("generateReportExecutor")
     public Future<String> export(ReportDTO reportDTO) throws IOException {
-        List<EbElectricityUsage> ebElectricityUsageList = lambdaQuery()
-                .between(EbElectricityUsage::getStartTime, reportDTO.getStartDate(), reportDTO.getEndDate())
-                .list();
+        List<EbElectricityUsage> ebElectricityUsageList = lambdaQuery().between(EbElectricityUsage::getStartTime, reportDTO.getStartDate(), reportDTO.getEndDate()).list();
 
         // 获取报告类型和日期范围
         LocalDateTime startDate = reportDTO.getStartDate();
@@ -150,12 +148,10 @@ public class EbElectricityUsageServiceImpl extends ServiceImpl<EbElectricityUsag
                 reportDataVO.setElectricityUsage(BigDecimal.ZERO);
 
                 LocalDateTime finalStartDate = startDate;
-                ebElectricityUsageList.stream()
-                        .filter(ebElectricityUsage -> finalStartDate.toLocalDate().equals(ebElectricityUsage.getStartTime().toLocalDate()))
-                        .forEach(ebElectricityUsage -> {
+                ebElectricityUsageList.stream().filter(ebElectricityUsage -> finalStartDate.toLocalDate().equals(ebElectricityUsage.getStartTime().toLocalDate())).forEach(ebElectricityUsage -> {
 
-                            reportDataVO.setElectricityUsage(reportDataVO.getElectricityUsage().add(ebElectricityUsage.getUsageAmount()));
-                        });
+                    reportDataVO.setElectricityUsage(reportDataVO.getElectricityUsage().add(ebElectricityUsage.getUsageAmount()));
+                });
 
                 reportDataVOS.add(reportDataVO);
                 startDate = startDate.plusDays(1);
@@ -172,11 +168,9 @@ public class EbElectricityUsageServiceImpl extends ServiceImpl<EbElectricityUsag
                 reportDataVO.setElectricityUsage(BigDecimal.ZERO);
 
                 YearMonth finalStartYearMonth = startYearMonth;
-                ebElectricityUsageList.stream()
-                        .filter(ebElectricityUsage -> YearMonth.from(ebElectricityUsage.getStartTime()).equals(finalStartYearMonth))
-                        .forEach(ebElectricityUsage -> {
-                            reportDataVO.setElectricityUsage(reportDataVO.getElectricityUsage().add(ebElectricityUsage.getUsageAmount()));
-                        });
+                ebElectricityUsageList.stream().filter(ebElectricityUsage -> YearMonth.from(ebElectricityUsage.getStartTime()).equals(finalStartYearMonth)).forEach(ebElectricityUsage -> {
+                    reportDataVO.setElectricityUsage(reportDataVO.getElectricityUsage().add(ebElectricityUsage.getUsageAmount()));
+                });
 
                 reportDataVOS.add(reportDataVO);
                 startYearMonth = startYearMonth.plusMonths(1);
@@ -193,11 +187,9 @@ public class EbElectricityUsageServiceImpl extends ServiceImpl<EbElectricityUsag
                 reportDataVO.setElectricityUsage(BigDecimal.ZERO);
 
                 Year finalStartYear = startYear;
-                ebElectricityUsageList.stream()
-                        .filter(ebElectricityUsage -> finalStartYear.equals(Year.from(ebElectricityUsage.getStartTime())))
-                        .forEach(ebElectricityUsage -> {
-                            reportDataVO.setElectricityUsage(reportDataVO.getElectricityUsage().add(ebElectricityUsage.getUsageAmount()));
-                        });
+                ebElectricityUsageList.stream().filter(ebElectricityUsage -> finalStartYear.equals(Year.from(ebElectricityUsage.getStartTime()))).forEach(ebElectricityUsage -> {
+                    reportDataVO.setElectricityUsage(reportDataVO.getElectricityUsage().add(ebElectricityUsage.getUsageAmount()));
+                });
 
                 reportDataVOS.add(reportDataVO);
                 startYear = startYear.plusYears(1);
@@ -290,31 +282,24 @@ public class EbElectricityUsageServiceImpl extends ServiceImpl<EbElectricityUsag
         //拿到当天的所有数据
         List<EbElectricityUsage> ebElectricityUsageList = this.list(new LambdaQueryWrapper<EbElectricityUsage>()
                 // 大于昨天的结束时间小于等于今天的结束时间,
-                .gt(EbElectricityUsage::getStartTime, DateUtils.getDayStartTime(LocalDateTime.now(zoneId)))
-                .le(EbElectricityUsage::getEndTime, DateUtils.getDayEndTime(LocalDateTime.now(zoneId)))
-        );
+                .gt(EbElectricityUsage::getStartTime, DateUtils.getDayStartTime(LocalDateTime.now(zoneId))).le(EbElectricityUsage::getEndTime, DateUtils.getDayEndTime(LocalDateTime.now(zoneId))));
         // 检查数据是否为空
         if (ebElectricityUsageList.isEmpty()) {
             log.warn("当日无用电数据");
             return;
         }
         //key是当前的电表id, 然后value是这些数据的对象
-        Map<String, List<EbElectricityUsage>> ebElectricityListMap= ebElectricityUsageList.stream().collect(groupingBy(EbElectricityUsage::getMeterId));
+        Map<String, List<EbElectricityUsage>> ebElectricityListMap = ebElectricityUsageList.stream().collect(groupingBy(EbElectricityUsage::getMeterId));
         //拿到所有的用户id
         List<Long> userIds = ebElectricityUsageList.stream().map(EbElectricityUsage::getUserId).distinct().collect(Collectors.toList());
         // 分批次查询（每批 1000 个）
         List<List<Long>> userIdBatches = Lists.partition(userIds, 1000);
         //将用户id与用户进行映射
-        Map<Long, EbUser> ebUserMap = userIdBatches.stream()
-                .map(batch -> ebUserMapper.selectBatchIds(batch))
-                .flatMap(List::stream)
-                .collect(Collectors.toMap(EbUser::getId, Function.identity()));
+        Map<Long, EbUser> ebUserMap = userIdBatches.stream().map(batch -> ebUserMapper.selectBatchIds(batch)).flatMap(List::stream).collect(Collectors.toMap(EbUser::getId, Function.identity()));
         ArrayList<EbUsageSummary> ebDailyUsageSummaries = new ArrayList<>();
-        ebElectricityListMap.forEach((meterId,ebElectricityUsages)-> {
+        ebElectricityListMap.forEach((meterId, ebElectricityUsages) -> {
             // 确保同一电表下的所有记录用户 ID 一致
-            Set<Long> uniqueUserIds = ebElectricityUsages.stream()
-                    .map(EbElectricityUsage::getUserId)
-                    .collect(Collectors.toSet());
+            Set<Long> uniqueUserIds = ebElectricityUsages.stream().map(EbElectricityUsage::getUserId).collect(Collectors.toSet());
             if (uniqueUserIds.size() > 1) {
                 throw new DbException("同一电表存在多个用户 ID: " + meterId);
             }
@@ -368,8 +353,7 @@ public class EbElectricityUsageServiceImpl extends ServiceImpl<EbElectricityUsag
             ebUsageSummary.setSummaryDateStart(DateUtils.getDayStartTime(LocalDateTime.now()));
             ebUsageSummary.setSummaryDateEnd(DateUtils.getDayEndTime(LocalDateTime.now()));
             //每天的类型
-            ebUsageSummary.setDateType(DateType.
-                    DAILY.getDesc());
+            ebUsageSummary.setDateType(DateType.DAILY.getDesc());
             ebUsageSummary.setPeakUsage(peakUsage.get());
             ebUsageSummary.setFlatUsage(flatUsage.get());
             ebUsageSummary.setValleyUsage(valleyUsage.get());
@@ -384,55 +368,119 @@ public class EbElectricityUsageServiceImpl extends ServiceImpl<EbElectricityUsag
     }
 
     /**
-     * 将每月的记录聚合到月度表中
+     * 计算每月的电量然后生成订单
      */
     @Override
-    public void calculateElectricityUsageSummaryMonth() {
-        //计算每月的数据,key是电表id，value是对应数据的List集合
-        Map<String, List<EbUsageSummary>> ebUserIdUsageSummary = ebUsageSummaryService.lambdaQuery().
-                eq(EbUsageSummary::getDateType, DateType.DAILY.getDesc())
-                .gt(EbUsageSummary::getSummaryDateStart, DateUtils.getMonthBegin(LocalDate.now(zoneId)))
-                .le(EbUsageSummary::getSummaryDateEnd, DateUtils.getMonthEnd(LocalDate.now(zoneId)))
-                .list().stream().collect(groupingBy(EbUsageSummary::getMeterId));
-        List<EbUsageSummary> ebUsageSummaries = new ArrayList<>();
-        ebUserIdUsageSummary.forEach((meterId, ebDailyUsageSummaries) -> {
-            EbUsageSummary ebUsageSummary = new EbUsageSummary();
-            AtomicReference<BigDecimal> finalCalculatePrice = new AtomicReference<>(BigDecimal.ZERO);
-            AtomicReference<BigDecimal> finalCalculateUsage = new AtomicReference<>(BigDecimal.ZERO);
-            AtomicReference<BigDecimal> peakUsage = new AtomicReference<>(BigDecimal.ZERO);
-            AtomicReference<BigDecimal> flatUsage = new AtomicReference<>(BigDecimal.ZERO);
-            AtomicReference<BigDecimal> valleyUsage = new AtomicReference<>(BigDecimal.ZERO);
-            AtomicReference<BigDecimal> peakCost = new AtomicReference<>(BigDecimal.ZERO);
-            AtomicReference<BigDecimal> flatCost = new AtomicReference<>(BigDecimal.ZERO);
-            AtomicReference<BigDecimal> valleyCost = new AtomicReference<>(BigDecimal.ZERO);
-            AtomicReference<Long> userId = new AtomicReference<>();
-            ebDailyUsageSummaries.forEach(ebDailyUsageSummary -> {
-                finalCalculateUsage.set(finalCalculateUsage.get().add(ebDailyUsageSummary.getTotalUsage()));
-                finalCalculatePrice.set(finalCalculatePrice.get().add(ebDailyUsageSummary.getTotalCost()));
-                peakUsage.set(peakUsage.get().add(ebDailyUsageSummary.getPeakUsage()));
-                flatUsage.set(flatUsage.get().add(ebDailyUsageSummary.getFlatUsage()));
-                valleyUsage.set(valleyUsage.get().add(ebDailyUsageSummary.getValleyUsage()));
-                peakCost.set(peakCost.get().add(ebDailyUsageSummary.getPeakCost()));
-                flatCost.set(flatCost.get().add(ebDailyUsageSummary.getFlatCost()));
-                valleyCost.set(valleyCost.get().add(ebDailyUsageSummary.getValleyCost()));
-                userId.set(ebDailyUsageSummary.getUserId());
-            });
-            ebUsageSummary.setUserId(userId.get());
-            ebUsageSummary.setMeterId(meterId);
-            ebUsageSummary.setSummaryDateStart(DateUtils.getMonthBeginTime(LocalDate.now(zoneId)));
-            ebUsageSummary.setSummaryDateEnd(DateUtils.getMonthEndTime(LocalDate.now(zoneId)));
-            ebUsageSummary.setDateType(DateType.MONTHLY.getDesc());
-            ebUsageSummary.setPeakUsage(peakUsage.get());
-            ebUsageSummary.setFlatUsage(flatUsage.get());
-            ebUsageSummary.setValleyUsage(valleyUsage.get());
-            ebUsageSummary.setTotalUsage(finalCalculateUsage.get());
-            ebUsageSummary.setPeakCost(peakCost.get());
-            ebUsageSummary.setFlatCost(flatCost.get());
-            ebUsageSummary.setValleyCost(valleyCost.get());
-            ebUsageSummary.setTotalCost(finalCalculatePrice.get());
-            ebUsageSummaries.add(ebUsageSummary);
+    @Transactional
+    public void calculateMonthlyBill() {
+        // 1. 获取所有电表数据，构建userId到电表的映射
+        Map<Long, EbMeter> ebMeterMap = ebMeterMapper.selectList(new LambdaQueryWrapper<>()).stream().collect(Collectors.toMap(EbMeter::getUserId, Function.identity(), (existing, replacement) -> existing)); // 处理可能的重复键
+
+        // 2. 查询当月每日用电数据并按电表ID分组
+        LocalDate now = LocalDate.now(zoneId);
+        Map<String, List<EbUsageSummary>> dailyUsageByMeter = ebUsageSummaryService.lambdaQuery().eq(EbUsageSummary::getDateType, DateType.DAILY.getDesc()).gt(EbUsageSummary::getSummaryDateStart, DateUtils.getMonthBegin(now)).le(EbUsageSummary::getSummaryDateEnd, DateUtils.getMonthEnd(now)).list().stream().collect(Collectors.groupingBy(EbUsageSummary::getMeterId));
+
+        // 3. 处理每个电表的月度数据
+        List<EbUsageSummary> monthlySummaries = new ArrayList<>();
+        List<EbBill> monthlyBills = new ArrayList<>();
+
+        dailyUsageByMeter.forEach((meterId, dailySummaries) -> {
+            if (dailySummaries.isEmpty()) {
+                return; // 跳过空数据
+            }
+
+            // 获取第一个日记录的用户ID(假设所有日记录用户ID相同)
+            Long userId = dailySummaries.get(0).getUserId();
+            EbMeter meter = ebMeterMap.get(userId);
+            if (meter == null) {
+                return; // 跳过没有对应电表的记录
+            }
+
+            // 计算月度汇总数据
+            MonthlyUsageSummary summary = calculateMonthlyUsage(dailySummaries);
+
+            // 创建月度用电汇总记录
+            EbUsageSummary monthlySummary = createMonthlyUsageSummary(userId, meterId, now, summary);
+            monthlySummaries.add(monthlySummary);
+
+            // 创建月度账单
+            EbBill bill = createMonthlyBill(userId, meter, summary, now);
+            monthlyBills.add(bill);
         });
-        ebUsageSummaryService.saveBatch(ebUsageSummaries);
+
+        // 4. 批量保存数据
+        if (!monthlySummaries.isEmpty()) {
+            ebUsageSummaryService.saveBatch(monthlySummaries);
+        }
+        if (!monthlyBills.isEmpty()) {
+            ebBillService.saveBatch(monthlyBills);
+        }
     }
 
+    private MonthlyUsageSummary calculateMonthlyUsage(List<EbUsageSummary> dailySummaries) {
+        MonthlyUsageSummary summary = new MonthlyUsageSummary();
+        summary.totalUsage = BigDecimal.ZERO;
+        summary.totalCost = BigDecimal.ZERO;
+        summary.peakUsage = BigDecimal.ZERO;
+        summary.flatUsage = BigDecimal.ZERO;
+        summary.valleyUsage = BigDecimal.ZERO;
+        summary.peakCost = BigDecimal.ZERO;
+        summary.flatCost = BigDecimal.ZERO;
+        summary.valleyCost = BigDecimal.ZERO;
+
+        for (EbUsageSummary daily : dailySummaries) {
+            summary.totalUsage = summary.totalUsage.add(daily.getTotalUsage());
+            summary.totalCost = summary.totalCost.add(daily.getTotalCost());
+            summary.peakUsage = summary.peakUsage.add(daily.getPeakUsage());
+            summary.flatUsage = summary.flatUsage.add(daily.getFlatUsage());
+            summary.valleyUsage = summary.valleyUsage.add(daily.getValleyUsage());
+            summary.peakCost = summary.peakCost.add(daily.getPeakCost());
+            summary.flatCost = summary.flatCost.add(daily.getFlatCost());
+            summary.valleyCost = summary.valleyCost.add(daily.getValleyCost());
+        }
+        return summary;
+    }
+
+    private EbUsageSummary createMonthlyUsageSummary(Long userId, String meterId, LocalDate month, MonthlyUsageSummary summary) {
+        EbUsageSummary monthlySummary = new EbUsageSummary();
+        monthlySummary.setUserId(userId);
+        monthlySummary.setMeterId(meterId);
+        monthlySummary.setSummaryDateStart(DateUtils.getMonthBeginTime(month));
+        monthlySummary.setSummaryDateEnd(DateUtils.getMonthEndTime(month));
+        monthlySummary.setDateType(DateType.MONTHLY.getDesc());
+        monthlySummary.setPeakUsage(summary.peakUsage);
+        monthlySummary.setFlatUsage(summary.flatUsage);
+        monthlySummary.setValleyUsage(summary.valleyUsage);
+        monthlySummary.setTotalUsage(summary.totalUsage);
+        monthlySummary.setPeakCost(summary.peakCost);
+        monthlySummary.setFlatCost(summary.flatCost);
+        monthlySummary.setValleyCost(summary.valleyCost);
+        monthlySummary.setTotalCost(summary.totalCost);
+        return monthlySummary;
+    }
+
+    private EbBill createMonthlyBill(Long userId, EbMeter meter, MonthlyUsageSummary summary, LocalDate month) {
+        EbBill bill = new EbBill();
+        bill.setUserId(userId);
+        bill.setUsageAmount(summary.totalUsage);
+        bill.setTotalAmount(summary.totalCost);
+        bill.setStatus(BillType.UNPAID.getDesc());
+        bill.setMeterId(meter.getId());
+        bill.setStartReading(meter.getStartReading());
+        bill.setEndingReading(meter.getEndingReading());
+        bill.setDueDate(DateUtils.getDayEndTime(LocalDateTime.now().plusDays(7)));
+        return bill;
+    }
+
+    // 辅助类和方法
+    private static class MonthlyUsageSummary {
+        BigDecimal totalUsage;
+        BigDecimal totalCost;
+        BigDecimal peakUsage;
+        BigDecimal flatUsage;
+        BigDecimal valleyUsage;
+        BigDecimal peakCost;
+        BigDecimal flatCost;
+        BigDecimal valleyCost;
+    }
 }

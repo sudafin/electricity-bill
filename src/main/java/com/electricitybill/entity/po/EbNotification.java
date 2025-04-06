@@ -1,5 +1,6 @@
 package com.electricitybill.entity.po;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -29,7 +30,7 @@ public class EbNotification implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @ApiModelProperty(value = "通知ID")
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id", type = IdType.INPUT)
     private Long id;
 
     @ApiModelProperty(value = "标题")
@@ -52,6 +53,15 @@ public class EbNotification implements Serializable {
 
     @ApiModelProperty(value = "更新时间")
     private LocalDateTime updatedAt;
+
+    @ApiModelProperty(value = "过期时间")
+    @TableField("expire_time")
+    private LocalDateTime expireTime;
+
+    @ApiModelProperty(value = "发送状态: valid（有效）/invalid（无效）")
+    @TableField("valid_type")
+    private Integer validType;
+
 
 
 }

@@ -32,7 +32,7 @@ public class EbRateController {
     }
     
     @PutMapping("edit/{id}")
-    public R editRate(@PathVariable Long id, @RequestParam("rateValue") BigDecimal rateValue) {
-        return ebRateService.editRate(id, rateValue);
+    public R editRate(@PathVariable Long id, @RequestParam("rateValue") BigDecimal rateValue,@RequestParam("periodType") String periodType) {
+        return ebRateService.editRate(id, rateValue, periodType);
     }
 }

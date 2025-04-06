@@ -9,6 +9,9 @@ import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * WebSocket处理类
+ */
 @Slf4j
 public class WebSocketHandler extends TextWebSocketHandler {
     private static final ConcurrentHashMap<String, WebSocketSession> sessions = new ConcurrentHashMap<>();

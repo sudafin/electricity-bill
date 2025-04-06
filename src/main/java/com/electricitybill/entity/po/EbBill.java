@@ -40,13 +40,9 @@ public class EbBill implements Serializable {
     @TableField("user_id")
     private Long userId;
 
-    @ApiModelProperty(value = "账单开始日期")
-    @TableField("start_date")
-    private LocalDate startDate;
-
-    @ApiModelProperty(value = "账单结束日期")
-    @TableField("end_date")
-    private LocalDate endDate;
+    @ApiModelProperty(value = "电表ID")
+    @TableField("meter_id")
+    private Long meterId;
 
     @ApiModelProperty(value = "用电量（度）")
     @TableField("usage_amount")
@@ -76,14 +72,6 @@ public class EbBill implements Serializable {
     @TableField("payment_method")
     private String paymentMethod;
 
-    @ApiModelProperty(value = "基础电费")
-    @TableField("base_electricity_usage")
-    private BigDecimal baseElectricityUsage;
-
-    @ApiModelProperty(value = "高峰电费")
-    @TableField("hot_electricity_usage")
-    private BigDecimal hotElectricityUsage;
-
     @ApiModelProperty(value = "最晚支付时间")
     @TableField("due_date")
     private LocalDateTime dueDate;
@@ -95,5 +83,4 @@ public class EbBill implements Serializable {
     @ApiModelProperty(value = "一个周期内读表现在的度数")
     @TableField("ending_reading")
     private BigDecimal endingReading;
-
 }

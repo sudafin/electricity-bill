@@ -8,23 +8,20 @@ import com.electricitybill.entity.R;
 import com.electricitybill.entity.dto.PageDTO;
 import com.electricitybill.entity.dto.notification.NotificationDTO;
 import com.electricitybill.entity.dto.notification.NotificationPageQuery;
-import com.electricitybill.entity.po.EbAdmin;
-import com.electricitybill.entity.po.EbNotification;
-import com.electricitybill.entity.po.EbNotificationRecipient;
-import com.electricitybill.entity.po.EbRole;
+import com.electricitybill.entity.po.*;
 import com.electricitybill.entity.vo.notification.NotificationDetailVO;
 import com.electricitybill.entity.vo.notification.NotificationPageVO;
+import com.electricitybill.enums.NotificationType;
+import com.electricitybill.enums.ReadStatusType;
+import com.electricitybill.enums.ValidType;
 import com.electricitybill.expcetions.DbException;
-import com.electricitybill.mapper.EbAdminMapper;
-import com.electricitybill.mapper.EbNotificationMapper;
-import com.electricitybill.mapper.EbNotificationRecipientMapper;
-import com.electricitybill.mapper.EbRoleMapper;
+import com.electricitybill.mapper.*;
 import com.electricitybill.service.IEbNotificationService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.electricitybill.utils.CollUtils;
 import com.electricitybill.utils.ObjectUtils;
 import com.electricitybill.utils.StringUtils;
-import com.electricitybill.utils.UserContextUtils;
+import com.electricitybill.utils.AdminContextUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,6 +45,8 @@ public class EbNotificationServiceImpl extends ServiceImpl<EbNotificationMapper,
     private EbRoleMapper ebRoleMapper;
     @Resource
     private EbNotificationRecipientMapper ebNotificationRecipientMapper;
+    @Resource
+    private EbAnnouncementMapper ebAnnouncementMapper;
     @Override
     public PageDTO<NotificationPageVO> queryPage(NotificationPageQuery notificationPageQuery) {
         Page<EbNotification> ebNotificationPage = new Page<>(notificationPageQuery.getPageNo(), notificationPageQuery.getPageSize());
@@ -61,7 +60,7 @@ public class EbNotificationServiceImpl extends ServiceImpl<EbNotificationMapper,
             return PageDTO.empty(ebNotificationPage);
         }
         //查询admin接收的通知与总的通知过滤,过滤records中不是当前用户类型的通知
-        List<EbNotificationRecipient> ebNotificationRecipients = ebNotificationRecipientMapper.selectList(new LambdaQueryWrapper<EbNotificationRecipient>().eq(EbNotificationRecipient::getRecipientId, UserContextUtils.getUser()));
+        List<EbNotificationRecipient> ebNotificationRecipients = ebNotificationRecipientMapper.selectList(new LambdaQueryWrapper<EbNotificationRecipient>().eq(EbNotificationRecipient::getRecipientId, AdminContextUtils.getAdminId()));
         ArrayList<NotificationPageVO> notificationPageVOS = new ArrayList<>();
         records.forEach(ebNotification -> {
             NotificationPageVO notificationPageVO = new NotificationPageVO();
@@ -73,6 +72,7 @@ public class EbNotificationServiceImpl extends ServiceImpl<EbNotificationMapper,
                         notificationPageVO.setContent(ebNotification.getContent());
                         notificationPageVO.setCreateTime(ebNotification.getCreatedAt());
                         notificationPageVO.setReadStatus(ebNotificationRecipient.getReadStatus());
+                        notificationPageVO.setExpireTime(ebNotification.getExpireTime());
                         notificationPageVOS.add(notificationPageVO);
             });
         });
@@ -90,7 +90,7 @@ public class EbNotificationServiceImpl extends ServiceImpl<EbNotificationMapper,
         }
         //将该通知所在的用户改为已读
         EbNotificationRecipient ebNotificationRecipient = ebNotificationRecipientMapper.selectOne(new LambdaQueryWrapper<EbNotificationRecipient>().eq(EbNotificationRecipient::getNotificationId, notificationId)
-                .eq(EbNotificationRecipient::getRecipientId,UserContextUtils.getUser()));
+                .eq(EbNotificationRecipient::getRecipientId, AdminContextUtils.getAdminId()));
         ebNotificationRecipient.setReadStatus(1);
         ebNotificationRecipientMapper.updateById(ebNotificationRecipient);
         //将列表数据返回回去
@@ -108,7 +108,6 @@ public class EbNotificationServiceImpl extends ServiceImpl<EbNotificationMapper,
 
     @Override
     @Transactional
-    //TODO 需要修改
     public R create(NotificationDTO notificationDTO) {
         EbNotification ebNotification = new EbNotification();
         long id = IdUtil.getSnowflakeNextId();
@@ -116,39 +115,66 @@ public class EbNotificationServiceImpl extends ServiceImpl<EbNotificationMapper,
         ebNotification.setTitle(notificationDTO.getTitle());
         ebNotification.setContent(notificationDTO.getContent());
         ebNotification.setType(notificationDTO.getType());
-        ebNotification.setSenderType(notificationDTO.getSenderType());
-        ebNotification.setSenderId(UserContextUtils.getUser());
+        ebNotification.setSenderType(notificationDTO.getNotificationType());
+        ebNotification.setSenderId(AdminContextUtils.getAdminId());
+        ebNotification.setValidType(ValidType.VALID.getValue());
+        ebNotification.setExpireTime(notificationDTO.getExpireTime());
         int insert = baseMapper.insert(ebNotification);
         if (insert != 1) {
             throw new DbException(Constant.DB_INSERT_FAILURE);
         }
-        //获取发送者的列表
         List<String> senderList = notificationDTO.getSenderList();
-        senderList.forEach(sender -> {
-            EbNotificationRecipient ebNotificationRecipient = new EbNotificationRecipient();
-            //获取刚插入的数据
-            ebNotificationRecipient.setNotificationId(id);
-            ebNotificationRecipient.setRecipientType(sender);
-            ebNotificationRecipient.setReadStatus(0);
-            EbRole ebRole = ebRoleMapper.selectOne(new LambdaQueryWrapper<EbRole>().eq(EbRole::getRoleName, sender));
-            List<EbAdmin> ebAdminList = ebAdminMapper.selectList(new LambdaQueryWrapper<EbAdmin>().eq(EbAdmin::getRoleId, ebRole.getId()));
-            ebAdminList.forEach(ebAdmin -> {
-                ebNotificationRecipient.setRecipientId(ebAdmin.getId());
-                ebNotificationRecipientMapper.insert(ebNotificationRecipient);
+        //获取发送者的列表,其中分为管理端和用户端的通知，SendType分为系统的内部通知和用户的公告通知
+        if (notificationDTO.getNotificationType().equals(NotificationType.INTERNAL_NOTIFICATION.getDesc())) {
+            //如果是管理端那么发送人的类型不能为空
+            if(CollUtils.isEmpty(senderList)){
+                throw new DbException(Constant.NOTIFICATION_SENDER_LIST_EMPTY);
+            }
+            senderList.forEach(sender -> {
+                EbNotificationRecipient ebNotificationRecipient = new EbNotificationRecipient();
+                //获取刚插入的数据
+                ebNotificationRecipient.setNotificationId(id);
+                ebNotificationRecipient.setRecipientType(sender);
+                ebNotificationRecipient.setReadStatus(ReadStatusType.UNREAD.getValue());
+                EbRole ebRole = ebRoleMapper.selectOne(new LambdaQueryWrapper<EbRole>().eq(EbRole::getRoleName, sender));
+                if(ObjectUtils.isEmpty(ebRole)){
+                    throw new DbException(Constant.ROLE_NOT_EXIST);
+                }
+                List<EbAdmin> ebAdminList = ebAdminMapper.selectList(new LambdaQueryWrapper<EbAdmin>().eq(EbAdmin::getRoleId, ebRole.getId()));
+                if(CollUtils.isNotEmpty(ebAdminList)){
+                    ebAdminList.forEach(ebAdmin -> {
+                        ebNotificationRecipient.setRecipientId(ebAdmin.getId());
+                        ebNotificationRecipientMapper.insert(ebNotificationRecipient);
+                    });
+                }
             });
-        });
+        }else if (notificationDTO.getNotificationType().equals(NotificationType.ANNOUNCEMENT_NOTIFICATION.getDesc())) {
+            //如果用户通知则默认不需要传入发送人的列表，直接写入公告表里
+            EbAnnouncement ebAnnouncement = new EbAnnouncement();
+            ebAnnouncement.setContent(notificationDTO.getContent());
+            ebAnnouncement.setTitle(notificationDTO.getTitle());
+            ebAnnouncement.setStartTime(notificationDTO.getExpireTime());
+            ebAnnouncement.setEndTime(notificationDTO.getExpireTime());
+            ebAnnouncement.setStatus(ValidType.INVALID.getDesc());
+            ebAnnouncementMapper.insert(ebAnnouncement);
+        }else {
+            throw new DbException(Constant.NOTIFICATION_TYPE_ERROR);
+        }
         return R.ok();
     }
 
     @Override
+    @Transactional
     public R deleteNotification(List<Long> ids) {
         //通知表主键id与接受通知表的通知id有外键关系,所以先删除接受通知表的数据再删除通知表数据
         int delete = ebNotificationRecipientMapper.delete(new LambdaQueryWrapper<EbNotificationRecipient>()
                 .in(EbNotificationRecipient::getNotificationId, ids));
-        int deleteBatchIds = baseMapper.deleteBatchIds(ids);
-        if (deleteBatchIds != ids.size() || delete != ids.size()) {
+        if (delete != ids.size()) {
             throw new DbException(Constant.DB_DELETE_FAILURE);
         }
+        List<EbNotification> ebNotifications = listByIds(ids);
+        ebNotifications.forEach(ebNotification -> ebNotification.setValidType(ValidType.INVALID.getValue()));
+        updateBatchById(ebNotifications);
         return R.ok();
     }
 }

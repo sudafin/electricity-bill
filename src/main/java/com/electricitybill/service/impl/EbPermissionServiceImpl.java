@@ -10,7 +10,7 @@ import com.electricitybill.mapper.EbRolePermissionMapper;
 import com.electricitybill.service.IEbPermissionService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.electricitybill.service.IEbRoleService;
-import com.electricitybill.utils.UserContextUtils;
+import com.electricitybill.utils.AdminContextUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -49,7 +49,7 @@ public class EbPermissionServiceImpl extends ServiceImpl<EbPermissionMapper, EbP
             actions = "";
         }
 
-        EbAdmin ebAdmin = ebAdminMapper.selectById(UserContextUtils.getUser());
+        EbAdmin ebAdmin = ebAdminMapper.selectById(AdminContextUtils.getAdminId());
         List<EbRolePermission> ebRolePermissions = ebRolePermissionMapper.selectList(new LambdaQueryWrapper<EbRolePermission>().eq(EbRolePermission::getRoleId, ebAdmin.getRoleId()));
         List<Long> list = ebRolePermissions.stream().map(EbRolePermission::getPermissionId).collect(Collectors.toList());
         Map<Long, List<Long>> permissionRoleIdToMap = ebRoleService.permissionRoleIdToMap();

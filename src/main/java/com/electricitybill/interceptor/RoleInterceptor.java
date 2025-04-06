@@ -6,7 +6,7 @@ import com.electricitybill.entity.dto.log.LogDTO;
 import com.electricitybill.service.IEbPermissionService;
 
 import com.electricitybill.service.IEbSystemLogService;
-import com.electricitybill.utils.UserContextUtils;
+import com.electricitybill.utils.AdminContextUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -50,10 +50,10 @@ public class RoleInterceptor implements HandlerInterceptor {
         try {
             logDTO.setMethod(request.getMethod());
             logDTO.setPath(request.getRequestURI());
-            logDTO.setRequestParamMap(UserContextUtils.getParams());
+            logDTO.setRequestParamMap(AdminContextUtils.getParams());
             logDTO.setUserAgent(request.getHeader("User-Agent"));
             logDTO.setIp(request.getRemoteAddr());
-            Object res = UserContextUtils.getRes();
+            Object res = AdminContextUtils.getRes();
             if(res!= null){
                 logDTO.setResponseBody(JSONUtil.toJsonStr(res));
                 logDTO.setStatus("success");
@@ -66,8 +66,8 @@ public class RoleInterceptor implements HandlerInterceptor {
             }
         }finally {
             ebSystemLogService.saveLog(logDTO);
-            UserContextUtils.removeRes();
-            UserContextUtils.removeParams();
+            AdminContextUtils.removeRes();
+            AdminContextUtils.removeParams();
         }
     }
 

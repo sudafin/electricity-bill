@@ -1,7 +1,7 @@
 package com.electricitybill.config;
 
 import com.electricitybill.entity.R;
-import com.electricitybill.utils.UserContextUtils;
+import com.electricitybill.utils.AdminContextUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;
@@ -45,17 +45,17 @@ public class ResponseAdvice implements ResponseBodyAdvice<Object> {
         Map<String, String[]> parameterMap = request.getParameterMap();
         try {
             String jsonString = objectMapper.writeValueAsString(parameterMap);
-              UserContextUtils.setParams(jsonString);
+              AdminContextUtils.setParams(jsonString);
         } catch (IOException e) {
             // 处理 JSON 转换异常
-            UserContextUtils.setParams("");
+            AdminContextUtils.setParams("");
         }
         if (body instanceof R) {
             R result = (R) body;
             //拿到返回值好设置在ThreadLocal中
-            UserContextUtils.setRes(result);
+            AdminContextUtils.setRes(result);
         }else
-            UserContextUtils.setRes(body);
+            AdminContextUtils.setRes(body);
         return body;
     }
 

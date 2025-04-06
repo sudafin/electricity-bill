@@ -25,5 +25,5 @@ public interface IEbElectricityUsageService extends IService<EbElectricityUsage>
 
     void calculateElectricityUsageSummaryDay();
 
-    void calculateElectricityUsageSummaryMonth();
+    void calculateMonthlyBill();
 }

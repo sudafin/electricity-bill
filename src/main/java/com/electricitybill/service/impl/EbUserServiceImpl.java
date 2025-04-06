@@ -12,7 +12,6 @@ import com.electricitybill.entity.po.*;
 import com.electricitybill.entity.vo.dashboard.DashboardVO;
 import com.electricitybill.entity.vo.user.UserDetailVO;
 import com.electricitybill.entity.vo.user.UserPageVO;
-import com.electricitybill.entity.vo.user.UserBillVO;
 import com.electricitybill.enums.BillType;
 import com.electricitybill.enums.UserType;
 import com.electricitybill.enums.ValidType;
@@ -139,7 +138,7 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
         // 分页查询条件
         Page<EbUser> ebUserPage = new Page<>(userPageQuery.getPageNo(), userPageQuery.getPageSize());
         // 查询数据库条件
-        Page<EbUser> page = lambdaQuery().eq(EbUser::getValid, ValidType.VALID.getValue()).eq(StrUtil.isNotBlank(userPageQuery.getUserType()), EbUser::getUserType, userPageQuery.getUserType()).eq(StrUtil.isNotBlank(userPageQuery.getPhone()), EbUser::getPhone, userPageQuery.getPhone()).like(StrUtil.isNotBlank(userPageQuery.getName()), EbUser::getUsername, userPageQuery.getName()).eq(StrUtil.isNotBlank(userPageQuery.getMeterId()), EbUser::getMeterId, userPageQuery.getMeterId()).ge(userPageQuery.getStartDate() != null, EbUser::getLastPaymentDate, userPageQuery.getStartDate()).le(userPageQuery.getEndDate() != null, EbUser::getLastPaymentDate, userPageQuery.getEndDate()).page(ebUserPage);
+        Page<EbUser> page = lambdaQuery().eq(EbUser::getValid_type, ValidType.VALID.getValue()).eq(StrUtil.isNotBlank(userPageQuery.getUserType()), EbUser::getUserType, userPageQuery.getUserType()).eq(StrUtil.isNotBlank(userPageQuery.getPhone()), EbUser::getPhone, userPageQuery.getPhone()).like(StrUtil.isNotBlank(userPageQuery.getName()), EbUser::getUsername, userPageQuery.getName()).eq(StrUtil.isNotBlank(userPageQuery.getMeterId()), EbUser::getMeterId, userPageQuery.getMeterId()).ge(userPageQuery.getStartDate() != null, EbUser::getLastPaymentDate, userPageQuery.getStartDate()).le(userPageQuery.getEndDate() != null, EbUser::getLastPaymentDate, userPageQuery.getEndDate()).page(ebUserPage);
         //判断数据是否为空
         /**
          * page.getSize(): 每页的记录数 一页10条数据大小
@@ -167,7 +166,7 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
         if (ObjectUtils.isEmpty(ebUser)) {
             throw new DbException(Constant.USER_NOT_EXIST);
         }
-        if (ebUser.getValid().equals(ValidType.VALID.getValue())) {
+        if (ebUser.getValid_type().equals(ValidType.VALID.getValue())) {
             throw new BizIllegalException(Constant.USER_INVALID);
         }
         UserDetailVO userDetailVO = BeanUtils.copyBean(ebUser, UserDetailVO.class);
@@ -203,7 +202,7 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
     public R deleteUser(List<Long> userIds) {
         List<EbUser> ebUsers = listByIds(userIds);
         ebUsers.forEach(user -> {
-            user.setValid(ValidType.INVALID.getValue());
+            user.setValid_type(ValidType.INVALID.getValue());
         });
         updateBatchById(ebUsers);
         return R.ok();

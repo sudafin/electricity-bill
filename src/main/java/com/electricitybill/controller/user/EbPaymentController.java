@@ -55,7 +55,7 @@ public class EbPaymentController {
     @ApiOperation("导出运营数据报表")
     @ExportExcel
     public String export() throws IOException, ExecutionException, InterruptedException {
-          Future<String> future =ebPaymentService.export();
+        Future<String> future =ebPaymentService.export();
         return future.get();
     }
 }

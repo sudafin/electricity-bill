@@ -1,6 +1,6 @@
 package com.electricitybill.utils;
 
-public class UserContextUtils {
+public class AdminContextUtils {
     private static final ThreadLocal<Long> TL = new ThreadLocal<>();
     private static final ThreadLocal<Object> res = new ThreadLocal<>();
     private static final ThreadLocal<String> params = new ThreadLocal<>();
@@ -24,7 +24,7 @@ public class UserContextUtils {
      * 获取用户
      * @return 用户id
      */
-    public static Long getUser(){
+    public static Long getAdminId(){
         return TL.get();
     }
 
@@ -39,7 +39,7 @@ public class UserContextUtils {
     /**
      * 移除用户信息
      */
-    public static void removeUser(){
+    public static void removeAdmin(){
         TL.remove();
     }
     public static void removeRes(){

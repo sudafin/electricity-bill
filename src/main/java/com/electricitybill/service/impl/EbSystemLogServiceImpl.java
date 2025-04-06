@@ -18,7 +18,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.electricitybill.utils.CollUtils;
 import com.electricitybill.utils.ObjectUtils;
 import com.electricitybill.utils.StringUtils;
-import com.electricitybill.utils.UserContextUtils;
+import com.electricitybill.utils.AdminContextUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -191,7 +191,7 @@ public class EbSystemLogServiceImpl extends ServiceImpl<EbSystemLogMapper, EbSys
     @Override
     public void saveLog(LogDTO logDTO) {
         EbSystemLog ebSystemLog = new EbSystemLog();
-        Long user = UserContextUtils.getUser();
+        Long user = AdminContextUtils.getAdminId();
         EbAdmin ebAdmin = ebAdminMapper.selectById(user);
         ebSystemLog.setOperatorId(ebAdmin.getId());
         ebSystemLog.setOperatorName(ebAdmin.getAccount());

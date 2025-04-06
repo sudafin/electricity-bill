@@ -20,5 +20,5 @@ public interface IEbRateService extends IService<EbRate> {
 
     List<RateInfoVO> getRate();
 
-    R editRate(Long id, BigDecimal rateValue);
+    R editRate(Long id, BigDecimal rateValue, String periodType);
 }

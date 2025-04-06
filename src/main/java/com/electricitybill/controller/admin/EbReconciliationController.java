@@ -22,7 +22,7 @@ import java.util.concurrent.Future;
 
 /**
  * <p>
- *  前端控制器
+ * 前端控制器
  * </p>
  *
  * @author huangdada
@@ -37,29 +37,30 @@ public class EbReconciliationController {
     private IEbReconciliationService ebReconciliationService;
 
     @GetMapping("/page")
-    public PageDTO<ReconciliationPageVO> queryPage(ReconciliationPageQuery reconciliationPageQuery){
+    public PageDTO<ReconciliationPageVO> queryPage(ReconciliationPageQuery reconciliationPageQuery) {
         return ebReconciliationService.queryPage(reconciliationPageQuery);
     }
 
     @GetMapping("/detail/{id}")
-    public ReconciliationDetailVO queryReconciliationDetail(@PathVariable(name = "id") Long reconciliationId){
+    public ReconciliationDetailVO queryReconciliationDetail(@PathVariable(name = "id") Long reconciliationId) {
         return ebReconciliationService.queryReconciliationDetail(reconciliationId);
     }
 
     @GetMapping("/approve/detail/{id}")
-    public ApprovalDetailVO queryApprovalReconciliationDetail(@PathVariable(name = "id") Long reconciliationId){
+    public ApprovalDetailVO queryApprovalReconciliationDetail(@PathVariable(name = "id") Long reconciliationId) {
         return ebReconciliationService.queryApprovalReconciliationDetail(reconciliationId);
     }
+
     @PutMapping("approve/{id}")
-    public R approveReconciliation(@PathVariable(name = "id") Long reconciliationId, @RequestBody ApprovalDTO approvalDTO){
-        return ebReconciliationService.approveReconciliation(reconciliationId,approvalDTO);
+    public R approveReconciliation(@PathVariable(name = "id") Long reconciliationId, @RequestBody ApprovalDTO approvalDTO) {
+        return ebReconciliationService.approveReconciliation(reconciliationId, approvalDTO);
     }
 
     @GetMapping("/export")
     @ApiOperation("导出对账数据报表")
     @ExportExcel
     public String export() throws IOException, ExecutionException, InterruptedException {
-       Future<String> future = ebReconciliationService.export();
-       return future.get();
+        Future<String> future = ebReconciliationService.export();
+        return future.get();
     }
 }

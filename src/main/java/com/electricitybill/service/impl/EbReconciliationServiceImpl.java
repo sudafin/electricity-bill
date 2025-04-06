@@ -15,7 +15,7 @@ import com.electricitybill.entity.vo.reconciliation.ApprovalRecordVO;
 import com.electricitybill.entity.vo.user.UserPaymentRecordVO;
 import com.electricitybill.expcetions.BadRequestException;
 import com.electricitybill.mapper.EbAdminMapper;
-import com.electricitybill.utils.UserContextUtils;
+import com.electricitybill.utils.AdminContextUtils;
 
 import java.time.LocalDateTime;
 
@@ -162,7 +162,7 @@ public class EbReconciliationServiceImpl extends ServiceImpl<EbReconciliationMap
         ebReconciliation.setStatus(approvalDTO.getStatus());
         ebReconciliation.setComment(approvalDTO.getComment());
         ebReconciliation.setApprovalTime(LocalDateTime.now());
-        ebReconciliation.setApproverId(UserContextUtils.getUser());
+        ebReconciliation.setApproverId(AdminContextUtils.getAdminId());
         int res = baseMapper.updateById(ebReconciliation);
         if (res <= 0) {
 

@@ -37,13 +37,9 @@ public class EbRate implements Serializable {
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    @ApiModelProperty(value = "费率名称")
-    @TableField("rate_name")
-    private String rateName;
-
-    @ApiModelProperty(value = "用户类型ID(关联用户类型表)")
-    @TableField("user_type_id")
-    private Integer userTypeId;
+    @ApiModelProperty(value = "用户类型")
+    @TableField("user_type")
+    private String userType;
 
     @ApiModelProperty(value = "峰时电价(元/度)")
     @TableField("peak_price")

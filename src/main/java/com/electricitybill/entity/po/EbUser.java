@@ -75,5 +75,5 @@ public class EbUser implements Serializable {
     private LocalDateTime contractEndDate;
 
     @ApiModelProperty(value = "是否有效")
-    private Integer valid;
+    private Integer validType;
 }
