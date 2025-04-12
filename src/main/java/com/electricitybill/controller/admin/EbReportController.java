@@ -43,8 +43,8 @@ public class EbReportController {
     @ApiOperation("导出运营数据报表")
     public String export(ReportDTO reportDTO) throws IOException, ExecutionException, InterruptedException {
         Future<String> future = ebElectricityUsageService.export( reportDTO);
-        String filePath = future.get(); // 等待异步任务完成
-        return filePath;
+        // 等待异步任务完成
+        return future.get();
     }
 
 }

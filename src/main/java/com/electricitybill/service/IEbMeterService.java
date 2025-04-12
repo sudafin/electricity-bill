@@ -1,7 +1,9 @@
 package com.electricitybill.service;
 
-import com.electricitybill.entity.po.EbMeter;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.electricitybill.entity.po.EbMeter;
+import com.electricitybill.entity.vo.meter.MeterPageVO;
+import com.electricitybill.entity.dto.PageDTO;
 
 /**
  * <p>
@@ -13,4 +15,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IEbMeterService extends IService<EbMeter> {
 
+    PageDTO<MeterPageVO> queryMeterPage();
 }

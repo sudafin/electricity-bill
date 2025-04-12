@@ -29,10 +29,25 @@ public class DashboardVO {
     /**
      * 最近一周用电量分布
      */
-    List<Double> electricityWeekUsageList;
+    private List<Double> electricityWeekUsageList;
 
     /**
-    用户类型分布
+     * 用户类型分布
      */
-    Map<String,Integer> userTypeMap;
+    private Map<String, Long> userTypeMap;
+
+    /**
+     * 已处理反馈数量
+     */
+    private Long processedFeedbackCount;
+
+    /**
+     * 未处理反馈数量
+     */
+    private Long unprocessedFeedbackCount;
+
+    /**
+     * 系统日志数量
+     */
+    private Long systemLogCount;
 }

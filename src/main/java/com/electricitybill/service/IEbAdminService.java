@@ -5,6 +5,7 @@ import com.electricitybill.entity.dto.admin.AdminFormDTO;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.electricitybill.entity.po.EbAdmin;
 import com.electricitybill.entity.vo.admin.LoginVO;
+import com.electricitybill.entity.vo.dashboard.DashboardVO;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
@@ -29,4 +30,6 @@ public interface IEbAdminService extends IService<EbAdmin> {
     String refreshToken(String token);
 
     void logout();
+
+    DashboardVO getAdminDashboardInfo();
 }

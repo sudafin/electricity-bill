@@ -9,7 +9,6 @@ import com.electricitybill.entity.po.EbUser;
 import com.electricitybill.entity.vo.dashboard.DashboardVO;
 import com.electricitybill.entity.vo.user.UserDetailVO;
 import com.electricitybill.entity.vo.user.UserPageVO;
-import com.electricitybill.entity.vo.user.UserBillVO;
 
 import java.util.List;
 
@@ -22,8 +21,6 @@ import java.util.List;
  * @since 2024-11-26
  */
 public interface IEbUserService extends IService<EbUser> {
-
-    DashboardVO getDashboardInfo();
 
     PageDTO<UserPageVO> queryUserPage(UserPageQuery userPageQuery);
 
