@@ -28,7 +28,7 @@ import java.util.concurrent.Future;
  */
 @RestController
 @RequestMapping("/log")
-@Api("日志管理")
+@Api(tags = "日志管理")
 public class EbSystemLogController {
     @Resource
     private IEbSystemLogService ebSystemLogService;

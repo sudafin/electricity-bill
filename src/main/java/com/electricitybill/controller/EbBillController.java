@@ -3,6 +3,7 @@ package com.electricitybill.controller;
 import com.electricitybill.entity.R;
 import com.electricitybill.entity.vo.user.UserBillVO;
 import com.electricitybill.service.IEbBillService;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +24,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/bill")
 @Slf4j
+@Api(tags = "账单管理")
 public class EbBillController {
     @Resource
     private IEbBillService ebBillService;

@@ -58,6 +58,7 @@ public class EbUserController {
     @PutMapping("admin/edit")
     public R updateUser(@RequestBody @NotNull UserDTO userDTO){
         return ebUserService.updateUser(userDTO);
+
     }
 
 

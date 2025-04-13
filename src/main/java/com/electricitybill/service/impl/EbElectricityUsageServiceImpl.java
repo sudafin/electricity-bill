@@ -64,9 +64,9 @@ public class EbElectricityUsageServiceImpl extends ServiceImpl<EbElectricityUsag
     private EbMeterMapper ebMeterMapper;
     @Resource
     private EbUserMapper ebUserMapper;
-    @Resource(name = "ebUsageSummaryServiceA")
+    @Resource
     private IEbUsageSummaryService ebUsageSummaryService;
-    @Resource(name = "ebBillServiceA")
+    @Resource
     private IEbBillService ebBillService;
 
     @Override

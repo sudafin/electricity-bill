@@ -64,7 +64,7 @@ public class EbMeter implements Serializable {
     @TableField("updated_at")
     private LocalDateTime updatedAt;
 
-    @ApiModelProperty(value = "一个周期内读表开始的度数")
+    @ApiModelProperty(value = "一个周期内读表开始的度数，周期通常为为一个月")
     @TableField("start_reading")
     private BigDecimal startReading;
 
@@ -75,4 +75,9 @@ public class EbMeter implements Serializable {
     @ApiModelProperty(value = "检查电表的id")
     @TableField("inspection_id")
     private Long inspectionId;
+
+
+    @ApiModelProperty(value = "安装地点")
+    @TableField("install_place")
+    private String installPlace;
 }

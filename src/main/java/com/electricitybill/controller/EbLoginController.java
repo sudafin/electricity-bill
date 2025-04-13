@@ -31,7 +31,7 @@ import java.security.KeyPair;
  */
 @RestController
 @RequestMapping("/login")
-@Api(tags = "管理员管理")
+@Api(tags = "登录管理")
 public class EbLoginController {
     @Resource
     private IEbAdminService ebAdminService;

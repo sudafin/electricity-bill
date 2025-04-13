@@ -10,6 +10,7 @@ import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.electricitybill.config.AliPayConfig;
 import com.electricitybill.config.WebSocketHandler;
 import com.electricitybill.entity.dto.AliPay;
+import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +24,7 @@ import java.util.Map;
 @RequestMapping("alipay")
 @Transactional(rollbackFor = Exception.class)
 @Slf4j
+@Api(tags = "支付管理")
 public class AliPayController {
 
     @Resource
