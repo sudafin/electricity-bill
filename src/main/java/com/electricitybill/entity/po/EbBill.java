@@ -42,7 +42,7 @@ public class EbBill implements Serializable {
 
     @ApiModelProperty(value = "电表ID")
     @TableField("meter_id")
-    private Long meterId;
+    private String meterId;
 
     @ApiModelProperty(value = "用电量（度）")
     @TableField("usage_amount")

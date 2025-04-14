@@ -23,7 +23,7 @@ import java.util.List;
  * @since 2024-11-26
  */
 @RestController
-@RequestMapping("/notification")
+@RequestMapping("/admin/notification")
 @Api(tags = "通知管理")
 public class EbNotificationController {
 

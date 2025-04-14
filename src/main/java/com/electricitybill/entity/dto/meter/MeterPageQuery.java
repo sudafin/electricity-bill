@@ -9,6 +9,6 @@ import lombok.EqualsAndHashCode;
 @Data
 public class MeterPageQuery extends PageQuery {
     private String status;
-    private Long id;
+    private String meterId;
     private String model;
 }

@@ -1,4 +1,4 @@
-package com.electricitybill.controller;
+package com.electricitybill.controller.admin;
 
 import com.electricitybill.entity.vo.dashboard.DashboardVO;
 import com.electricitybill.service.IEbAdminService;
@@ -10,15 +10,15 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 
 
-@RequestMapping("/dashboard")
+@RequestMapping("/admin/dashboard")
 @RestController
-@Api(tags = "仪表盘管理")
-public class EbDashboardController {
+@Api(tags = "管理端仪表盘管理")
+public class EbAdminDashboardController {
     @Resource
     private IEbAdminService ebAdminService;
 
 
-    @GetMapping("admin")
+    @GetMapping
     public DashboardVO getAdminDashboardInfo(){
         return ebAdminService.getAdminDashboardInfo();
     }

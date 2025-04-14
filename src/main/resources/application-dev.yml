@@ -2,8 +2,6 @@
 server:
   port: 8080
 spring:
-  profiles:
-    active: dev
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
@@ -48,6 +46,7 @@ jwt:
   #过滤器不拦截的路径,拦截器路径在MangerWebConfig中设置
 eb:
   noAuthPaths:
+    - /**
     - /admin/**
     - /doc.html
     - /v2/api-docs

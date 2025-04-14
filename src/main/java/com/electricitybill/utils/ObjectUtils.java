@@ -4,6 +4,8 @@ import cn.hutool.core.util.ObjectUtil;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * Object操作工具
@@ -79,6 +81,21 @@ public class ObjectUtils extends ObjectUtil {
             field.set(target, defaultValue);
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+    /**
+     * 如果值不为空，则调用setter方法赋值
+     *
+     * @param target  要赋值的对象
+     * @param value   要赋值的值
+     * @param setter  参数类型是函数方法BitConsumer 能传两个泛型对象,无返回值,分辨Consumer它只能传一个参数
+     *                有返回值 的标准接口是 Function<T,R>一个参数返回一个R,Supplier<R>无参返回一个R,BiFunction<T, U, R>两个参数返回一个R
+     *
+     */
+    public static <T, V> void assignIfNotNull(T target, V value, BiConsumer<T, V> setter) {
+        if (value != null) {
+            //执行传过来的方法,如传过来EbMeter::setModel这个set方法那么就会转为(EbMeter target, String value) -> target.setModel(value)
+            setter.accept(target, value);
         }
     }
 }

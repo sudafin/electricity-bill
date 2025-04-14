@@ -1,6 +1,5 @@
-package com.electricitybill.controller;
+package com.electricitybill.controller.admin;
 
-import com.electricitybill.entity.R;
 import com.electricitybill.entity.vo.user.UserBillVO;
 import com.electricitybill.service.IEbBillService;
 import io.swagger.annotations.Api;
@@ -22,14 +21,14 @@ import java.util.List;
  */
 
 @RestController
-@RequestMapping("/bill")
+@RequestMapping("/admin/bill")
 @Slf4j
 @Api(tags = "账单管理")
-public class EbBillController {
+public class EbAdminBillController {
     @Resource
     private IEbBillService ebBillService;
     @ApiOperation("管理端查询用户账单")
-    @GetMapping("admin/{userId}")
+    @GetMapping("{userId}")
     public List<UserBillVO> queryUserBill(@PathVariable @NotNull Long userId){
         return ebBillService.queryUserBill(userId);
     }

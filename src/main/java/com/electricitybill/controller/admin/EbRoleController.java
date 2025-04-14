@@ -27,7 +27,7 @@ import java.util.List;
  * @since 2024-11-26
  */
 @RestController
-@RequestMapping("/role")
+@RequestMapping("/admin/role")
 @Api(tags = "角色管理")
 public class EbRoleController {
     @Resource

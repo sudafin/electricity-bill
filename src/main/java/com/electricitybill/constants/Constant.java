@@ -73,6 +73,10 @@ public interface Constant {
     String NOTIFICATION_TYPE_ERROR = "不合法的通知类型";
     String NOTIFICATION_SENDER_LIST_EMPTY = "通知发送人列表为空";
     String ADMIN_NOT_EXIST = "管理员不存在";
+    String INVALID_INSPECTION_STATUS = "无效的检测状态";
+    String INVALID_INSPECTION_TYPE = "无效的检测类型";
+    String INVALID_INSPECTION_RESULT = "无效的检测结果";
+    String METER_INSPECTION_NOT_EXIST = "电表检测不存在";
 
 
     interface Code{

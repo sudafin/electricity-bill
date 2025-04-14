@@ -30,7 +30,7 @@ public class EbMeter implements Serializable {
 
     @ApiModelProperty(value = "电表ID")
     @TableId(value = "id", type = IdType.AUTO)
-    private Long id;
+    private String id;
 
     @ApiModelProperty(value = "电表型号")
     @TableField("model")
@@ -80,4 +80,7 @@ public class EbMeter implements Serializable {
     @ApiModelProperty(value = "安装地点")
     @TableField("install_place")
     private String installPlace;
+
+    @ApiModelProperty(value = "是否有效")
+    private Integer validType;
 }

@@ -28,7 +28,7 @@ import java.util.concurrent.Future;
  * @since 2024-11-26
  */
 @RestController
-@RequestMapping("/payment")
+@RequestMapping("/user/payment")
 @Slf4j
 @Api(tags = "缴费管理")
 public class EbPaymentController {
