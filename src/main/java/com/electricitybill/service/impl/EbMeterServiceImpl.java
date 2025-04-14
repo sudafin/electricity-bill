@@ -13,9 +13,7 @@ import com.electricitybill.entity.po.EbMeterInspection;
 import com.electricitybill.entity.po.EbUser;
 import com.electricitybill.entity.vo.meter.MeterDetailVO;
 import com.electricitybill.entity.vo.meter.MeterPageVO;
-import com.electricitybill.enums.InspectionResult;
-import com.electricitybill.enums.MeterModelType;
-import com.electricitybill.enums.ValidType;
+import com.electricitybill.enums.*;
 import com.electricitybill.expcetions.BizIllegalException;
 import com.electricitybill.mapper.EbMeterMapper;
 import com.electricitybill.mapper.EbUserMapper;
@@ -30,6 +28,7 @@ import org.springframework.stereotype.Service;
 import com.electricitybill.entity.dto.PageDTO;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -169,8 +168,16 @@ public class EbMeterServiceImpl extends ServiceImpl<EbMeterMapper, EbMeter> impl
 
     @Override
     public Map<String, List<String>> getInspectionType() {
-
-
-        return Map.of();
+        HashMap<String, List<String>> res = new HashMap<>();
+        if(CollUtils.isNotEmpty(InspectionType.getInspectionTypeList())) {
+            res.put("inspectionType", InspectionType.getInspectionTypeList());
+        }
+        if(CollUtils.isNotEmpty(InspectionStatus.getInspectionStatusList())) {
+            res.put("inspectionStatus", InspectionStatus.getInspectionStatusList());
+        }
+        if (CollUtils.isNotEmpty(InspectionResult.getInspectionResultList())){
+               res.put("inspectionResult", InspectionResult.getInspectionResultList());
+        }
+        return res;
     }
 }

@@ -25,7 +25,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/admin/user")
-@Api(tags = "电脑端用户管理")
+@Api(tags = "管理端用户管理")
 public class EbAdminUserController {
     private IEbUserService ebUserService;
 

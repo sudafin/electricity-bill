@@ -23,7 +23,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/admin/bill")
 @Slf4j
-@Api(tags = "账单管理")
+@Api(tags = "管理端账单管理")
 public class EbAdminBillController {
     @Resource
     private IEbBillService ebBillService;

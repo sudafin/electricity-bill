@@ -38,11 +38,11 @@ public class EbUserFeedback implements Serializable {
     @ApiModelProperty(value = "反馈类型: complaint（投诉）/suggestion（建议）/question（问题）")
     private String feedbackType;
 
-    @ApiModelProperty(value = "反馈内容")
-    private String content;
-
     @ApiModelProperty(value = "状态: pending（待处理）/processed（已处理）/closed（已关闭）")
     private String status;
+
+    @ApiModelProperty(value = "反馈内容")
+    private String content;
 
     @ApiModelProperty(value = "提交时间")
     private LocalDateTime submitTime;
@@ -55,9 +55,6 @@ public class EbUserFeedback implements Serializable {
 
     @ApiModelProperty(value = "回复内容")
     private String response;
-
-    @ApiModelProperty(value = "通知ID")
-    private Long notificationId;
 
     @ApiModelProperty(value = "创建时间")
     private LocalDateTime createdAt;

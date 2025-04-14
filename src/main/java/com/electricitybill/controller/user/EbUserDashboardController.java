@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RequestMapping("/user/dashboard")
 @RestController
-@Api(tags = "用户仪表盘管理")
+@Api(tags = "用户端仪表盘管理")
 public class EbUserDashboardController {
 
 
