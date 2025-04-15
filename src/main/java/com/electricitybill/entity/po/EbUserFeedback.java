@@ -39,7 +39,7 @@ public class EbUserFeedback implements Serializable {
     private String feedbackType;
 
     @ApiModelProperty(value = "状态: pending（待处理）/processed（已处理）/closed（已关闭）")
-    private String status;
+    private String feedbackStatus;
 
     @ApiModelProperty(value = "反馈内容")
     private String content;

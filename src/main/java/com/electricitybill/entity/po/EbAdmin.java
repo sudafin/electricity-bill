@@ -1,5 +1,6 @@
 package com.electricitybill.entity.po;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -49,6 +50,10 @@ public class EbAdmin implements Serializable {
 
     @ApiModelProperty(value = "状态: 0禁用/1启用")
     private Integer status;
+
+    @ApiModelProperty(value = "姓名")
+    @TableField(value = "admin_name")
+    private String adminName;
 
     @ApiModelProperty(value = "最后登录时间")
     private LocalDateTime lastLoginTime;

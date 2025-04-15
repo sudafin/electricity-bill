@@ -79,6 +79,7 @@ public interface Constant {
     String METER_INSPECTION_NOT_EXIST = "电表检测不存在";
     String FEEDBACK_STATUS_NOT_EXIST = "反馈状态不存在";
     String INVALID_FEEDBACK_TYPE ="无效的反馈类型";
+    String FEEDBACK_NOT_EXIST = "反馈不存在";
 
 
     interface Code{

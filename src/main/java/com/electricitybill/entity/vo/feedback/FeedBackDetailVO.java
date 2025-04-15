@@ -7,12 +7,12 @@ import java.time.LocalDateTime;
 
 @Data
 public class FeedBackDetailVO {
-    private String FeedBackType;
-    private String FeedBackStatus;
+    private String feedbackType;
+    private String feedbackStatus;
     private String userName;
     private String FeedBackContent;
     private LocalDateTime submitTime;
     private LocalDateTime processTime;
-    private Long processorName;
+    private String processorName;
     private String response;
 }

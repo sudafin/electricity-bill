@@ -11,9 +11,11 @@ import java.util.Objects;
 
 @Getter
 public enum FeedbackStatusType implements BaseEnum{
-    UNPROCESSED(0, "未处理"),
+    PENDING(0, "待处理"),
     PROCESSING(1, "正在处理"),
-    PROCESSED(2, "已经处理")
+    PROCESSED(2, "已处理"),
+    CLOSED(3, "已关闭");
+
     ;
     @EnumValue
     final int value;

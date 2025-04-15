@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 
 @Data
 public class MeterPageVO {
-    private String meterId;
+    private String Id;
     private String model;
     private String status;
     private String userName;

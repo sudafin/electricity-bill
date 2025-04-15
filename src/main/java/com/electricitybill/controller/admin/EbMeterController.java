@@ -62,7 +62,7 @@ public class EbMeterController {
      * @return 操作结果
      */
     @PostMapping("/create")
-    public R<Object> createMeter(MeterCreateDTO meterCreateDTO) {
+    public R<Object> createMeter(@RequestBody MeterCreateDTO meterCreateDTO) {
         return ebMeterService.createMeter(meterCreateDTO);
     }
 
@@ -73,7 +73,7 @@ public class EbMeterController {
      * @return 操作结果
      */
     @PostMapping("/edit")
-    public R<Object> editMeter(@Valid MeterEditDTO meterBindDTO) {
+    public R<Object> editMeter(@RequestBody @Valid MeterEditDTO meterBindDTO) {
         return ebMeterService.editMeter(meterBindDTO);
     }
 
@@ -106,7 +106,7 @@ public class EbMeterController {
      * @return 操作结果
      */
     @PostMapping("/inspection/{meterId}")
-    public R<Object> inspectionCreate(@Valid @NotNull MeterInspectionDTO meterInspectionDTO) {
+    public R<Object> inspectionCreate(@Valid @NotNull @RequestBody MeterInspectionDTO meterInspectionDTO) {
         return ebMeterService.inspectionCreate(meterInspectionDTO);
     }
 }
