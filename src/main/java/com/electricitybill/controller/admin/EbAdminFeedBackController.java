@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.constraints.NotNull;
+import java.util.List;
+import java.util.Map;
 
 
 @RequestMapping("/admin/feedback")
@@ -35,5 +37,13 @@ public class EbAdminFeedBackController {
     @PostMapping("process/{feedbackId}")
     public R<Object> processFeedBack(@RequestBody @Validated FeedBackProcessDTO feedBackProcessDTO){
         return ebUserFeedbackService.processFeedBack(feedBackProcessDTO);
+    }
+
+    /**
+     * 发送枚举
+     */
+    @GetMapping("type")
+    public Map<String, List<String>> getFeedbackType(){
+        return ebUserFeedbackService.getFeedbackType();
     }
 }

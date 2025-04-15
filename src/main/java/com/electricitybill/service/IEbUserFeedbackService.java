@@ -9,6 +9,9 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.electricitybill.entity.vo.feedback.FeedBackDetailVO;
 import com.electricitybill.entity.vo.feedback.FeedBackPageVO;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * <p>
  *  服务类
@@ -24,4 +27,6 @@ public interface IEbUserFeedbackService extends IService<EbUserFeedback> {
     FeedBackDetailVO getFeedBackDetail(Long feedbackId);
 
     R<Object> processFeedBack(FeedBackProcessDTO feedBackProcessDTO);
+
+    Map<String, List<String>> getFeedbackType();
 }

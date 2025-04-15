@@ -12,6 +12,7 @@ import com.electricitybill.entity.po.EbUserFeedback;
 import com.electricitybill.entity.vo.feedback.FeedBackDetailVO;
 import com.electricitybill.entity.vo.feedback.FeedBackPageVO;
 import com.electricitybill.enums.FeedbackStatusType;
+import com.electricitybill.enums.FeedbackType;
 import com.electricitybill.expcetions.BizIllegalException;
 import com.electricitybill.mapper.EbAdminMapper;
 import com.electricitybill.mapper.EbUserFeedbackMapper;
@@ -20,11 +21,14 @@ import com.electricitybill.service.IEbUserFeedbackService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.electricitybill.utils.AdminContextUtils;
 import com.electricitybill.utils.BeanUtils;
+import com.electricitybill.utils.CollUtils;
 import com.electricitybill.utils.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -108,5 +112,17 @@ public class EbUserFeedbackServiceImpl extends ServiceImpl<EbUserFeedbackMapper,
         }
         updateById(ebUserFeedback);
         return R.ok(null);
+    }
+
+    @Override
+    public Map<String, List<String>> getFeedbackType() {
+        HashMap<String, List<String>> res = new HashMap<>();
+        if(CollUtils.isNotEmpty(FeedbackStatusType.getFeedbackTypeList())) {
+            res.put("feedbackStatus", FeedbackStatusType.getFeedbackTypeList());
+        }
+        if(CollUtils.isNotEmpty(FeedbackType.getFeedbackTypeList())) {
+            res.put("feedbackType", FeedbackType.getFeedbackTypeList());
+        }
+        return res;
     }
 }

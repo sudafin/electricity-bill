@@ -64,7 +64,6 @@ public enum UserType implements BaseEnum{
         if (this == AGRICULTURAL) {
             return usageAmount.multiply(BigDecimal.valueOf(rateCacheDTO.discountRate)).setScale(4, RoundingMode.HALF_UP);
         }
-
         switch (periodType) {
             case PEAK:
                 return usageAmount.multiply(BigDecimal.valueOf(rateCacheDTO.peakMultiplier)).setScale(4, RoundingMode.HALF_UP);

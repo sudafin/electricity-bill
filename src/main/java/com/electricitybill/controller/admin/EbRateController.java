@@ -35,4 +35,19 @@ public class EbRateController {
     public R editRate(@PathVariable Long id, @RequestParam("rateValue") BigDecimal rateValue,@RequestParam("periodType") String periodType) {
         return ebRateService.editRate(id, rateValue, periodType);
     }
+    /**
+     * 分页查询
+     */
+
+    /**
+     * 新增费率
+     */
+
+    /**
+     * 修改费率
+     */
+
+    /**
+     * 费率详情
+     */
 }

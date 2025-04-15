@@ -34,12 +34,12 @@ public enum FeedbackStatusType implements BaseEnum{
         }
         throw new BadRequestException(Constant.INVALID_USER_TYPE);
     }
-    public static List<String> getUserTypeList() {
-        ArrayList<String> userTypeList = new ArrayList<>();
+    public static List<String> getFeedbackTypeList() {
+        ArrayList<String> FeedbackTypeList = new ArrayList<>();
         for (FeedbackStatusType type : FeedbackStatusType.values()) {
             //按照顺序添加
-            userTypeList.add(type.getDesc());
+            FeedbackTypeList.add(type.getDesc());
         }
-        return userTypeList;
+        return FeedbackTypeList;
     }
 }
