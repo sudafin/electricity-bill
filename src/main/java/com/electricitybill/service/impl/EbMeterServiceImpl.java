@@ -65,7 +65,7 @@ public class EbMeterServiceImpl extends ServiceImpl<EbMeterMapper, EbMeter> impl
         // 封装数据
         List<MeterPageVO> meterPageVOS = records.stream().map(ebMeter -> {
             MeterPageVO meterPageVO = new MeterPageVO();
-            meterPageVO.setMeterId(ebMeter.getId());
+            meterPageVO.setId(ebMeter.getId());
             meterPageVO.setModel(ebMeter.getModel());
             meterPageVO.setStatus(ebMeter.getStatus());
             EbUser ebUser = ebUserMapper.selectById(ebMeter.getUserId());

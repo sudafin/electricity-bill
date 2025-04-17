@@ -3,13 +3,16 @@ package com.electricitybill.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.electricitybill.constants.Constant;
+import com.electricitybill.entity.dto.rate.RateCacheDTO;
 import com.electricitybill.entity.dto.report.ReportDTO;
 import com.electricitybill.entity.po.*;
 import com.electricitybill.entity.vo.report.ReportDataVO;
 import com.electricitybill.enums.*;
+import com.electricitybill.expcetions.BadRequestException;
 import com.electricitybill.expcetions.DbException;
 import com.electricitybill.mapper.EbElectricityUsageMapper;
 import com.electricitybill.mapper.EbMeterMapper;
+import com.electricitybill.mapper.EbRateMapper;
 import com.electricitybill.mapper.EbUserMapper;
 import com.electricitybill.service.IEbBillService;
 import com.electricitybill.service.IEbUsageSummaryService;
@@ -38,6 +41,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -68,6 +72,8 @@ public class EbElectricityUsageServiceImpl extends ServiceImpl<EbElectricityUsag
     private IEbUsageSummaryService ebUsageSummaryService;
     @Resource
     private IEbBillService ebBillService;
+    @Resource
+    private EbRateMapper ebRateMapper;
 
     @Override
     public List<ReportDataVO> getReportData(ReportDTO reportDTO) {
@@ -321,10 +327,10 @@ public class EbElectricityUsageServiceImpl extends ServiceImpl<EbElectricityUsag
                 if (Objects.isNull(ebUser)) {
                     throw new DbException(Constant.USER_NOT_EXIST);
                 }
-                UserType userType = UserType.of(ebUser.getUserType());
+                String userType = ebUser.getUserType();
                 //根据当前数据算出每条的数据的电费
                 PeriodType periodType = PeriodType.of(ebElectricityUsage.getPeriodType());
-                BigDecimal calculatePrice = userType.calculatePrice(ebElectricityUsage.getUsageAmount(), periodType, ebElectricityUsage.getStartTime());
+                BigDecimal calculatePrice = calculatePrice(ebElectricityUsage.getUsageAmount(), periodType, userType);
                 switch (periodType) {
                     case PEAK:
                         peakUsage.set(peakUsage.get().add(ebElectricityUsage.getUsageAmount()));
@@ -339,10 +345,8 @@ public class EbElectricityUsageServiceImpl extends ServiceImpl<EbElectricityUsag
                         valleyCost.set(valleyCost.get().add(calculatePrice));
                         break;
                     case SUMMER_PEAK:
-                        if (userType.isEnableSummerPeak()) {
-                            peakUsage.set(peakUsage.get().add(ebElectricityUsage.getUsageAmount()));
-                            peakCost.set(peakCost.get().add(calculatePrice));
-                        }
+                        peakUsage.set(peakUsage.get().add(ebElectricityUsage.getUsageAmount()));
+                        peakCost.set(peakCost.get().add(calculatePrice));
                         break;
                 }
                 finalCalculateUsage.set(finalCalculateUsage.get().add(ebElectricityUsage.getUsageAmount()));
@@ -482,5 +486,30 @@ public class EbElectricityUsageServiceImpl extends ServiceImpl<EbElectricityUsag
         BigDecimal peakCost;
         BigDecimal flatCost;
         BigDecimal valleyCost;
+    }
+    /**
+     * 计算分时电价（单位：元/度）
+     *
+     *         平段基准电价
+     * @param periodType
+     *         时段类型（PEAK/FLAT/VALLEY/SUMMER_PEAK）
+     *
+     */
+    public BigDecimal calculatePrice(BigDecimal usageAmount, PeriodType periodType, String userType) {
+        //拿到当前用户类型的电价缓存
+        RateCacheDTO rateCacheDTO = new RateCacheDTO().RateCacheDTOUserType(userType);
+        // 计算折后电价
+        usageAmount = usageAmount.multiply(BigDecimal.valueOf(rateCacheDTO.discountRate)).setScale(4, RoundingMode.HALF_UP);
+        switch (periodType) {
+            case PEAK:
+                return usageAmount.multiply(BigDecimal.valueOf(rateCacheDTO.peakMultiplier)).setScale(4, RoundingMode.HALF_UP);
+            case VALLEY:
+                return usageAmount.multiply(BigDecimal.valueOf(rateCacheDTO.valleyMultiplier)).setScale(4, RoundingMode.HALF_UP);
+            case SUMMER_PEAK:
+                //如果是夏季，则使用夏季电价
+                return usageAmount.multiply(BigDecimal.valueOf(rateCacheDTO.valleyMultiplier)).multiply(BigDecimal.valueOf(rateCacheDTO.summerPeak)).setScale(4, RoundingMode.HALF_UP);
+            default: // FLAT
+                return usageAmount.setScale(4, RoundingMode.HALF_UP);
+        }
     }
 }

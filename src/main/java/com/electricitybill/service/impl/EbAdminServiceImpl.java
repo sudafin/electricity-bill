@@ -12,17 +12,16 @@ import com.electricitybill.entity.vo.admin.LoginVO;
 import com.electricitybill.entity.vo.dashboard.DashboardVO;
 import com.electricitybill.enums.AdminStatusType;
 import com.electricitybill.enums.FeedbackStatusType;
-import com.electricitybill.enums.UserType;
 import com.electricitybill.expcetions.DbException;
 import com.electricitybill.expcetions.ForbiddenException;
 import com.electricitybill.expcetions.UnauthorizedException;
 import com.electricitybill.mapper.*;
 import com.electricitybill.service.IEbAdminService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.electricitybill.service.IEbUserTypeService;
 import com.electricitybill.utils.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -70,9 +69,10 @@ public class EbAdminServiceImpl extends ServiceImpl<EbAdminMapper, EbAdmin> impl
     private EbMeterMapper ebMeterMapper;
     @Resource
     private EbUserFeedbackMapper ebUserFeedbackMapper;
-    @Autowired
+    @Resource
     private EbUserMapper ebUserMapper;
-
+    @Resource
+    private IEbUserTypeService ebUserTypeService;
     @Override
     public DashboardVO getAdminDashboardInfo() {
         /**
@@ -131,20 +131,19 @@ public class EbAdminServiceImpl extends ServiceImpl<EbAdminMapper, EbAdmin> impl
             dashboardVO.setTotalPaymentBill((long) totalPaymentBill);
         }
         //补充用户类型和用户总数
-        List<String> userTypeList = UserType.getUserTypeList();
+        List<EbUserType> ebUserTypeList = ebUserTypeService.lambdaQuery().eq(EbUserType::getStatus, 1).list();
         int totalUser = lambdaQuery().list().size();
-        log.debug("用户类型列表:{}", userTypeList);
         Map<String, Long> userTypeMap = new HashMap<>();
-        userTypeList.forEach(userType -> {
-            Long userTypeCount = ebUserMapper.selectCount(new LambdaQueryWrapper<EbUser>().eq(EbUser::getUserType, userType));
+        ebUserTypeList.forEach(userType -> {
+            Long userTypeCount = ebUserMapper.selectCount(new LambdaQueryWrapper<EbUser>().eq(EbUser::getUserType, userType.getTypeName()));
             log.debug("用户类型{}的数量:{}", userType, userTypeCount);
-            userTypeMap.put(userType, userTypeCount);
+            userTypeMap.put(userType.getTypeName(), userTypeCount);
         });
         dashboardVO.setUserTypeMap(userTypeMap);
         dashboardVO.setTotalUser((long) totalUser);
         List<EbUserFeedback> ebUserFeedbacks = ebUserFeedbackMapper.selectList(new LambdaQueryWrapper<>());
-        Long UnProcessedFeedbackCount = ebUserFeedbacks.stream().filter(feedback -> feedback.getStatus().equals(FeedbackStatusType.UNPROCESSED.getDesc())).count();
-        Long ProcessedFeedbackCount = ebUserFeedbacks.stream().filter(feedback -> feedback.getStatus().equals(FeedbackStatusType.PROCESSED.getDesc())).count();
+        Long UnProcessedFeedbackCount = ebUserFeedbacks.stream().filter(feedback -> feedback.getFeedbackStatus().equals(FeedbackStatusType.PENDING.getDesc())).count();
+        Long ProcessedFeedbackCount = ebUserFeedbacks.stream().filter(feedback -> feedback.getFeedbackStatus().equals(FeedbackStatusType.PROCESSED.getDesc())).count();
         dashboardVO.setUnprocessedFeedbackCount(UnProcessedFeedbackCount);
         dashboardVO.setProcessedFeedbackCount(ProcessedFeedbackCount);
         log.info("dashboardVO的对象数据:{}", dashboardVO);

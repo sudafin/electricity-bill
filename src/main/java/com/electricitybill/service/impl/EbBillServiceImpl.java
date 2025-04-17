@@ -2,12 +2,10 @@ package com.electricitybill.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.electricitybill.constants.Constant;
-import com.electricitybill.entity.R;
 import com.electricitybill.entity.po.EbBill;
 import com.electricitybill.entity.po.EbMeter;
 import com.electricitybill.entity.po.EbUser;
 import com.electricitybill.entity.vo.user.UserBillVO;
-import com.electricitybill.enums.UserType;
 import com.electricitybill.expcetions.BizIllegalException;
 import com.electricitybill.expcetions.DbException;
 import com.electricitybill.mapper.EbBillMapper;

@@ -6,7 +6,7 @@ import com.electricitybill.entity.dto.user.UserDTO;
 import com.electricitybill.entity.dto.user.UserPageQuery;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.electricitybill.entity.po.EbUser;
-import com.electricitybill.entity.vo.dashboard.DashboardVO;
+import com.electricitybill.entity.po.EbUserType;
 import com.electricitybill.entity.vo.user.UserDetailVO;
 import com.electricitybill.entity.vo.user.UserPageVO;
 
@@ -32,4 +32,7 @@ public interface IEbUserService extends IService<EbUser> {
 
     R updateUser(UserDTO userDTO);
 
+    List<String> getUserTypeList();
+
+    R addUserType(EbUserType ebUserType);
 }

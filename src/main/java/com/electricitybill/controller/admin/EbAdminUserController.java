@@ -5,6 +5,7 @@ import com.electricitybill.entity.R;
 import com.electricitybill.entity.dto.PageDTO;
 import com.electricitybill.entity.dto.user.UserDTO;
 import com.electricitybill.entity.dto.user.UserPageQuery;
+import com.electricitybill.entity.po.EbUserType;
 import com.electricitybill.entity.vo.user.UserDetailVO;
 import com.electricitybill.entity.vo.user.UserPageVO;
 import com.electricitybill.service.IEbUserService;
@@ -58,5 +59,16 @@ public class EbAdminUserController {
 
     }
 
+    @ApiOperation("管理端获取用户类型")
+    @GetMapping("userType")
+    public List<String> getUserTypeList(){
+        return ebUserService.getUserTypeList();
+    }
+
+    @ApiOperation("管理端新增用户类型")
+    @PostMapping("addUserType")
+    public R addUserType(@RequestBody EbUserType ebUserType){
+        return ebUserService.addUserType(ebUserType);
+    }
 
 }

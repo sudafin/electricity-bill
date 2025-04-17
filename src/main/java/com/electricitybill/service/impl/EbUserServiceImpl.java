@@ -1,5 +1,6 @@
 package com.electricitybill.service.impl;
 
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -18,6 +19,7 @@ import com.electricitybill.expcetions.DbException;
 import com.electricitybill.mapper.*;
 import com.electricitybill.service.IEbUserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.electricitybill.service.IEbUserTypeService;
 import com.electricitybill.utils.BeanUtils;
 import com.electricitybill.utils.CollUtils;
 import com.electricitybill.utils.ObjectUtils;
@@ -27,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -44,6 +47,9 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
 
     @Resource
     private EbBillMapper ebBillMapper;
+
+    @Resource
+    private IEbUserTypeService ebUserTypeService;
     @Override
     public PageDTO<UserPageVO> queryUserPage(UserPageQuery userPageQuery) {
         log.debug("userPageQuery:{}", userPageQuery);
@@ -79,7 +85,6 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
         log.debug("userId:{}", userId);
         //根据id查询用户
         EbUser ebUser = getById(userId);
-
         if (ObjectUtils.isEmpty(ebUser)) {
             throw new DbException(Constant.USER_NOT_EXIST);
         }
@@ -136,6 +141,23 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
         return R.ok();
     }
 
+    @Override
+    public List<String> getUserTypeList() {
+        List<EbUserType> res = ebUserTypeService.lambdaQuery().eq(EbUserType::getStatus, 1).list();
+        if(res.isEmpty()){
+            return ListUtil.empty();
+        }
+        return res.stream().map(EbUserType::getTypeName).collect(Collectors.toList());
+    }
+
+    @Override
+    public R addUserType(EbUserType ebUserType) {
+        ebUserTypeService.lambdaQuery().eq(EbUserType::getTypeName, ebUserType.getTypeName()).oneOpt().ifPresent(type -> {
+            throw new DbException(Constant.USER_TYPE_EXIST);
+        });
+        ebUserTypeService.save(ebUserType);
+        return R.ok();
+    }
 
 
 }
