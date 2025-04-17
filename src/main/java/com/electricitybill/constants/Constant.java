@@ -80,6 +80,7 @@ public interface Constant {
     String FEEDBACK_STATUS_NOT_EXIST = "反馈状态不存在";
     String INVALID_FEEDBACK_TYPE ="无效的反馈类型";
     String FEEDBACK_NOT_EXIST = "反馈不存在";
+    String RATE_USER_TYPE_EXIST = "用户类型的费率已存在";
 
 
     interface Code{

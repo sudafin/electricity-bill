@@ -3,14 +3,17 @@ package com.electricitybill.entity.vo.rate;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Data
-public class RateInfoVO {
+public class RatePageVO {
     private Long rateId;
-    private String rateUserType;
+    private String userType;
     private Integer status;
     private BigDecimal flatPrice;
     private BigDecimal peakPrice;
     private BigDecimal valleyPrice;
-    private BigDecimal summerPeakPrice;
+    private LocalDate effectiveDate;
+    private LocalDate expireDate;
+
 }

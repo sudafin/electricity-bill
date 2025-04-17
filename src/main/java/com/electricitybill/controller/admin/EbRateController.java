@@ -2,7 +2,11 @@ package com.electricitybill.controller.admin;
 
 
 import com.electricitybill.entity.R;
-import com.electricitybill.entity.vo.rate.RateInfoVO;
+import com.electricitybill.entity.dto.PageDTO;
+import com.electricitybill.entity.dto.rate.RateCrateDTO;
+import com.electricitybill.entity.dto.rate.RatePageQuery;
+import com.electricitybill.entity.vo.rate.RateDetailVO;
+import com.electricitybill.entity.vo.rate.RatePageVO;
 import com.electricitybill.service.IEbRateService;
 import io.swagger.annotations.Api;
 import org.springframework.web.bind.annotation.*;
@@ -26,28 +30,34 @@ public class EbRateController {
     @Resource
     private IEbRateService ebRateService;
 
-    @GetMapping
-    public List<RateInfoVO> getRate() {
-        return ebRateService.getRate();
+    @GetMapping("detail/{id}")
+    public RateDetailVO getRateDetail(@PathVariable Long id) {
+        return ebRateService.getRateDetail(id);
     }
     
     @PutMapping("edit/{id}")
-    public R editRate(@PathVariable Long id, @RequestParam("rateValue") BigDecimal rateValue,@RequestParam("periodType") String periodType) {
-        return ebRateService.editRate(id, rateValue, periodType);
+    public R editRate(@PathVariable Long id, @RequestBody RateCrateDTO rateCrateDTO) {
+        return ebRateService.editRate(id, rateCrateDTO);
     }
     /**
      * 分页查询
      */
+    @GetMapping("page")
+    public PageDTO<RatePageVO> queryRatePage(RatePageQuery ratePageQuery) {
+        return ebRateService.queryRatePage(ratePageQuery);
+    }
 
     /**
      * 新增费率
      */
 
-    /**
-     * 修改费率
-     */
+    @PostMapping("create")
+    public R createRate(@RequestBody RateCrateDTO rateCrateDTO) {
+        return ebRateService.createRate(rateCrateDTO);
+    }
 
-    /**
-     * 费率详情
-     */
+    @DeleteMapping("delete")
+    public R deleteRate(@RequestParam(name = "ids") List<Long> ids) {
+        return ebRateService.deleteRate(ids);
+    }
 }
