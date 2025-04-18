@@ -31,64 +31,64 @@ public class RoleInterceptor implements HandlerInterceptor {
     private Boolean isChecked =  false;
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-         isChecked = ebPermissionService.roleCheck(request);
-        if(isChecked) {
-            String requestBody = getRequestBody(request);
-            logDTO.setRequestBody(requestBody);
-            return true;
-        }else{
-            response.setStatus(403);
-            return false;
-        }
-
+//         isChecked = ebPermissionService.roleCheck(request);
+//        if(isChecked) {
+//            String requestBody = getRequestBody(request);
+//            logDTO.setRequestBody(requestBody);
+//            return true;
+//        }else{
+//            response.setStatus(403);
+//            return false;
+//        }
+        return true;
     }
 
 
-    @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
-        //拿到返回值
-        try {
-            logDTO.setMethod(request.getMethod());
-            logDTO.setPath(request.getRequestURI());
-            logDTO.setRequestParamMap(AdminContextUtils.getParams());
-            logDTO.setUserAgent(request.getHeader("User-Agent"));
-            logDTO.setIp(request.getRemoteAddr());
-            Object res = AdminContextUtils.getRes();
-            if(res!= null){
-                logDTO.setResponseBody(JSONUtil.toJsonStr(res));
-                logDTO.setStatus("success");
-            }else{
-                if(!isChecked){
-                    logDTO.setErrorMsg("权限未通过");
-                }
-                else logDTO.setErrorMsg(ex.getMessage());
-                logDTO.setStatus("error");
-            }
-        }finally {
-            ebSystemLogService.saveLog(logDTO);
-            AdminContextUtils.removeRes();
-            AdminContextUtils.removeParams();
-        }
-    }
-
-    public String getRequestBody(HttpServletRequest request) throws IOException {
-        StringBuilder stringBuilder = new StringBuilder();
-        BufferedReader bufferedReader = null;
-        try {
-            InputStream inputStream = request.getInputStream();
-            if (inputStream != null) {
-                bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-                char[] charBuffer = new char[128];
-                int bytesRead = -1;
-                while ((bytesRead = bufferedReader.read(charBuffer)) > 0) {
-                    stringBuilder.append(charBuffer, 0, bytesRead);
-                }
-            }
-        } finally {
-            if (bufferedReader != null) {
-                bufferedReader.close();
-            }
-        }
-        return stringBuilder.toString();
-    }
+//    @Override
+//    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+//        //拿到返回值
+//        try {
+//            logDTO.setMethod(request.getMethod());
+//            logDTO.setPath(request.getRequestURI());
+//            logDTO.setRequestParamMap(AdminContextUtils.getParams());
+//            logDTO.setUserAgent(request.getHeader("User-Agent"));
+//            logDTO.setIp(request.getRemoteAddr());
+//            Object res = AdminContextUtils.getRes();
+//            if(res!= null){
+//                logDTO.setResponseBody(JSONUtil.toJsonStr(res));
+//                logDTO.setStatus("success");
+//            }else{
+//                if(!isChecked){
+//                    logDTO.setErrorMsg("权限未通过");
+//                }
+//                else logDTO.setErrorMsg(ex.getMessage());
+//                logDTO.setStatus("error");
+//            }
+//        }finally {
+//            ebSystemLogService.saveLog(logDTO);
+//            AdminContextUtils.removeRes();
+//            AdminContextUtils.removeParams();
+//        }
+//    }
+//
+//    public String getRequestBody(HttpServletRequest request) throws IOException {
+//        StringBuilder stringBuilder = new StringBuilder();
+//        BufferedReader bufferedReader = null;
+//        try {
+//            InputStream inputStream = request.getInputStream();
+//            if (inputStream != null) {
+//                bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+//                char[] charBuffer = new char[128];
+//                int bytesRead = -1;
+//                while ((bytesRead = bufferedReader.read(charBuffer)) > 0) {
+//                    stringBuilder.append(charBuffer, 0, bytesRead);
+//                }
+//            }
+//        } finally {
+//            if (bufferedReader != null) {
+//                bufferedReader.close();
+//            }
+//        }
+//        return stringBuilder.toString();
+//    }
 }

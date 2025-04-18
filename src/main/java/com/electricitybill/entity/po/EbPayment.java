@@ -1,6 +1,8 @@
 package com.electricitybill.entity.po;
 
 import java.math.BigDecimal;
+
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -34,6 +36,7 @@ public class EbPayment implements Serializable {
     private Long id;
 
     @ApiModelProperty(value = "用户ID")
+    @TableField("user_id")
     private Long userId;
 
     @ApiModelProperty(value = "支付金额")

@@ -150,7 +150,8 @@ public class EbBillServiceImpl extends ServiceImpl<EbBillMapper, EbBill> impleme
             ebPayment.setAmount(ebBill.getTotalAmount());
             ebPayment.setPaymentMethod("支付宝");
             ebPayment.setStatus(PaymentType.UNPAID.getDesc());
-            // 确保 MyBatis 配置 useGeneratedKeys=true, keyProperty="id"
+            ebPayment.setUserId(ebBill.getUserId());
+            ebPayment.setOperatorId(0L);
             paymentMapper.insert(ebPayment);
             // 主键回写到账单
             ebBill.setPaymentId(ebPayment.getId());
@@ -180,7 +181,7 @@ public class EbBillServiceImpl extends ServiceImpl<EbBillMapper, EbBill> impleme
 
         try {
             // 5. 查询支付宝流水状态
-            String status = checkOrderStatus(client, billId);
+            String status = checkOrderStatus(client, String.valueOf(billId));
 
             switch (status) {
                 case "TRADE_CLOSED":
@@ -226,6 +227,7 @@ public class EbBillServiceImpl extends ServiceImpl<EbBillMapper, EbBill> impleme
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    //TODO 还需要做个自动任务轮询结果
     public String payNotify(HttpServletRequest request) {
         // 1. 参数收集
         Map<String, String> params = new HashMap<>();
@@ -238,7 +240,7 @@ public class EbBillServiceImpl extends ServiceImpl<EbBillMapper, EbBill> impleme
 
         // 2. 预置变量
         String tradeStatus = params.get("trade_status");
-        String billIdStr = params.get("out_order_no");
+        String billIdStr = params.get("out_trade_no");
         String transactionId = params.get("trade_no");
 
         // 3. 校验核心参数
@@ -246,6 +248,7 @@ public class EbBillServiceImpl extends ServiceImpl<EbBillMapper, EbBill> impleme
             log.error("支付宝回调参数缺失: out_order_no={}, trade_no={}", billIdStr, transactionId);
             return "success";
         }
+        //转为Long,在这里转是因为转了上面不能判断位空,那么为空时会直接报错
         Long billId = Long.valueOf(billIdStr);
 
         // 4. 获取账单和支付记录
@@ -288,12 +291,19 @@ public class EbBillServiceImpl extends ServiceImpl<EbBillMapper, EbBill> impleme
     /**
      * 查询支付宝订单状态
      */
-    private String checkOrderStatus(AlipayClient client, Long billId) throws AlipayApiException {
+    private String checkOrderStatus(AlipayClient client, String billId) throws AlipayApiException {
         AlipayTradeQueryRequest req = new AlipayTradeQueryRequest();
         req.setBizContent("{\"out_trade_no\":\"" + billId + "\"}");
         AlipayTradeQueryResponse rsp = client.execute(req);
-        return rsp.isSuccess() ? rsp.getTradeStatus() : "QUERY_FAILED";
+        if (rsp.isSuccess()) {
+            return rsp.getTradeStatus(); // 例如 WAIT_BUYER_PAY, TRADE_SUCCESS 等
+        } else if ("ACQ.TRADE_NOT_EXIST".equals(rsp.getSubCode())) {
+            return "NOT_EXIST";
+        } else {
+            return "QUERY_FAILED";
+        }
     }
+
 
     /**
      * 生成支付宝二维码
