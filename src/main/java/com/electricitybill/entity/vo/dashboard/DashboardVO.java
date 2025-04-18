@@ -50,4 +50,6 @@ public class DashboardVO {
      * 系统日志数量
      */
     private Long systemLogCount;
+
+    private Long totalReconciliation;
 }

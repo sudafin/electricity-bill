@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 @Data
 public class FeedBackPageVO {
-    private String Id;
+    private String id;
     private String feedbackType;
     private String feedbackStatus;
     private String userName;

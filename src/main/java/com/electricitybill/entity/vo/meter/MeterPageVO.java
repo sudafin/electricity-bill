@@ -1,8 +1,6 @@
 package com.electricitybill.entity.vo.meter;
 
 
-import com.baomidou.mybatisplus.annotation.TableField;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -11,7 +9,7 @@ import java.time.LocalDateTime;
 
 @Data
 public class MeterPageVO {
-    private String Id;
+    private String id;
     private String model;
     private String status;
     private String userName;

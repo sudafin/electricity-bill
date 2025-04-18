@@ -73,6 +73,8 @@ public class EbAdminServiceImpl extends ServiceImpl<EbAdminMapper, EbAdmin> impl
     private EbUserMapper ebUserMapper;
     @Resource
     private IEbUserTypeService ebUserTypeService;
+    @Resource
+    private EbReconciliationMapper ebReconciliationMapper;
     @Override
     public DashboardVO getAdminDashboardInfo() {
         /**
@@ -146,6 +148,8 @@ public class EbAdminServiceImpl extends ServiceImpl<EbAdminMapper, EbAdmin> impl
         Long ProcessedFeedbackCount = ebUserFeedbacks.stream().filter(feedback -> feedback.getFeedbackStatus().equals(FeedbackStatusType.PROCESSED.getDesc())).count();
         dashboardVO.setUnprocessedFeedbackCount(UnProcessedFeedbackCount);
         dashboardVO.setProcessedFeedbackCount(ProcessedFeedbackCount);
+        int reconciliationSize = ebReconciliationMapper.selectList(new LambdaQueryWrapper<>()).size();
+        dashboardVO.setTotalReconciliation((long) reconciliationSize);
         log.info("dashboardVO的对象数据:{}", dashboardVO);
         return dashboardVO;
     }

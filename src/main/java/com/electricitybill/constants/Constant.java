@@ -82,6 +82,8 @@ public interface Constant {
     String FEEDBACK_NOT_EXIST = "反馈不存在";
     String RATE_USER_TYPE_EXIST = "用户类型的费率已存在";
     String USER_TYPE_EXIST = "用户类型已存在";
+    String BILL_PAID_OVERDUE = "账单已支付或过期";
+    String PAYMENT_PAID = "账单已支付";
 
 
     interface Code{

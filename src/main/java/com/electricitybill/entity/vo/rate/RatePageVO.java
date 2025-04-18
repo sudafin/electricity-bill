@@ -7,7 +7,7 @@ import java.time.LocalDate;
 
 @Data
 public class RatePageVO {
-    private Long rateId;
+    private Long id;
     private String userType;
     private Integer status;
     private BigDecimal flatPrice;
