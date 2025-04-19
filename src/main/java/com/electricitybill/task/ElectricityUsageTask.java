@@ -26,6 +26,7 @@ public class ElectricityUsageTask {
     public void setDailyUsageSummary() {
         EbScheduledTask ebScheduledTask = taskService.lambdaQuery().eq(EbScheduledTask::getTaskName, "setDailyUsageSummary").one();
         if(ebScheduledTask == null){
+            ebScheduledTask = new EbScheduledTask();
             ebScheduledTask.setTaskDesc("生成每日的用电量");
             ebScheduledTask.setTaskName("setDailyUsageSummary");
             ebScheduledTask.setTaskType("抄表");
@@ -44,6 +45,7 @@ public class ElectricityUsageTask {
     public void getMonthlyBill() {
         EbScheduledTask ebScheduledTask = taskService.lambdaQuery().eq(EbScheduledTask::getTaskName, "getMonthlyBill").one();
         if(ebScheduledTask == null){
+            ebScheduledTask = new EbScheduledTask();
             ebScheduledTask.setTaskDesc("生成每月的订单");
             ebScheduledTask.setTaskName("getMonthlyBill");
             ebScheduledTask.setTaskType("账单生成");

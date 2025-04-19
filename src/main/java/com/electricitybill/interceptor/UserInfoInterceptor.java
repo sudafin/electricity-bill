@@ -20,7 +20,7 @@ public class UserInfoInterceptor implements HandlerInterceptor {
             response.setStatus(401);
             return false;
         }
-        AdminContextUtils.setUser(adminDTO.getId());
+        AdminContextUtils.setAdmin(adminDTO.getId());
         return true;
     }
     //拦截后

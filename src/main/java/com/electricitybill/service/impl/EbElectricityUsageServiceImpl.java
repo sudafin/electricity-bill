@@ -291,7 +291,7 @@ public class EbElectricityUsageServiceImpl extends ServiceImpl<EbElectricityUsag
                 .gt(EbElectricityUsage::getStartTime, DateUtils.getDayStartTime(LocalDateTime.now(zoneId))).le(EbElectricityUsage::getEndTime, DateUtils.getDayEndTime(LocalDateTime.now(zoneId))));
         // 检查数据是否为空
         if (ebElectricityUsageList.isEmpty()) {
-            log.warn("当日无用电数据");
+            log.warn("当日所有无用电数据");
             return;
         }
         //key是当前的电表id, 然后value是这些数据的对象
@@ -303,15 +303,36 @@ public class EbElectricityUsageServiceImpl extends ServiceImpl<EbElectricityUsag
         //将用户id与用户进行映射
         Map<Long, EbUser> ebUserMap = userIdBatches.stream().map(batch -> ebUserMapper.selectBatchIds(batch)).flatMap(List::stream).collect(Collectors.toMap(EbUser::getId, Function.identity()));
         ArrayList<EbUsageSummary> ebDailyUsageSummaries = new ArrayList<>();
-        ebElectricityListMap.forEach((meterId, ebElectricityUsages) -> {
+        for (Map.Entry<String, List<EbElectricityUsage>> entry : ebElectricityListMap.entrySet()) {
+            String meterId = entry.getKey();
+            List<EbElectricityUsage> ebElectricityUsages = entry.getValue();
+            //创建一个usageSummary统计数据
+            EbUsageSummary ebUsageSummary = new EbUsageSummary();
             // 确保同一电表下的所有记录用户 ID 一致
             Set<Long> uniqueUserIds = ebElectricityUsages.stream().map(EbElectricityUsage::getUserId).collect(Collectors.toSet());
             if (uniqueUserIds.size() > 1) {
-                throw new DbException("同一电表存在多个用户 ID: " + meterId);
+                log.warn("当前电表{}存在多个用户 ID",meterId);
+                continue;
+
             }
+            //拿到用户id
             AtomicReference<Long> userId = new AtomicReference<>(uniqueUserIds.iterator().next());
+            if(ebElectricityUsages.isEmpty()){
+                log.warn("当前电表{}无电费记录",meterId);
+                ebUsageSummary.setUserId(userId.get());
+                ebUsageSummary.setMeterId(meterId);
+                ebUsageSummary.setCreatedAt(LocalDateTime.now(zoneId));
+                ebUsageSummary.setSummaryDateStart(DateUtils.getDayStartTime(LocalDateTime.now()));
+                ebUsageSummary.setSummaryDateEnd(DateUtils.getDayEndTime(LocalDateTime.now()));
+                ebUsageSummary.setDateType(DateType.DAILY.getDesc());
+                ebUsageSummary.setTotalCost(BigDecimal.ZERO);
+                ebUsageSummary.setTotalUsage(BigDecimal.ZERO);
+                ebUsageSummary.setTotalCost(BigDecimal.ZERO);
+                ebUsageSummary.setTotalUsage(BigDecimal.ZERO);
+                ebUsageSummaryService.save(ebUsageSummary);
+                continue;
+            }
             //初始化数据
-            EbUsageSummary ebUsageSummary = new EbUsageSummary();
             AtomicReference<BigDecimal> finalCalculatePrice = new AtomicReference<>(BigDecimal.ZERO);
             AtomicReference<BigDecimal> finalCalculateUsage = new AtomicReference<>(BigDecimal.ZERO);
             AtomicReference<BigDecimal> peakUsage = new AtomicReference<>(BigDecimal.ZERO);
@@ -320,12 +341,12 @@ public class EbElectricityUsageServiceImpl extends ServiceImpl<EbElectricityUsag
             AtomicReference<BigDecimal> peakCost = new AtomicReference<>(BigDecimal.ZERO);
             AtomicReference<BigDecimal> flatCost = new AtomicReference<>(BigDecimal.ZERO);
             AtomicReference<BigDecimal> valleyCost = new AtomicReference<>(BigDecimal.ZERO);
-            ebElectricityUsages.forEach(ebElectricityUsage -> {
-                //拿到用户类型
+            for (EbElectricityUsage ebElectricityUsage : ebElectricityUsages) {
                 userId.set(ebElectricityUsage.getUserId());
                 EbUser ebUser = ebUserMap.get(ebElectricityUsage.getUserId());
                 if (Objects.isNull(ebUser)) {
-                    throw new DbException(Constant.USER_NOT_EXIST);
+                    log.warn("用户{}不存在",ebElectricityUsage.getUserId());
+                    continue;
                 }
                 String userType = ebUser.getUserType();
                 //根据当前数据算出每条的数据的电费
@@ -351,12 +372,12 @@ public class EbElectricityUsageServiceImpl extends ServiceImpl<EbElectricityUsag
                 }
                 finalCalculateUsage.set(finalCalculateUsage.get().add(ebElectricityUsage.getUsageAmount()));
                 finalCalculatePrice.set(finalCalculatePrice.get().add(calculatePrice));
-            });
+            }
             ebUsageSummary.setUserId(userId.get());
             ebUsageSummary.setMeterId(meterId);
             ebUsageSummary.setSummaryDateStart(DateUtils.getDayStartTime(LocalDateTime.now()));
             ebUsageSummary.setSummaryDateEnd(DateUtils.getDayEndTime(LocalDateTime.now()));
-            //每天的类型
+            //这个是设置日类型
             ebUsageSummary.setDateType(DateType.DAILY.getDesc());
             ebUsageSummary.setPeakUsage(peakUsage.get());
             ebUsageSummary.setFlatUsage(flatUsage.get());
@@ -367,7 +388,7 @@ public class EbElectricityUsageServiceImpl extends ServiceImpl<EbElectricityUsag
             ebUsageSummary.setValleyCost(valleyCost.get());
             ebUsageSummary.setTotalCost(finalCalculatePrice.get());
             ebDailyUsageSummaries.add(ebUsageSummary);
-        });
+        }
         ebUsageSummaryService.saveBatch(ebDailyUsageSummaries);
     }
 
@@ -388,16 +409,20 @@ public class EbElectricityUsageServiceImpl extends ServiceImpl<EbElectricityUsag
         List<EbUsageSummary> monthlySummaries = new ArrayList<>();
         List<EbBill> monthlyBills = new ArrayList<>();
 
-        dailyUsageByMeter.forEach((meterId, dailySummaries) -> {
+        for (Map.Entry<String, List<EbUsageSummary>> entry : dailyUsageByMeter.entrySet()) {
+            String meterId = entry.getKey();
+            List<EbUsageSummary> dailySummaries = entry.getValue();
             if (dailySummaries.isEmpty()) {
-                return; // 跳过空数据
+                log.warn("电表{}没有日数据", meterId);
+                continue;
             }
 
             // 获取第一个日记录的用户ID(假设所有日记录用户ID相同)
             Long userId = dailySummaries.get(0).getUserId();
             EbMeter meter = ebMeterMap.get(userId);
             if (meter == null) {
-                return; // 跳过没有对应电表的记录
+                log.warn("电表{}对应的用户不存在", meterId);
+                continue;
             }
 
             // 计算月度汇总数据
@@ -410,7 +435,7 @@ public class EbElectricityUsageServiceImpl extends ServiceImpl<EbElectricityUsag
             // 创建月度账单
             EbBill bill = createMonthlyBill(userId, meter, summary, now);
             monthlyBills.add(bill);
-        });
+        }
 
         // 4. 批量保存数据
         if (!monthlySummaries.isEmpty()) {

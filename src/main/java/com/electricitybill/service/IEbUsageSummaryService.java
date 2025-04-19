@@ -2,6 +2,7 @@ package com.electricitybill.service;
 
 import com.electricitybill.entity.po.EbUsageSummary;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.electricitybill.entity.vo.electricity.ElectricityUserVO;
 
 /**
  * <p>
@@ -13,4 +14,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IEbUsageSummaryService extends IService<EbUsageSummary> {
 
+    ElectricityUserVO getElectricityRecords();
 }
