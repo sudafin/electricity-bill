@@ -26,11 +26,6 @@ import java.util.stream.Collectors;
  */
 @Service
 public class EbUsageSummaryServiceImpl extends ServiceImpl<EbUsageSummaryMapper, EbUsageSummary> implements IEbUsageSummaryService {
-    public static void main(String[] args) {
-        LocalDate now = LocalDate.now();
-        System.out.println(DateUtils.getMonthBeginTime(now));
-        System.out.println(now);
-    }
     @Override
     public ElectricityUserVO getElectricityRecords() {
         //拿到天的然后是当前一个月到现在的值
@@ -40,6 +35,9 @@ public class EbUsageSummaryServiceImpl extends ServiceImpl<EbUsageSummaryMapper,
                 //如果不要用lt,会是大于等于当天的数据,可当天数据暂时还没有,虽然加lt也不会有变化,但为了代码的理论性,还是用le
                 .le(EbUsageSummary::getSummaryDateStart, LocalDateTime.now())
                 .list();
+        if (ebDailyUsageSummaries.isEmpty()) {
+            return new ElectricityUserVO();
+        }
         //设置数据
         ElectricityUserVO electricityUserVO = new ElectricityUserVO();
         EbUsageSummary lastEbUsageSummary = CollUtils.getLast(ebDailyUsageSummaries);

@@ -11,8 +11,8 @@ import java.util.Objects;
 
 @Getter
 public enum ValidType implements BaseEnum{
-    VALID(0, "无效"),
-    INVALID(1, "有效")
+    INVALID(0, "无效"),
+    VALID(1, "有效"),
     ;
     @EnumValue
     final int value;

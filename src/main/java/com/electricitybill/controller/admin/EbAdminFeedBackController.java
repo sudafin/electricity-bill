@@ -34,7 +34,7 @@ public class EbAdminFeedBackController {
         return ebUserFeedbackService.getFeedBackDetail(feedbackId);
     }
 
-    @PostMapping("process/{feedbackId}")
+    @PostMapping("process")
     public R<Object> processFeedBack(@RequestBody @Validated FeedBackProcessDTO feedBackProcessDTO){
         return ebUserFeedbackService.processFeedBack(feedBackProcessDTO);
     }

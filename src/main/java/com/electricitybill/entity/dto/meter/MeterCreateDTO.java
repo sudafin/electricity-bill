@@ -11,4 +11,5 @@ public class MeterCreateDTO {
     private String status;
     private String installPlace;
     private LocalDateTime installDate;
+    private String idCardNo;
 }

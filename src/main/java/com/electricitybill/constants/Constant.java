@@ -84,6 +84,7 @@ public interface Constant {
     String USER_TYPE_EXIST = "用户类型已存在";
     String BILL_PAID_OVERDUE = "账单已支付或过期";
     String PAYMENT_PAID = "账单已支付";
+    String USER_HAS_METER ="当前用户已经有电表";
 
 
     interface Code{

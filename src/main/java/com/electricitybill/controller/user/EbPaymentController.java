@@ -7,6 +7,7 @@ import com.electricitybill.entity.dto.PageDTO;
 import com.electricitybill.entity.dto.paymennt.PaymentPageQuery;
 import com.electricitybill.entity.vo.payment.PaymentDetailVO;
 import com.electricitybill.entity.vo.payment.PaymentPageVO;
+import com.electricitybill.entity.vo.payment.PaymentUserVO;
 import com.electricitybill.service.IEbPaymentService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -30,32 +31,14 @@ import java.util.concurrent.Future;
 @RestController
 @RequestMapping("/user/payment")
 @Slf4j
-@Api(tags = "缴费管理")
+@Api(tags = "用户端缴费管理")
 public class EbPaymentController {
     @Resource
     private IEbPaymentService ebPaymentService;
 
-    @GetMapping("page")
-    public PageDTO<PaymentPageVO> queryPage(PaymentPageQuery paymentPageQuery){
-        return ebPaymentService.queryPage(paymentPageQuery);
+    @GetMapping()
+    private PaymentUserVO getPaymentRecords() {
+        return ebPaymentService.getPaymentRecords();
     }
-    @GetMapping("detail/{id}")
-    public PaymentDetailVO queryPaymentDetail(@PathVariable(name = "id") Long paymentId){
-        return ebPaymentService.queryUserPayment(paymentId);
-    }
-    @DeleteMapping("delete")
-    public R deletePayment(@RequestParam(name = "ids") List<Long> ids){
-        return ebPaymentService.deletePayment(ids);
-    }
-    @PutMapping("refund/{id}")
-    public R refundPayment(@PathVariable(name = "id") Long paymentId){
-        return ebPaymentService.refundPayment(paymentId);
-    }
-    @GetMapping("/export")
-    @ApiOperation("导出运营数据报表")
-    @ExportExcel
-    public String export() throws IOException, ExecutionException, InterruptedException {
-        Future<String> future =ebPaymentService.export();
-        return future.get();
-    }
+
 }

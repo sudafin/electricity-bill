@@ -4,6 +4,7 @@ import com.electricitybill.entity.R;
 import com.electricitybill.entity.dto.PageDTO;
 import com.electricitybill.entity.dto.feedback.FeedBackPageQuery;
 import com.electricitybill.entity.dto.feedback.FeedBackProcessDTO;
+import com.electricitybill.entity.dto.feedback.FeedBackSubmitDTO;
 import com.electricitybill.entity.po.EbUserFeedback;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.electricitybill.entity.vo.feedback.FeedBackDetailVO;
@@ -29,4 +30,6 @@ public interface IEbUserFeedbackService extends IService<EbUserFeedback> {
     R<Object> processFeedBack(FeedBackProcessDTO feedBackProcessDTO);
 
     Map<String, List<String>> getFeedbackType();
+
+    R submitFeedBack(FeedBackSubmitDTO feedBackSubmitDTO);
 }

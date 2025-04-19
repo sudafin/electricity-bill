@@ -10,6 +10,7 @@ import com.electricitybill.entity.dto.meter.MeterInspectionDTO;
 import com.electricitybill.entity.dto.meter.MeterPageQuery;
 import com.electricitybill.entity.po.EbMeter;
 import com.electricitybill.entity.po.EbMeterInspection;
+import com.electricitybill.entity.po.EbNotification;
 import com.electricitybill.entity.po.EbUser;
 import com.electricitybill.entity.vo.meter.MeterDetailVO;
 import com.electricitybill.entity.vo.meter.MeterPageVO;
@@ -28,6 +29,7 @@ import org.springframework.stereotype.Service;
 import com.electricitybill.entity.dto.PageDTO;
 
 import javax.annotation.Resource;
+import javax.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,11 +57,13 @@ public class EbMeterServiceImpl extends ServiceImpl<EbMeterMapper, EbMeter> impl
         Page<EbMeter> ebMeterPage = lambdaQuery().eq(StringUtils.isNotBlank(meterPageQuery.getModel()), EbMeter::getModel, meterPageQuery.getModel())
                 .eq(StringUtils.isNotBlank(meterPageQuery.getMeterId()), EbMeter::getId, meterPageQuery.getMeterId())
                 .eq(StringUtils.isNotBlank(meterPageQuery.getStatus()), EbMeter::getStatus, meterPageQuery.getStatus())
+                .eq(EbMeter::getValidType,ValidType.VALID.getValue())
                 .between(meterPageQuery.getStartDate() != null && meterPageQuery.getEndDate() != null, EbMeter::getInstallDate, meterPageQuery.getStartDate(), meterPageQuery.getEndDate())
+                .orderByDesc(EbMeter::getCreatedAt)
                 .page(page);
         // 返回分页数据
         List<EbMeter> records = ebMeterPage.getRecords();
-        if(CollUtils.isNotEmpty(records)){
+        if(CollUtils.isEmpty(records)){
             return PageDTO.empty(page);
         }
         // 封装数据
@@ -90,6 +94,14 @@ public class EbMeterServiceImpl extends ServiceImpl<EbMeterMapper, EbMeter> impl
             throw new BizIllegalException(Constant.CONVERT_ERROR);
         }
         ebMeter.setValidType(ValidType.VALID.getValue());
+        EbUser ebUser = ebUserMapper.selectOne(new LambdaQueryWrapper<EbUser>().eq(EbUser::getIdCardNo, meterCreateDTO.getIdCardNo()));
+        if(ebUser == null){
+            throw new BizIllegalException(Constant.USER_NOT_EXIST);
+        }
+        if(ebUser.getMeterId() != null){
+            throw new BizIllegalException(Constant.USER_HAS_METER);
+        }
+        ebMeter.setUserId(ebUser.getId());
         save(ebMeter);
         return R.ok(null);
     }
@@ -102,7 +114,8 @@ public class EbMeterServiceImpl extends ServiceImpl<EbMeterMapper, EbMeter> impl
     @Override
     public R<Object> editMeter(MeterEditDTO meterBindDTO) {
         Long meterId = meterBindDTO.getMeterId();
-        EbMeter ebMeter = getById(meterId);
+
+        EbMeter ebMeter = lambdaQuery().eq(EbMeter::getId, meterId).eq(EbMeter::getValidType, ValidType.VALID.getValue()).one();
         if (ebMeter == null) {
             throw new BizIllegalException(Constant.METER_NOT_EXIST);
         }
@@ -128,7 +141,7 @@ public class EbMeterServiceImpl extends ServiceImpl<EbMeterMapper, EbMeter> impl
         if (ebMeter == null) {
             throw new BizIllegalException(Constant.METER_NOT_EXIST);
         }
-        ebMeter.setValidType(ValidType.VALID.getValue());
+        ebMeter.setValidType(ValidType.INVALID.getValue());
         updateById(ebMeter);
         return R.ok(null);
     }
@@ -159,7 +172,7 @@ public class EbMeterServiceImpl extends ServiceImpl<EbMeterMapper, EbMeter> impl
         EbMeterInspection ebMeterInspection = BeanUtils.copyBean(meterInspectionDTO, EbMeterInspection.class);
         boolean save = ebMeterInspectionService.save(ebMeterInspection);
         if (save) {
-            EbMeterInspection meterInspection = ebMeterInspectionService.lambdaQuery().eq(EbMeterInspection::getMeterId, meterInspectionDTO.getMeterId()).getEntity();
+            EbMeterInspection meterInspection = ebMeterInspectionService.lambdaQuery().eq(EbMeterInspection::getMeterId, meterInspectionDTO.getMeterId()).one();
             ebMeter.setInspectionId(meterInspection.getId());
             updateById(ebMeter);
         }

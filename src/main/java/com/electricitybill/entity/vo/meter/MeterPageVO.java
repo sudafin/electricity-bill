@@ -13,7 +13,7 @@ public class MeterPageVO {
     private String model;
     private String status;
     private String userName;
-    private LocalDate installDate;
+    private LocalDateTime installDate;
 
     /**
      * 最近读表的时间

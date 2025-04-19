@@ -29,16 +29,16 @@ public class EbMeter implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @ApiModelProperty(value = "电表ID")
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id", type = IdType.ASSIGN_ID)
     private String id;
 
     @ApiModelProperty(value = "电表型号")
     @TableField("model")
     private String model;
 
-    @ApiModelProperty(value = "安装日期")
+    @ApiModelProperty(value = "安装时间")
     @TableField("install_date")
-    private LocalDate installDate;
+    private LocalDateTime installDate;
 
     @ApiModelProperty(value = "状态: 正常/故障/停用")
     @TableField("status")

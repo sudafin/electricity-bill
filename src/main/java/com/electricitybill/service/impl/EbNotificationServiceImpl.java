@@ -15,6 +15,7 @@ import com.electricitybill.entity.vo.notification.NotificationPageVO;
 import com.electricitybill.entity.vo.notification.NotificationUserVO;
 import com.electricitybill.enums.NotificationType;
 import com.electricitybill.enums.ReadStatusType;
+import com.electricitybill.enums.RoleType;
 import com.electricitybill.enums.ValidType;
 import com.electricitybill.expcetions.BizIllegalException;
 import com.electricitybill.expcetions.DbException;
@@ -27,7 +28,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -187,7 +187,7 @@ public class EbNotificationServiceImpl extends ServiceImpl<EbNotificationMapper,
     @Override
     public PageDTO<NotificationUserVO> getNewNotificationList(PageQuery pageQuery) {
         Page<EbNotification> page = new Page<>(pageQuery.getPageNo(), pageQuery.getPageSize());
-        Long userId = UserContextUtils.getUserId();
+        Long userId = UserContextUtils.getUserId() == null ? 1 : UserContextUtils.getUserId();
         EbUser ebUser = ebUserMapper.selectById(userId);
         if (ObjectUtils.isEmpty(ebUser)) {
             throw new BizIllegalException(Constant.USER_NOT_EXIST);
@@ -200,7 +200,8 @@ public class EbNotificationServiceImpl extends ServiceImpl<EbNotificationMapper,
                         .eq(EbNotification::getType, NotificationType.FEEDBACK_NOTIFICATION.getDesc())
                         .or()
                         .eq(EbNotification::getType, NotificationType.ANNOUNCEMENT_NOTIFICATION.getDesc())
-                );
+                )
+                .orderByDesc(EbNotification::getCreatedAt);
         Page<EbNotification> ebNotificationPage = page(page, wrapper);
         if (ebNotificationPage.getTotal() == 0){
             return PageDTO.empty(ebNotificationPage);
@@ -223,6 +224,7 @@ public class EbNotificationServiceImpl extends ServiceImpl<EbNotificationMapper,
                             new LambdaQueryWrapper<EbNotificationRecipient>()
                                     .eq(EbNotificationRecipient::getNotificationId, ebNotification.getId())
                                     .eq(EbNotificationRecipient::getRecipientId, userId)
+                                    .eq(EbNotificationRecipient::getRecipientType, ebNotification.getSenderType())
                     )
             ).ifPresentOrElse(
                     // 存在时的处理逻辑,说明有数据

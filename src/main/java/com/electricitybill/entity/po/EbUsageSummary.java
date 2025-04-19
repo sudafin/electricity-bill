@@ -26,7 +26,7 @@ import lombok.experimental.Accessors;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@TableName("eb_daily_usage_summary")
+@TableName("eb_usage_summary")
 @ApiModel(value="EbDailyUsageSummary对象", description="每日用电量及电费汇总表")
 public class EbUsageSummary implements Serializable {
 

@@ -42,4 +42,13 @@ public enum FeedbackStatusType implements BaseEnum{
         }
         return FeedbackTypeList;
     }
+
+    public static FeedbackStatusType value(String desc) {
+        for (FeedbackStatusType type : FeedbackStatusType.values()) {
+            if (Objects.equals(type.getDesc(), desc)) {
+                return type;
+            }
+        }
+        throw new BadRequestException(Constant.INVALID_USER_TYPE);
+    }
 }

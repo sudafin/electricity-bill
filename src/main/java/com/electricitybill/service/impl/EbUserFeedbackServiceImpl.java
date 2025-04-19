@@ -6,6 +6,7 @@ import com.electricitybill.entity.R;
 import com.electricitybill.entity.dto.PageDTO;
 import com.electricitybill.entity.dto.feedback.FeedBackPageQuery;
 import com.electricitybill.entity.dto.feedback.FeedBackProcessDTO;
+import com.electricitybill.entity.dto.feedback.FeedBackSubmitDTO;
 import com.electricitybill.entity.po.EbAdmin;
 import com.electricitybill.entity.po.EbUser;
 import com.electricitybill.entity.po.EbUserFeedback;
@@ -19,10 +20,7 @@ import com.electricitybill.mapper.EbUserFeedbackMapper;
 import com.electricitybill.mapper.EbUserMapper;
 import com.electricitybill.service.IEbUserFeedbackService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.electricitybill.utils.AdminContextUtils;
-import com.electricitybill.utils.BeanUtils;
-import com.electricitybill.utils.CollUtils;
-import com.electricitybill.utils.StringUtils;
+import com.electricitybill.utils.*;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -53,7 +51,7 @@ public class EbUserFeedbackServiceImpl extends ServiceImpl<EbUserFeedbackMapper,
                 .eq(StringUtils.isNotBlank(feedBackPageQuery.getFeedbackId()), EbUserFeedback::getId, feedBackPageQuery.getFeedbackId())
                 .between(feedBackPageQuery.getStartDate() != null && feedBackPageQuery.getEndDate() != null, EbUserFeedback::getSubmitTime, feedBackPageQuery.getStartDate(), feedBackPageQuery.getEndDate())
                 .page(page);
-        if(ebUserFeedbackPage.getRecords() != null){
+        if(ebUserFeedbackPage.getRecords() == null){
             return PageDTO.empty(page);
         }
         // 封装数据
@@ -102,7 +100,10 @@ public class EbUserFeedbackServiceImpl extends ServiceImpl<EbUserFeedbackMapper,
         if (ebAdmin == null){
             throw new BizIllegalException(Constant.ADMIN_NOT_EXIST);
         }
-        FeedbackStatusType feedbackStatusType = FeedbackStatusType.valueOf(feedBackProcessDTO.getFeedbackStatus());
+        if(!FeedbackStatusType.getFeedbackTypeList().contains(feedBackProcessDTO.getFeedbackStatus())){
+            throw new BizIllegalException("状态非法");
+        }
+        FeedbackStatusType feedbackStatusType = FeedbackStatusType.value(feedBackProcessDTO.getFeedbackStatus());
         if (ebUserFeedback.getFeedbackStatus().equals(feedbackStatusType.getDesc())) {
             return R.error("重复状态");
         }
@@ -124,5 +125,25 @@ public class EbUserFeedbackServiceImpl extends ServiceImpl<EbUserFeedbackMapper,
             res.put("feedbackType", FeedbackType.getFeedbackTypeList());
         }
         return res;
+    }
+
+    @Override
+    public R submitFeedBack(FeedBackSubmitDTO feedBackSubmitDTO) {
+        if (StringUtils.isBlank(feedBackSubmitDTO.getContent())){
+            return R.error("反馈内容不能为空");
+        }
+        if (StringUtils.isBlank(feedBackSubmitDTO.getFeedbackType())){
+            return R.error("反馈类型不能为空");
+        }
+        if (!FeedbackType.getFeedbackTypeList().contains(feedBackSubmitDTO.getFeedbackType())){
+            return R.error("反馈类型错误");
+        }
+        EbUserFeedback ebUserFeedback = new EbUserFeedback();
+        ebUserFeedback.setContent(feedBackSubmitDTO.getContent());
+        ebUserFeedback.setFeedbackType(feedBackSubmitDTO.getFeedbackType());
+        ebUserFeedback.setFeedbackStatus(FeedbackStatusType.PENDING.getDesc());
+        ebUserFeedback.setUserId(UserContextUtils.getUserId() );
+        save(ebUserFeedback);
+        return R.ok();
     }
 }

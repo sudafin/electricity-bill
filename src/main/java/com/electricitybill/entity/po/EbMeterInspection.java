@@ -51,10 +51,6 @@ public class EbMeterInspection implements Serializable {
     @TableField("solution")
     private String solution;
 
-    @ApiModelProperty(value = "检测人员ID")
-    @TableField("inspector_id")
-    private Long inspectorId;
-
     @ApiModelProperty(value = "检测人员姓名")
     @TableField("inspector_name")
     private String inspectorName;
@@ -62,14 +58,6 @@ public class EbMeterInspection implements Serializable {
     @ApiModelProperty(value = "检测时间")
     @TableField("inspection_time")
     private LocalDateTime inspectionTime;
-
-    @ApiModelProperty(value = "下次检测时间")
-    @TableField("next_inspection_time")
-    private LocalDateTime nextInspectionTime;
-
-    @ApiModelProperty(value = "维修费用")
-    @TableField("repair_cost")
-    private BigDecimal repairCost;
 
     @ApiModelProperty(value = "用户ID")
     @TableField("user_id")

@@ -41,9 +41,6 @@ public class MeterInspectionDTO {
 
     private LocalDateTime inspectionTime;
 
-    private LocalDateTime nextInspectionTime;
-
-    private BigDecimal repairCost;
 
     private String remark;
 

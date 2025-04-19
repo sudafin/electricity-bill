@@ -105,8 +105,8 @@ public class EbMeterController {
      * @param meterInspectionDTO 巡检信息
      * @return 操作结果
      */
-    @PostMapping("/inspection/{meterId}")
-    public R<Object> inspectionCreate(@Valid @NotNull @RequestBody MeterInspectionDTO meterInspectionDTO) {
+    @PostMapping("/inspection")
+    public R<Object> inspectionCreate(@RequestBody MeterInspectionDTO meterInspectionDTO) {
         return ebMeterService.inspectionCreate(meterInspectionDTO);
     }
 }
