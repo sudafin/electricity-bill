@@ -20,12 +20,5 @@ public class UserDetailVO extends UserPageVO{
      * 上次抄表日期
      */
     private LocalDateTime lastMeterReadingDate;
-    /**
-     * 合同开始日期
-     */
-    private LocalDateTime  contractStartDate;
-    /**
-     * 合同结束日期
-     */
-    private LocalDateTime  contractEndDate;
+
 }

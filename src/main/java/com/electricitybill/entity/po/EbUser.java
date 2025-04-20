@@ -68,11 +68,6 @@ public class EbUser implements Serializable {
     @ApiModelProperty(value = "更新时间")
     private LocalDateTime updatedAt;
 
-    @ApiModelProperty(value = "合同开始时间")
-    private LocalDateTime contractStartDate;
-
-    @ApiModelProperty(value = "合同结束时间")
-    private LocalDateTime contractEndDate;
 
     @ApiModelProperty(value = "是否有效")
     private Integer validType;

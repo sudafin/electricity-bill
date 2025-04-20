@@ -67,7 +67,7 @@ public class EbRoleServiceImpl extends ServiceImpl<EbRoleMapper, EbRole> impleme
 
     @Override
     @Transactional
-    public PermissionDetailVO editRoleAndAdminDetail(Long id) {
+    public PermissionDetailVO roleAndAdminDetail(Long id) {
         //获取当前管理人员
         EbAdmin ebAdmin = ebAdminMapper.selectById(id);
         //判断当前管理人员是否存在

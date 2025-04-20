@@ -7,11 +7,13 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.electricitybill.constants.Constant;
 import com.electricitybill.entity.R;
 import com.electricitybill.entity.dto.PageDTO;
-import com.electricitybill.entity.dto.user.UserDTO;
+import com.electricitybill.entity.dto.user.UserCreateDTO;
 import com.electricitybill.entity.dto.user.UserPageQuery;
+import com.electricitybill.entity.dto.usertype.UserTypeCreateDTO;
 import com.electricitybill.entity.po.*;
 import com.electricitybill.entity.vo.user.UserDetailVO;
 import com.electricitybill.entity.vo.user.UserPageVO;
+import com.electricitybill.enums.AccountStatus;
 import com.electricitybill.enums.BillType;
 import com.electricitybill.enums.ValidType;
 import com.electricitybill.expcetions.BizIllegalException;
@@ -28,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -88,7 +91,7 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
         if (ObjectUtils.isEmpty(ebUser)) {
             throw new DbException(Constant.USER_NOT_EXIST);
         }
-        if (ebUser.getValidType().equals(ValidType.VALID.getValue())) {
+        if (!ebUser.getValidType().equals(ValidType.VALID.getValue())) {
             throw new BizIllegalException(Constant.USER_INVALID);
         }
         UserDetailVO userDetailVO = BeanUtils.copyBean(ebUser, UserDetailVO.class);
@@ -97,24 +100,29 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
         }
         log.debug("userDetailVO的数据:{}", userDetailVO);
         EbMeter ebMeter = ebMeterMapper.selectOne(new LambdaQueryWrapper<EbMeter>().eq(EbMeter::getUserId, userId));
-        if (ObjectUtils.isEmpty(ebMeter)) {
-            throw new BizIllegalException(Constant.METER_NOT_EXIST);
-        }
-        //获取未缴账单数量
         long unPaidBills = ebBillMapper.selectList(new LambdaQueryWrapper<EbBill>().eq(EbBill::getUserId, ebUser.getId())).stream().filter(ebBill -> !ebBill.getStatus().equals(BillType.PAID.getDesc())).count();
-        userDetailVO.setLastMeterReadingDate(ebMeter.getLastMeterReadingDate());
         userDetailVO.setOutstandingBill((int) unPaidBills);
+        if (ObjectUtils.isEmpty(ebMeter)) {
+           userDetailVO.setLastMeterReadingDate(null);
+           return userDetailVO;
+        }
+        userDetailVO.setLastMeterReadingDate(ebMeter.getLastMeterReadingDate());
         return userDetailVO;
     }
 
     @Override
-    public R insertUser(UserDTO userDTO) {
+    public R insertUser(UserCreateDTO userCreateDTO) {
         //判断用户是否存在
-        EbUser ebUser = baseMapper.selectOne(new LambdaQueryWrapper<EbUser>().eq(EbUser::getIdCardNo, userDTO.getIdCardNo));
+        EbUser ebUser = baseMapper.selectOne(new LambdaQueryWrapper<EbUser>().eq(EbUser::getIdCardNo, userCreateDTO.idCardNo));
         if (ObjectUtils.isNotEmpty(ebUser)) {
             throw new DbException(Constant.USER_EXIST);
         }
-        EbUser user = BeanUtils.copyBean(userDTO, EbUser.class);
+
+        EbUser user = BeanUtils.copyBean(userCreateDTO, EbUser.class);
+        user.setAccountStatus(AccountStatus.NORMAL.getDesc());
+        //TODO初始密码,后面改
+        user.setAccount(userCreateDTO.getPhone());
+        user.setPassword("123");
         baseMapper.insert(user);
         return R.ok();
     }
@@ -132,18 +140,18 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
 
 
     @Override
-    public R updateUser(UserDTO userDTO) {
-        if (ObjectUtils.isEmpty(baseMapper.selectOne(new LambdaQueryWrapper<EbUser>().eq(EbUser::getIdCardNo, userDTO.getIdCardNo)))) {
+    public R updateUser(UserCreateDTO userCreateDTO) {
+        if (ObjectUtils.isEmpty(baseMapper.selectOne(new LambdaQueryWrapper<EbUser>().eq(EbUser::getIdCardNo, userCreateDTO.idCardNo)))) {
             throw new DbException(Constant.USER_NOT_EXIST);
         }
-        EbUser user = BeanUtils.copyBean(userDTO, EbUser.class);
+        EbUser user = BeanUtils.copyBean(userCreateDTO, EbUser.class);
         baseMapper.updateById(user);
         return R.ok();
     }
 
     @Override
     public List<String> getUserTypeList() {
-        List<EbUserType> res = ebUserTypeService.lambdaQuery().eq(EbUserType::getStatus, 1).list();
+        List<EbUserType> res = ebUserTypeService.lambdaQuery().eq(EbUserType::getStatus, ValidType.VALID.getValue()).list();
         if(res.isEmpty()){
             return ListUtil.empty();
         }
@@ -151,10 +159,12 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
     }
 
     @Override
-    public R addUserType(EbUserType ebUserType) {
-        ebUserTypeService.lambdaQuery().eq(EbUserType::getTypeName, ebUserType.getTypeName()).oneOpt().ifPresent(type -> {
+    public R addUserType(@NotNull UserTypeCreateDTO userTypeCreateDTO) {
+        ebUserTypeService.lambdaQuery().eq(EbUserType::getTypeName, userTypeCreateDTO.getTypeName()).oneOpt().ifPresent(type -> {
             throw new DbException(Constant.USER_TYPE_EXIST);
         });
+        EbUserType ebUserType = BeanUtils.copyBean(userTypeCreateDTO, EbUserType.class);
+        ebUserType.setStatus(ValidType.VALID.getValue());
         ebUserTypeService.save(ebUserType);
         return R.ok();
     }

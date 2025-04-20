@@ -10,8 +10,7 @@ import com.electricitybill.entity.dto.admin.AdminFormDTO;
 import com.electricitybill.entity.po.*;
 import com.electricitybill.entity.vo.admin.LoginVO;
 import com.electricitybill.entity.vo.dashboard.DashboardVO;
-import com.electricitybill.enums.AdminStatusType;
-import com.electricitybill.enums.FeedbackStatusType;
+import com.electricitybill.enums.*;
 import com.electricitybill.expcetions.DbException;
 import com.electricitybill.expcetions.ForbiddenException;
 import com.electricitybill.expcetions.UnauthorizedException;
@@ -34,6 +33,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.Temporal;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -68,6 +69,8 @@ public class EbAdminServiceImpl extends ServiceImpl<EbAdminMapper, EbAdmin> impl
     @Resource
     private EbMeterMapper ebMeterMapper;
     @Resource
+    private EbSystemLogMapper ebSystemLogMapper;
+    @Resource
     private EbUserFeedbackMapper ebUserFeedbackMapper;
     @Resource
     private EbUserMapper ebUserMapper;
@@ -75,39 +78,50 @@ public class EbAdminServiceImpl extends ServiceImpl<EbAdminMapper, EbAdmin> impl
     private IEbUserTypeService ebUserTypeService;
     @Resource
     private EbReconciliationMapper ebReconciliationMapper;
+    @Resource
+    private EbUsageSummaryMapper ebUsageSummaryMapper;
     @Override
     public DashboardVO getAdminDashboardInfo() {
         /**
          * 拿到所有用户数量,用电量,支付金额,账单,用户类型和最近7天的用电量
          */
+        LocalDateTime monthBeginTime = DateUtils.getMonthBeginTime(LocalDate.now());
+        LocalDateTime monthEndTime = DateUtils.getMonthEndTime(LocalDate.now());
         DashboardVO dashboardVO = DashboardVO.builder().build();
-        List<EbElectricityUsage> ebElectricityUsageList = ebElectricityUsageMapper.selectList(new LambdaQueryWrapper<>());
+        List<EbUsageSummary> ebUsageSummaryList = ebUsageSummaryMapper.selectList(
+                new LambdaQueryWrapper<EbUsageSummary>()
+                        .eq(EbUsageSummary::getDateType, DateType.DAILY.getDesc())
+                        .ge(EbUsageSummary::getSummaryDateStart, monthBeginTime)
+                        .le(EbUsageSummary::getSummaryDateStart, monthEndTime)
+                        .orderByDesc(EbUsageSummary::getSummaryDateStart)
+        );
+
         //补充总用电量和最近7天的用电量
-        if (CollUtils.isEmpty(ebElectricityUsageList)) {
+        if (CollUtils.isEmpty(ebUsageSummaryList)) {
             //如果没有数据,则默认为0或空,不用抛错误
-            dashboardVO.setTotalElectricityUsage(0L);
+            dashboardVO.setCurrentMonthlyElectricityUsageTotal(0L);
             dashboardVO.setElectricityWeekUsageList(CollUtils.emptyList());
         } else {
-            double totalElectricity = ebElectricityUsageList.stream().mapToDouble(usage -> new BigDecimal(String.valueOf(usage.getUsageAmount())).doubleValue()).sum();
+            double totalElectricity = ebUsageSummaryList.stream().mapToDouble(usage -> new BigDecimal(String.valueOf(usage.getTotalUsage())).doubleValue()).sum();
             //将数据倒序,按时间降序,时间最新的在前面方便获取最新的7个数据
-            List<EbElectricityUsage> ebElectricityUsages = ebElectricityUsageList.stream().sorted(Comparator.comparing(EbElectricityUsage::getEndTime).reversed()).collect(Collectors.toList());
+            List<EbUsageSummary> ebUsageSummaries = ebUsageSummaryList.stream().sorted(Comparator.comparing(EbUsageSummary::getSummaryDateStart).reversed()).collect(toList());
             //拿到最近7天的数据,设置为0
             // 生成最近7天的日期列表
-            List<LocalDate> recentDates = IntStream.range(0, 7).mapToObj(LocalDate.now()::minusDays).sorted().collect(Collectors.toList());
+            List<LocalDate> recentDates = IntStream.range(0, 7).mapToObj(LocalDate.now()::minusDays).sorted().collect(toList());
             // 生成 Map<LocalDate, BigDecimal>，这里假设 BigDecimal 的值为每个日期的日期差的 BigDecimal 表示
             Map<LocalDate, BigDecimal> dateToValueMap = recentDates.stream().collect(Collectors.toMap(date -> date, // 使用日期作为 key
                     date -> BigDecimal.ZERO, // 初始值为 0
                     (existing, replacement) -> existing, // 处理键冲突的策略
                     LinkedHashMap::new // 使用 LinkedHashMap 保持插入顺序
             ));
-            ebElectricityUsages.stream().limit(7)
+            ebUsageSummaries.stream().limit(7)
                     //再次把最新的日期放到列表最后面
-                    .sorted(Comparator.comparing(EbElectricityUsage::getEndTime)).forEach(usage -> {
+                    .sorted(Comparator.comparing(EbUsageSummary::getSummaryDateStart)).forEach(usage -> {
                         //拿到当前用电量的日期
-                        LocalDate endDate = usage.getEndTime().toLocalDate();
+                        LocalDate endDate = usage.getSummaryDateEnd().toLocalDate();
                         //如果是最近7天,就加入到list中,否则就跳过
                         if (dateToValueMap.containsKey(endDate)) {
-                            dateToValueMap.put(endDate, usage.getUsageAmount());
+                            dateToValueMap.put(endDate, usage.getTotalUsage());
                         }
                     });
             //将dateToValueMap的value转为list
@@ -116,25 +130,35 @@ public class EbAdminServiceImpl extends ServiceImpl<EbAdminMapper, EbAdmin> impl
                     .map(BigDecimal::doubleValue).collect(toList());
             log.debug("总用电量:{}", totalElectricity);
             log.debug("最近7天的用电量:{}", electricityWeekUsageList);
-            dashboardVO.setTotalElectricityUsage((long) totalElectricity);
+            dashboardVO.setCurrentMonthlyElectricityUsageTotal((long) totalElectricity);
             dashboardVO.setElectricityWeekUsageList(electricityWeekUsageList);
         }
         //补充账单总数和总金额
-        List<EbPayment> ebPaymentList = new ArrayList<>();
-        if (CollUtils.isEmpty(ebPaymentList)) {
-            dashboardVO.setTotalPaymentBill(0L);
-            dashboardVO.setTotalAmount(0L);
+        List<EbBill> ebBillList = ebBillMapper.selectList(
+                new LambdaQueryWrapper<EbBill>()
+                        .gt(EbBill::getCreatedAt, monthBeginTime)
+                        .lt(EbBill::getCreatedAt, monthEndTime)
+        );
+        if (CollUtils.isEmpty(ebBillList)) {
+            dashboardVO.setCurrentMonthlyDebtBillTotal(0L);
+            dashboardVO.setCurrentMonthlyAmountTotal(BigDecimal.ZERO);
         } else {
-            int totalPaymentBill = ebPaymentList.size();
-            int totalAmount = ebPaymentList.stream().mapToInt(payment -> new BigDecimal(String.valueOf(payment.getAmount())).intValue()).sum();
-            log.debug("总账单数:{}", totalPaymentBill);
+            long totalBills = ebBillList.stream().filter(ebBill -> ebBill.getStatus().equals(BillType.UNPAID.getDesc())).count();
+            BigDecimal totalAmount = ebBillList.stream()
+                    .filter(ebBill -> ebBill.getStatus().equals(BillType.UNPAID.getDesc()))
+                    .map(EbBill::getTotalAmount)
+                    .reduce(BigDecimal.ZERO,BigDecimal::add);
+            log.debug("总账单数:{}", totalBills);
             log.debug("总金额:{}", totalAmount);
-            dashboardVO.setTotalAmount((long) totalAmount);
-            dashboardVO.setTotalPaymentBill((long) totalPaymentBill);
+            dashboardVO.setCurrentMonthlyAmountTotal(totalAmount);
+            dashboardVO.setCurrentMonthlyDebtBillTotal(totalBills);
         }
         //补充用户类型和用户总数
-        List<EbUserType> ebUserTypeList = ebUserTypeService.lambdaQuery().eq(EbUserType::getStatus, 1).list();
-        int totalUser = lambdaQuery().list().size();
+        List<EbUser> ebUserList = ebUserMapper.selectList(new LambdaQueryWrapper<>());
+        List<EbUserType> ebUserTypeList = ebUserTypeService.lambdaQuery().eq(EbUserType::getStatus, ValidType.VALID.getValue()).list();
+        long totalUser = ebUserList.stream()
+                .filter(ebUser -> monthBeginTime.isBefore(ebUser.getCreatedAt()) && monthEndTime.isAfter(ebUser.getCreatedAt()))
+                .count();
         Map<String, Long> userTypeMap = new HashMap<>();
         ebUserTypeList.forEach(userType -> {
             Long userTypeCount = ebUserMapper.selectCount(new LambdaQueryWrapper<EbUser>().eq(EbUser::getUserType, userType.getTypeName()));
@@ -142,7 +166,7 @@ public class EbAdminServiceImpl extends ServiceImpl<EbAdminMapper, EbAdmin> impl
             userTypeMap.put(userType.getTypeName(), userTypeCount);
         });
         dashboardVO.setUserTypeMap(userTypeMap);
-        dashboardVO.setTotalUser((long) totalUser);
+        dashboardVO.setCurrentMonthlyAddingUserTotal(totalUser);
         List<EbUserFeedback> ebUserFeedbacks = ebUserFeedbackMapper.selectList(new LambdaQueryWrapper<>());
         Long UnProcessedFeedbackCount = ebUserFeedbacks.stream().filter(feedback -> feedback.getFeedbackStatus().equals(FeedbackStatusType.PENDING.getDesc())).count();
         Long ProcessedFeedbackCount = ebUserFeedbacks.stream().filter(feedback -> feedback.getFeedbackStatus().equals(FeedbackStatusType.PROCESSED.getDesc())).count();
@@ -150,9 +174,16 @@ public class EbAdminServiceImpl extends ServiceImpl<EbAdminMapper, EbAdmin> impl
         dashboardVO.setProcessedFeedbackCount(ProcessedFeedbackCount);
         int reconciliationSize = ebReconciliationMapper.selectList(new LambdaQueryWrapper<>()).size();
         dashboardVO.setTotalReconciliation((long) reconciliationSize);
+        List<EbSystemLog> ebSystemLogs = ebSystemLogMapper.selectList(new LambdaQueryWrapper<>());
+        if(CollUtils.isEmpty(ebSystemLogs)){
+            dashboardVO.setSystemLogCount(0L);
+        }else {
+            dashboardVO.setSystemLogCount((long) ebSystemLogs.size());
+        }
         log.info("dashboardVO的对象数据:{}", dashboardVO);
         return dashboardVO;
     }
+
 
     @Override
     public R<LoginVO> login(AdminFormDTO adminFormDTO) {

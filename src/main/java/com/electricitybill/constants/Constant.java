@@ -85,6 +85,7 @@ public interface Constant {
     String BILL_PAID_OVERDUE = "账单已支付或过期";
     String PAYMENT_PAID = "账单已支付";
     String USER_HAS_METER ="当前用户已经有电表";
+    String NOTIFICATION_RECIPIENT_LIST_EMPTY = "通知接收人列表为空";
 
 
     interface Code{

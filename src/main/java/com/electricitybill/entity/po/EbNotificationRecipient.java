@@ -29,7 +29,7 @@ public class EbNotificationRecipient implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @ApiModelProperty(value = "接收记录ID")
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId(value = "id", type = IdType.ASSIGN_ID)
     private Long id;
 
     @ApiModelProperty(value = "通知ID")
@@ -41,8 +41,6 @@ public class EbNotificationRecipient implements Serializable {
     @ApiModelProperty(value = "接收者ID")
     private Long recipientId;
 
-    @ApiModelProperty(value = "优先级: 1普通/2重要/3紧急")
-    private Integer priority;
 
     @ApiModelProperty(value = "阅读状态: 0未读/1已读")
     private Integer readStatus;

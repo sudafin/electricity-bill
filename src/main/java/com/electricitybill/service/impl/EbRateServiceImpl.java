@@ -38,9 +38,6 @@ import java.util.stream.Collectors;
  */
 @Service
 public class EbRateServiceImpl extends ServiceImpl<EbRateMapper, EbRate> implements IEbRateService {
-    @Resource
-    private StringRedisTemplate stringRedisTemplate;
-
     @Override
     public RateDetailVO getRateDetail(Long id) {
         EbRate ebRate = getById(id);
@@ -59,17 +56,11 @@ public class EbRateServiceImpl extends ServiceImpl<EbRateMapper, EbRate> impleme
         }
         BeanUtils.copyProperties(rateCrateDTO, ebRate);
         updateById(ebRate);
-        stringRedisTemplate.delete(Constant.RATE_LIST_KEY);
         return R.ok();
     }
 
     @Override
     public PageDTO<RatePageVO> queryRatePage(RatePageQuery ratePageQuery) {
-        String rateInfoJson = stringRedisTemplate.opsForValue().get(Constant.RATE_LIST_KEY);
-        if (StringUtils.isNotBlank(rateInfoJson)) {
-            return JSONUtil.toBean(rateInfoJson,
-                    new TypeReference<PageDTO<RatePageVO>>() {}, false);
-        }
         Page<EbRate> page = new Page<>(ratePageQuery.getPageNo(), ratePageQuery.getPageSize());
         Page<EbRate> ebRatePage = lambdaQuery().eq(StringUtils.isNotBlank(ratePageQuery.getUserType()), EbRate::getUserType, ratePageQuery.getUserType())
                 .eq(StringUtils.isNotBlank(ratePageQuery.getStatus()), EbRate::getStatus, ratePageQuery.getStatus())
@@ -82,8 +73,6 @@ public class EbRateServiceImpl extends ServiceImpl<EbRateMapper, EbRate> impleme
         List<EbRate> records = ebRatePage.getRecords();
         List<RatePageVO> ratePageVOS = records.stream().map(ebRate -> BeanUtils.copyBean(ebRate, RatePageVO.class)).collect(Collectors.toList());
         PageDTO<RatePageVO> ratePageVOPageDTO = PageDTO.of(page, ratePageVOS);
-        //缓存到redis
-        stringRedisTemplate.opsForValue().set(Constant.RATE_LIST_KEY, JSONUtil.toJsonStr(ratePageVOPageDTO), TTLGenerator.generateDays(30, 180), TimeUnit.SECONDS);
         return ratePageVOPageDTO;
     }
 
@@ -98,7 +87,6 @@ public class EbRateServiceImpl extends ServiceImpl<EbRateMapper, EbRate> impleme
         });
         EbRate ebRate = BeanUtils.copyBean(rateCrateDTO, EbRate.class);
         save(ebRate);
-        stringRedisTemplate.delete(Constant.RATE_LIST_KEY);
         return R.ok();
     }
 
@@ -109,9 +97,6 @@ public class EbRateServiceImpl extends ServiceImpl<EbRateMapper, EbRate> impleme
         if (deleteBatchIds != ids.size()) {
             throw new DbException(Constant.DB_DELETE_FAILURE);
         }
-        //删除缓存,如果第二个不生效就用第一个
-//        stringRedisTemplate.opsForValue().set(Constant.RATE_LIST_KEY, "", TTLGenerator.generateDefaultRandomTTL(), TimeUnit.SECONDS);
-        stringRedisTemplate.delete(Constant.RATE_LIST_KEY);
         return R.ok();
     }
 }

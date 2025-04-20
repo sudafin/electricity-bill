@@ -25,7 +25,7 @@ import java.util.Map;
  */
 public interface IEbRoleService extends IService<EbRole> {
 
-    PermissionDetailVO editRoleAndAdminDetail(Long id);
+    PermissionDetailVO roleAndAdminDetail(Long id);
 
     PageDTO<RolePageVO> queryPage(RolePageQuery rolePageQuery);
 

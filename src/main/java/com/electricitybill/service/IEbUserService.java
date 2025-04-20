@@ -2,14 +2,15 @@ package com.electricitybill.service;
 
 import com.electricitybill.entity.R;
 import com.electricitybill.entity.dto.PageDTO;
-import com.electricitybill.entity.dto.user.UserDTO;
+import com.electricitybill.entity.dto.user.UserCreateDTO;
 import com.electricitybill.entity.dto.user.UserPageQuery;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.electricitybill.entity.dto.usertype.UserTypeCreateDTO;
 import com.electricitybill.entity.po.EbUser;
-import com.electricitybill.entity.po.EbUserType;
 import com.electricitybill.entity.vo.user.UserDetailVO;
 import com.electricitybill.entity.vo.user.UserPageVO;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -26,13 +27,13 @@ public interface IEbUserService extends IService<EbUser> {
 
     UserDetailVO queryUserDetail(Long userId);
 
-    R insertUser(UserDTO userDTO);
+    R insertUser(UserCreateDTO userCreateDTO);
 
     R deleteUser(List<Long> userIds);
 
-    R updateUser(UserDTO userDTO);
+    R updateUser(UserCreateDTO userCreateDTO);
 
     List<String> getUserTypeList();
 
-    R addUserType(EbUserType ebUserType);
+    R addUserType(@NotNull UserTypeCreateDTO ebUserType);
 }

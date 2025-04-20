@@ -42,8 +42,8 @@ public class EbRoleController {
 
     @ApiOperation("获取当前管理人员的信息")
     @GetMapping("detail/{id}")
-    private PermissionDetailVO editRoleAndAdminDetail(@PathVariable(value = "id") Long id){
-        return ebRoleService.editRoleAndAdminDetail(id);
+    private PermissionDetailVO roleAndAdminDetail(@PathVariable(value = "id") Long id){
+        return ebRoleService.roleAndAdminDetail(id);
     }
 
     @ApiOperation("删除系统人员")

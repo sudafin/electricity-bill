@@ -20,6 +20,8 @@ VALUES ('系统维护通知', '系统将于2023年10月15日进行例行维护�
         '2024-01-03 00:00:00', '有效'),
        ('历史公告测试', '这是一条过期的历史公告，用于测试。', '2023-01-01 00:00:00', '2023-02-01 00:00:00', '过期');
 
+-- 修改数据库字符集
+
 -- 用户类型表数据
 INSERT INTO eb_user_type (type_name, description, status)
 VALUES ('居民用户', '普通居民家庭用户', 1),
@@ -57,30 +59,6 @@ VALUES ('居民用户', 0.6888, 0.4888, 0.2888, 0.8888, '08:00:00', '12:00:00', 
        ('特殊优惠用户', 0.5388, 0.3388, 0.1388, 0.7388, '08:00:00', '12:00:00', '22:00:00', '06:00:00',
         '06-01至08-31', 1, '2023-01-01', '2023-12-31', 0.8000);
 
--- 电表检查数据
-INSERT INTO eb_meter_inspection (meter_id, inspection_type, inspection_result, fault_description, solution,
-                                 inspector_id, inspector_name, inspection_time, next_inspection_time, repair_cost,
-                                 user_id, remark, status)
-VALUES ('M2023001', 'routine', 'normal', NULL, NULL, 5, '抄表王五', '2023-09-01 10:00:00', '2023-10-01 10:00:00',
-        NULL, 1, '例行检查，一切正常', 'completed'),
-       ('M2023002', 'fault', 'fault', '表盘显示不清', '更换表盘', 6, '维修赵六', '2023-09-05 14:00:00',
-        '2023-09-12 14:00:00', 150.00, 2, '已通知用户', 'completed'),
-       ('M2023003', 'calibration', 'normal', NULL, NULL, 5, '抄表王五', '2023-09-10 09:00:00', '2023-12-10 09:00:00',
-        NULL, 3, '校准正常', 'completed'),
-       ('M2023004', 'routine', 'normal', NULL, NULL, 5, '抄表王五', '2023-09-15 11:00:00', '2023-10-15 11:00:00',
-        NULL, 4, '例行检查', 'completed'),
-       ('M2023005', 'fault', 'fixed', '接线松动', '紧固接线', 6, '维修赵六', '2023-09-20 13:00:00',
-        '2023-10-20 13:00:00', 50.00, 5, '问题已解决', 'completed'),
-       ('M2023006', 'routine', 'normal', NULL, NULL, 5, '抄表王五', '2023-09-25 10:00:00', '2023-10-25 10:00:00',
-        NULL, 6, '例行检查', 'completed'),
-       ('M2023007', 'calibration', 'fault', '计量误差过大', '重新校准', 6, '维修赵六', '2023-10-01 09:00:00',
-        '2023-10-08 09:00:00', 200.00, 7, '需要进一步校准', 'processing'),
-       ('M2023008', 'routine', 'normal', NULL, NULL, 5, '抄表王五', '2023-10-05 11:00:00', '2023-11-05 11:00:00',
-        NULL, 8, '例行检查', 'completed'),
-       ('M2023009', 'fault', 'fault', '无法读数', '更换电表', 6, '维修赵六', '2023-10-10 14:00:00', NULL, 500.00, 9,
-        '需要更换新表', 'pending'),
-       ('M2023010', 'routine', 'normal', NULL, NULL, 5, '抄表王五', '2023-10-15 10:00:00', '2023-11-15 10:00:00',
-        NULL, 10, '例行检查', 'completed');
 
 -- 用户表数据
 INSERT INTO eb_user (account, password, username, phone, address, meter_id, user_type, account_status, id_card_no,

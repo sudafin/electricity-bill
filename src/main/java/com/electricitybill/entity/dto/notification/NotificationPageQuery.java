@@ -8,5 +8,5 @@ import lombok.EqualsAndHashCode;
 @Data
 public class NotificationPageQuery extends PageQuery {
     private String title;
-    private String type;
+    private String readStatus;
 }
