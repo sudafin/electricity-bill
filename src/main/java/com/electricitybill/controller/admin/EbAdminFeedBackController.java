@@ -19,7 +19,7 @@ import java.util.Map;
 
 @RequestMapping("/admin/feedback")
 @RestController
-@Api(tags = "管理端用户反馈")
+@Api(tags = "管理端用户反馈管理")
 public class EbAdminFeedBackController {
     @Resource
     private IEbUserFeedbackService ebUserFeedbackService;

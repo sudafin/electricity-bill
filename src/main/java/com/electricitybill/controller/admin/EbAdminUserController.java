@@ -62,7 +62,7 @@ public class EbAdminUserController {
     @PutMapping("edit/{userId}")
     //不需要指定验证分组，字段的验证规则失效
     public R updateUser(@PathVariable Long userId,@RequestBody @Validated UserCreateDTO userCreateDTO){
-        return ebUserService.updateUser(userCreateDTO);
+        return ebUserService.adminUpdateUser(userCreateDTO);
 
     }
 

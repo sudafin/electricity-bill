@@ -1,5 +1,6 @@
 package com.electricitybill.service.impl;
 
+import cn.hutool.core.collection.ListUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.electricitybill.constants.Constant;
@@ -13,6 +14,7 @@ import com.electricitybill.entity.po.EbMeterInspection;
 import com.electricitybill.entity.po.EbNotification;
 import com.electricitybill.entity.po.EbUser;
 import com.electricitybill.entity.vo.meter.MeterDetailVO;
+import com.electricitybill.entity.vo.meter.MeterInspectionVO;
 import com.electricitybill.entity.vo.meter.MeterPageVO;
 import com.electricitybill.enums.*;
 import com.electricitybill.expcetions.BizIllegalException;
@@ -192,5 +194,22 @@ public class EbMeterServiceImpl extends ServiceImpl<EbMeterMapper, EbMeter> impl
                res.put("inspectionResult", InspectionResult.getInspectionResultList());
         }
         return res;
+    }
+
+    @Override
+    public List<MeterInspectionVO> getInspectionById(String meterId) {
+        List<EbMeterInspection> ebMeterInspections = ebMeterInspectionService.lambdaQuery().eq(EbMeterInspection::getMeterId, meterId).list();
+        if(ebMeterInspections.isEmpty()){
+            return ListUtil.empty();
+        }
+        return ebMeterInspections.stream().map(ebMeterInspection -> {
+            MeterInspectionVO meterInspectionVO = BeanUtils.copyBean(ebMeterInspection, MeterInspectionVO.class);
+            EbUser ebUser = ebUserMapper.selectById(ebMeterInspection.getUserId());
+            if(ebUser == null){
+                throw new BizIllegalException(Constant.USER_NOT_EXIST);
+            }
+            meterInspectionVO.setUserName(ebUser.getUsername());
+            return meterInspectionVO;
+        }).collect(Collectors.toList());
     }
 }

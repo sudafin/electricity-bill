@@ -12,7 +12,8 @@ import com.electricitybill.entity.po.*;
 import com.electricitybill.entity.query.PageQuery;
 import com.electricitybill.entity.vo.notification.NotificationDetailVO;
 import com.electricitybill.entity.vo.notification.NotificationPageVO;
-import com.electricitybill.entity.vo.notification.NotificationUserVO;
+import com.electricitybill.entity.vo.notification.NotificationUserDetailVO;
+import com.electricitybill.entity.vo.notification.NotificationUserPageVO;
 import com.electricitybill.enums.NotificationType;
 import com.electricitybill.enums.ReadStatusType;
 import com.electricitybill.enums.ValidType;
@@ -27,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -46,8 +48,6 @@ public class EbNotificationServiceImpl extends ServiceImpl<EbNotificationMapper,
     private EbRoleMapper ebRoleMapper;
     @Resource
     private IEbNotificationRecipientService ebNotificationRecipientService;
-    @Resource
-    private EbAnnouncementMapper ebAnnouncementMapper;
     @Resource
     private EbUserMapper ebUserMapper;
 
@@ -128,7 +128,7 @@ public class EbNotificationServiceImpl extends ServiceImpl<EbNotificationMapper,
         //将该通知所在的用户改为已读
         EbNotificationRecipient ebNotificationRecipient = ebNotificationRecipientService.getOne(new LambdaQueryWrapper<EbNotificationRecipient>().eq(EbNotificationRecipient::getNotificationId, notificationId)
                 .eq(EbNotificationRecipient::getRecipientId, AdminContextUtils.getAdminId()));
-        ebNotificationRecipient.setReadStatus(1);
+        ebNotificationRecipient.setReadStatus(ReadStatusType.READ.getValue());
         ebNotificationRecipientService.updateById(ebNotificationRecipient);
         //将列表数据返回回去
         NotificationDetailVO notificationDetailVO = new NotificationDetailVO();
@@ -218,7 +218,7 @@ public class EbNotificationServiceImpl extends ServiceImpl<EbNotificationMapper,
     }
 
     @Override
-    public PageDTO<NotificationUserVO> getNewNotificationList(PageQuery pageQuery) {
+    public PageDTO<NotificationUserPageVO> getNewNotificationList(PageQuery pageQuery) {
         Page<EbNotification> page = new Page<>(pageQuery.getPageNo(), pageQuery.getPageSize());
         Long userId = UserContextUtils.getUserId() == null ? 1 : UserContextUtils.getUserId();
         EbUser ebUser = ebUserMapper.selectById(userId);
@@ -244,12 +244,12 @@ public class EbNotificationServiceImpl extends ServiceImpl<EbNotificationMapper,
         }
         List<EbNotification> list = ebNotificationPage.getRecords();
         //设置数据
-        List<NotificationUserVO> notificationUserVOS = list.stream().map(ebNotification -> {
-            NotificationUserVO notificationUserVO = new NotificationUserVO();
-            notificationUserVO.setId(ebNotification.getId());
-            notificationUserVO.setContent(ebNotification.getContent());
-            notificationUserVO.setTitle(ebNotification.getTitle());
-            notificationUserVO.setCreateTime(ebNotification.getCreatedAt());
+        List<NotificationUserPageVO> notificationUserPageVOS = list.stream().map(ebNotification -> {
+            NotificationUserPageVO notificationUserPageVO = new NotificationUserPageVO();
+            notificationUserPageVO.setId(ebNotification.getId());
+            notificationUserPageVO.setContent(ebNotification.getContent());
+            notificationUserPageVO.setTitle(ebNotification.getTitle());
+            notificationUserPageVO.setCreateTime(ebNotification.getCreatedAt());
             //查询当前用户是否在接收表插入了一条数据,插入说明已读
             Optional.ofNullable(
                     ebNotificationRecipientService.getOne(
@@ -260,12 +260,31 @@ public class EbNotificationServiceImpl extends ServiceImpl<EbNotificationMapper,
                     )
             ).ifPresentOrElse(
                     // 存在时的处理逻辑,说明有数据
-                    ebNotificationRecipient -> notificationUserVO.setReadStatus(ebNotificationRecipient.getReadStatus()),
+                    ebNotificationRecipient -> notificationUserPageVO.setReadStatus(ebNotificationRecipient.getReadStatus()),
                     // 不存在时的处理逻辑
-                    () -> notificationUserVO.setReadStatus(ReadStatusType.UNREAD.getValue()) // 假设默认未读状态
+                    () -> notificationUserPageVO.setReadStatus(ReadStatusType.UNREAD.getValue()) // 假设默认未读状态
             );
-            return notificationUserVO;
+            return notificationUserPageVO;
         }).collect(Collectors.toList());
-        return PageDTO.of(ebNotificationPage, notificationUserVOS);
+        return PageDTO.of(ebNotificationPage, notificationUserPageVOS);
+    }
+
+    @Override
+    public NotificationUserDetailVO getNotificationDetail(Long id) {
+        EbNotification ebNotification = getById(id);
+        if(ebNotification.getValidType() == ValidType.INVALID.getValue()){
+            throw new BizIllegalException(Constant.NOTIFICATION_INVALID);
+        }
+        if (ObjectUtils.isEmpty(ebNotification)) {
+            throw new BizIllegalException(Constant.NOTIFICATION_NOT_EXIST);
+        }
+        EbNotificationRecipient ebNotificationRecipient = new EbNotificationRecipient();
+        ebNotificationRecipient.setNotificationId(id);
+        ebNotificationRecipient.setRecipientType("user");
+        ebNotificationRecipient.setRecipientId(UserContextUtils.getUserId());
+        ebNotificationRecipient.setReadStatus(ReadStatusType.READ.getValue());
+        ebNotificationRecipient.setReadTime(LocalDateTime.now());
+        ebNotificationRecipientService.save(ebNotificationRecipient);
+        return BeanUtils.copyBean(ebNotification, NotificationUserDetailVO.class);
     }
 }

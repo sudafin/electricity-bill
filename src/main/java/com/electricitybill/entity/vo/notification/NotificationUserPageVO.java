@@ -5,7 +5,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class NotificationUserVO {
+public class NotificationUserPageVO {
     private Long id;
     private String content;
     private String title;

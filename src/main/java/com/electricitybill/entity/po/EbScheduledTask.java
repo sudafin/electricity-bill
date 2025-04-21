@@ -33,17 +33,18 @@ public class EbScheduledTask implements Serializable {
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
+    @ApiModelProperty(value = "用户id")
+    @TableField("user_ids")
+    private String userIds;
+
     @ApiModelProperty(value = "任务名称")
     @TableField("task_name")
     private String taskName;
 
-    @ApiModelProperty(value = "任务类型: notification（通知）/report（报表）/billing（账单生成）/meter_reading（抄表）/reminder（催缴）")
+    @ApiModelProperty(value = "任务类型:用户任务，系统任务")
     @TableField("task_type")
     private String taskType;
 
-    @ApiModelProperty(value = "关联业务ID，如通知ID、报表配置ID等")
-    @TableField("business_id")
-    private Long businessId;
 
     @ApiModelProperty(value = "任务描述")
     @TableField("task_desc")

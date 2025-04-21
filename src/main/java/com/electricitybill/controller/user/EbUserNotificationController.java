@@ -3,7 +3,8 @@ package com.electricitybill.controller.user;
 
 import com.electricitybill.entity.dto.PageDTO;
 import com.electricitybill.entity.query.PageQuery;
-import com.electricitybill.entity.vo.notification.NotificationUserVO;
+import com.electricitybill.entity.vo.notification.NotificationUserDetailVO;
+import com.electricitybill.entity.vo.notification.NotificationUserPageVO;
 import com.electricitybill.service.IEbNotificationService;
 import io.swagger.annotations.Api;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-import java.util.List;
 
 /**
  * <p>
@@ -32,8 +32,17 @@ public class EbUserNotificationController {
      * 获取最新的通知列表前三条
      */
     @GetMapping("/newList")
-    public PageDTO<NotificationUserVO> getNewNotificationList(PageQuery pageQuery) {
+    public PageDTO<NotificationUserPageVO> getNewNotificationList(PageQuery pageQuery) {
         return ebUserNotificationService.getNewNotificationList(pageQuery);
     }
+
+    /**
+     * 通知详情
+     */
+    @GetMapping("/detail")
+    public NotificationUserDetailVO getNotificationDetail(Long id) {
+        return ebUserNotificationService.getNotificationDetail(id);
+    }
+
 
 }

@@ -86,6 +86,9 @@ public interface Constant {
     String PAYMENT_PAID = "账单已支付";
     String USER_HAS_METER ="当前用户已经有电表";
     String NOTIFICATION_RECIPIENT_LIST_EMPTY = "通知接收人列表为空";
+    String TASK_NOT_EXIST = "任务不存在";
+    String NOTIFICATION_NOT_EXIST = "通知不存在";
+    String NOTIFICATION_INVALID = "通知状态无效";
 
 
     interface Code{

@@ -6,6 +6,7 @@ import com.electricitybill.entity.dto.meter.MeterEditDTO;
 import com.electricitybill.entity.dto.meter.MeterInspectionDTO;
 import com.electricitybill.entity.dto.meter.MeterPageQuery;
 import com.electricitybill.entity.vo.meter.MeterDetailVO;
+import com.electricitybill.entity.vo.meter.MeterInspectionVO;
 import com.electricitybill.entity.vo.meter.MeterPageVO;
 import com.electricitybill.service.IEbMeterService;
 import io.swagger.annotations.Api;
@@ -29,7 +30,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/admin/meter")
-@Api(tags = "电表管理")
+@Api(tags = "管理端电表管理")
 public class EbMeterController {
     @Resource
     private IEbMeterService ebMeterService;
@@ -108,5 +109,10 @@ public class EbMeterController {
     @PostMapping("/inspection")
     public R<Object> inspectionCreate(@RequestBody MeterInspectionDTO meterInspectionDTO) {
         return ebMeterService.inspectionCreate(meterInspectionDTO);
+    }
+
+    @GetMapping("/inspection/{id}")
+    public List<MeterInspectionVO> getInspectionById(@PathVariable("id") String meterId) {
+        return ebMeterService.getInspectionById(meterId);
     }
 }

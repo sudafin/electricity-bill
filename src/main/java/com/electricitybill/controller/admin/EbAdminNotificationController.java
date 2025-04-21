@@ -25,8 +25,8 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/admin/notification")
-@Api(tags = "通知管理")
-public class EbNotificationController {
+@Api(tags = "管理端通知管理")
+public class EbAdminNotificationController {
 
     @Resource
     private IEbNotificationService ebNotificationService;
@@ -54,4 +54,6 @@ public class EbNotificationController {
     public R deleteNotification(@RequestParam(name = "ids") List<Long> ids) {
         return ebNotificationService.deleteNotification(ids);
     }
+
+
 }

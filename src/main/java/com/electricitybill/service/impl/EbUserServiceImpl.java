@@ -8,14 +8,15 @@ import com.electricitybill.constants.Constant;
 import com.electricitybill.entity.R;
 import com.electricitybill.entity.dto.PageDTO;
 import com.electricitybill.entity.dto.user.UserCreateDTO;
+import com.electricitybill.entity.dto.user.UserEditDTO;
 import com.electricitybill.entity.dto.user.UserPageQuery;
 import com.electricitybill.entity.dto.usertype.UserTypeCreateDTO;
 import com.electricitybill.entity.po.*;
 import com.electricitybill.entity.vo.user.UserDetailVO;
+import com.electricitybill.entity.vo.user.UserInfoVO;
 import com.electricitybill.entity.vo.user.UserPageVO;
-import com.electricitybill.enums.AccountStatus;
-import com.electricitybill.enums.BillType;
-import com.electricitybill.enums.ValidType;
+import com.electricitybill.enums.*;
+import com.electricitybill.expcetions.BadRequestException;
 import com.electricitybill.expcetions.BizIllegalException;
 import com.electricitybill.expcetions.DbException;
 import com.electricitybill.mapper.*;
@@ -25,6 +26,7 @@ import com.electricitybill.service.IEbUserTypeService;
 import com.electricitybill.utils.BeanUtils;
 import com.electricitybill.utils.CollUtils;
 import com.electricitybill.utils.ObjectUtils;
+import com.electricitybill.utils.UserContextUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,6 +55,9 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
 
     @Resource
     private IEbUserTypeService ebUserTypeService;
+    @Resource
+    private EbScheduledTaskMapper ebScheduledTaskMapper;
+
     @Override
     public PageDTO<UserPageVO> queryUserPage(UserPageQuery userPageQuery) {
         log.debug("userPageQuery:{}", userPageQuery);
@@ -140,7 +145,7 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
 
 
     @Override
-    public R updateUser(UserCreateDTO userCreateDTO) {
+    public R adminUpdateUser(UserCreateDTO userCreateDTO) {
         if (ObjectUtils.isEmpty(baseMapper.selectOne(new LambdaQueryWrapper<EbUser>().eq(EbUser::getIdCardNo, userCreateDTO.idCardNo)))) {
             throw new DbException(Constant.USER_NOT_EXIST);
         }
@@ -169,5 +174,106 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
         return R.ok();
     }
 
+    @Override
+    public R userEditInfo(UserEditDTO userEditDTO) {
+        Long userId = UserContextUtils.getUserId();
+        if(ObjectUtils.isEmpty(userId)){
+            throw new BadRequestException(Constant.REQUEST_PARAM_MISSING);
+        }
+        EbUser ebUser = getById(userId);
+        if(ObjectUtils.isEmpty(ebUser)){
+            throw new DbException(Constant.USER_NOT_EXIST);
+        }
+        if (ebUser.getValidType().equals(ValidType.INVALID.getValue())) {
+            throw new BizIllegalException(Constant.USER_INVALID);
+        }
+        ObjectUtils.assignIfNotNull(ebUser, userEditDTO.getAddress(), EbUser::setAddress);
+        ObjectUtils.assignIfNotNull(ebUser, userEditDTO.getPhone(), EbUser::setPhone);
+        ObjectUtils.assignIfNotNull(ebUser, userEditDTO.getUsername(), EbUser::setUsername);
+        List<EbScheduledTask> ebScheduledTasks = ebScheduledTaskMapper.selectList(
+                new LambdaQueryWrapper<EbScheduledTask>()
+                        .eq(EbScheduledTask::getTaskType, TaskType.USER_TASK.getDesc())
+        );
+        if (ebScheduledTasks.isEmpty()) {
+            throw new BizIllegalException(Constant.TASK_NOT_EXIST);
+        }
+        ebScheduledTasks.forEach(ebScheduledTask -> {
+            //拿到账单提醒的任务
+            if (ebScheduledTask.getId().equals((long) UserTaskType.BILL_REMINDER.getValue())) {
+                List<String> userIdList = getStringList(ebScheduledTask, userId, userEditDTO.getBillReminder());
+                ebScheduledTask.setUserIds(String.join(",", userIdList));
+            }
+            if (ebScheduledTask.getId().equals((long)UserTaskType.PAYMENT_REMINDER.getValue())) {
+                List<String> userIdList = getStringList(ebScheduledTask, userId, userEditDTO.getPaymentReminder());
+                ebScheduledTask.setUserIds(String.join(",", userIdList));
+            }
+            ebScheduledTaskMapper.updateById(ebScheduledTask);
+        });
+
+        updateById(ebUser);
+        return R.ok();
+    }
+
+    private static List<String> getStringList(EbScheduledTask ebScheduledTask, Long userId, Boolean userEditDTO) {
+        String userIds = ebScheduledTask.getUserIds();
+        //,逗号切割,转为list
+        List<String> userIdList = Arrays.asList(userIds.split(","));
+        if (userIdList.contains(String.valueOf(userId)) && !userEditDTO) {
+            userIdList.remove(String.valueOf(userId));
+        } else if (!userIdList.contains(String.valueOf(userId)) && userEditDTO) {
+            userIdList.add(String.valueOf(userId));
+        }
+        return userIdList;
+    }
+
+    @Override
+    public UserInfoVO getUserInfo() {
+        Long userId = UserContextUtils.getUserId();
+        EbUser ebUser = getById(userId);
+        if(ObjectUtils.isEmpty(ebUser)){
+            throw new DbException(Constant.USER_NOT_EXIST);
+        }
+        if (ebUser.getValidType().equals(ValidType.INVALID.getValue())) {
+            throw new BizIllegalException(Constant.USER_INVALID);
+        }
+        UserInfoVO userInfoVO = BeanUtils.copyBean(ebUser, UserInfoVO.class);
+        if (ObjectUtils.isEmpty(userInfoVO)) {
+            throw new BizIllegalException(Constant.CONVERT_ERROR);
+        }
+        EbMeter ebMeter = ebMeterMapper.selectOne(new LambdaQueryWrapper<EbMeter>().eq(EbMeter::getUserId, userId));
+        if (ObjectUtils.isEmpty(ebMeter)) {
+            userInfoVO.setMeterModel(null);
+        }
+        userInfoVO.setMeterModel(ebMeter.getModel());
+        List<EbScheduledTask> ebScheduledTasks = ebScheduledTaskMapper.selectList(
+                new LambdaQueryWrapper<EbScheduledTask>()
+                        .eq(EbScheduledTask::getTaskType, TaskType.USER_TASK.getDesc())
+        );
+        if (ebScheduledTasks.isEmpty()) {
+            throw new BizIllegalException(Constant.TASK_NOT_EXIST);
+        }
+        ebScheduledTasks.forEach(ebScheduledTask -> {
+            //拿到账单提醒的任务
+            if (ebScheduledTask.getId().equals((long)UserTaskType.BILL_REMINDER.getValue())) {
+                String userIds = ebScheduledTask.getUserIds();
+                //,逗号切割,转为list
+                List<String> userIdList = Arrays.asList(userIds.split(","));
+                if (userIdList.contains(String.valueOf(userId))) {
+                    userInfoVO.setBillReminder(true);
+                }else
+                    userInfoVO.setBillReminder(false);
+            }
+            if (ebScheduledTask.getId().equals((long) UserTaskType.PAYMENT_REMINDER.getValue())) {
+                String userIds = ebScheduledTask.getUserIds();
+                //,逗号切割,转为list
+                List<String> userIdList = Arrays.asList(userIds.split(","));
+                if (userIdList.contains(String.valueOf(userId))) {
+                    userInfoVO.setPaymentReminder(true);
+                }else
+                    userInfoVO.setPaymentReminder(false);
+            }
+        });
+        return userInfoVO;
+    }
 
 }

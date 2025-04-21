@@ -26,7 +26,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/rate")
-@Api(tags = "费率管理")
+@Api(tags = "管理端费率管理")
 public class EbRateController {
     @Resource
     private IEbRateService ebRateService;

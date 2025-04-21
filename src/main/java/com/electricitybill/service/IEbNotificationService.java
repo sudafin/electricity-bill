@@ -9,7 +9,8 @@ import com.electricitybill.entity.po.EbNotification;
 import com.electricitybill.entity.query.PageQuery;
 import com.electricitybill.entity.vo.notification.NotificationDetailVO;
 import com.electricitybill.entity.vo.notification.NotificationPageVO;
-import com.electricitybill.entity.vo.notification.NotificationUserVO;
+import com.electricitybill.entity.vo.notification.NotificationUserDetailVO;
+import com.electricitybill.entity.vo.notification.NotificationUserPageVO;
 
 import java.util.List;
 
@@ -31,5 +32,7 @@ public interface IEbNotificationService extends IService<EbNotification> {
 
     R deleteNotification(List<Long> ids);
 
-    PageDTO<NotificationUserVO> getNewNotificationList(PageQuery pageQuery);
+    PageDTO<NotificationUserPageVO> getNewNotificationList(PageQuery pageQuery);
+
+    NotificationUserDetailVO getNotificationDetail(Long id);
 }

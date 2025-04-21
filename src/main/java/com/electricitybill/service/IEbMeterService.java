@@ -8,6 +8,7 @@ import com.electricitybill.entity.dto.meter.MeterInspectionDTO;
 import com.electricitybill.entity.dto.meter.MeterPageQuery;
 import com.electricitybill.entity.po.EbMeter;
 import com.electricitybill.entity.vo.meter.MeterDetailVO;
+import com.electricitybill.entity.vo.meter.MeterInspectionVO;
 import com.electricitybill.entity.vo.meter.MeterPageVO;
 import com.electricitybill.entity.dto.PageDTO;
 
@@ -40,4 +41,6 @@ public interface IEbMeterService extends IService<EbMeter> {
     R<Object> inspectionCreate(MeterInspectionDTO meterInspectionDTO);
 
     Map<String, List<String>> getInspectionType();
+
+    List<MeterInspectionVO> getInspectionById(String meterId);
 }
