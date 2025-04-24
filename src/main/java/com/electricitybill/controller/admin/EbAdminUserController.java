@@ -1,6 +1,7 @@
 package com.electricitybill.controller.admin;
 
 
+import cn.hutool.json.JSONObject;
 import com.electricitybill.entity.R;
 import com.electricitybill.entity.dto.PageDTO;
 import com.electricitybill.entity.dto.user.UserCreateDTOGroup;
@@ -10,6 +11,7 @@ import com.electricitybill.entity.dto.usertype.UserTypeCreateDTO;
 import com.electricitybill.entity.vo.user.UserDetailVO;
 import com.electricitybill.entity.vo.user.UserPageVO;
 import com.electricitybill.service.IEbUserService;
+import com.google.gson.JsonObject;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.validation.annotation.Validated;
@@ -59,9 +61,9 @@ public class EbAdminUserController {
     }
 
     @ApiOperation("管理端更新用户信息")
-    @PutMapping("edit/{userId}")
+    @PutMapping("edit")
     //不需要指定验证分组，字段的验证规则失效
-    public R updateUser(@PathVariable Long userId,@RequestBody @Validated UserCreateDTO userCreateDTO){
+    public R updateUser(@RequestBody @Validated UserCreateDTO userCreateDTO){
         return ebUserService.adminUpdateUser(userCreateDTO);
 
     }
@@ -78,4 +80,28 @@ public class EbAdminUserController {
         return ebUserService.addUserType(typeCreateDTO);
     }
 
+    /**
+     *
+     * @param idCardNo 身份证
+     * @return id
+     *         username
+     *         phone
+     */
+    @ApiOperation("管理端查询个人用户")
+    @GetMapping("getUserInfoByIdCard/{id}")
+    public JSONObject getUserByCarId(@PathVariable("id") String idCardNo){
+        return ebUserService.getUserInfoByIdCard(idCardNo);
+    }
+
+    /**
+     *
+     * @param jsonObject meterId 电表id usrerId 用户id status 状态 1表示绑定 2表示解绑
+     * @return R
+     */
+
+    @ApiOperation("管理端绑定电表")
+    @PostMapping("bindMeter")
+    public R bindMeter(@RequestBody JSONObject jsonObject){
+        return ebUserService.bindMeter(jsonObject);
+    }
 }

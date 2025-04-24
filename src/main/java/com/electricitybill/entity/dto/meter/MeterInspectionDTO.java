@@ -1,7 +1,9 @@
 
 package com.electricitybill.entity.dto.meter;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
@@ -39,6 +41,7 @@ public class MeterInspectionDTO {
     private String inspectorName;
 
 
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     private LocalDateTime inspectionTime;
 
 

@@ -120,10 +120,10 @@ public class EbReconciliationServiceImpl extends ServiceImpl<EbReconciliationMap
                 userPaymentRecordVO.setPaymentAmount(ebPayment.getAmount());
                 userPaymentRecordVO.setPaymentStatus(ebPayment.getStatus());
                 EbAdmin ebAdmin = adminMapper.selectById(ebPayment.getOperatorId());
-                if (ObjectUtils.isEmpty(ebAdmin)) {
-                    throw new DbException(Constant.DATA_QUERY_EMPTY);
-                } else {
+                if (ObjectUtils.isNotEmpty(ebAdmin)) {
                     userPaymentRecordVO.setOperator(ebAdmin.getAccount());
+                } else {
+                    userPaymentRecordVO.setOperator("");
                     userPaymentRecordVO.setRemark(ebPayment.getRemark());
                     userPaymentRecordVO.setPaymentTime(ebPayment.getPaymentTime());
                     userPaymentRecordVO.setPaymentMethod(ebPayment.getPaymentMethod());

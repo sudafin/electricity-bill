@@ -89,6 +89,8 @@ public interface Constant {
     String TASK_NOT_EXIST = "任务不存在";
     String NOTIFICATION_NOT_EXIST = "通知不存在";
     String NOTIFICATION_INVALID = "通知状态无效";
+    String USER_HAS_BIND = "用户已经绑定电表";
+    String USER_HAS_UNBIND = "用户未绑定电表";
 
 
     interface Code{

@@ -1,5 +1,6 @@
 package com.electricitybill.service;
 
+import cn.hutool.json.JSONObject;
 import com.electricitybill.entity.R;
 import com.electricitybill.entity.dto.PageDTO;
 import com.electricitybill.entity.dto.user.UserCreateDTO;
@@ -42,4 +43,8 @@ public interface IEbUserService extends IService<EbUser> {
     R userEditInfo(UserEditDTO userEditDTO);
 
     UserInfoVO getUserInfo();
+
+    JSONObject getUserInfoByIdCard(String idCardNo);
+
+    R bindMeter(JSONObject jsonObject);
 }

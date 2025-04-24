@@ -1,5 +1,7 @@
 package com.electricitybill.entity.vo.user;
 
+import cn.hutool.json.JSONObject;
+import com.alipay.api.domain.BillDetailVo;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -20,5 +22,12 @@ public class UserDetailVO extends UserPageVO{
      * 上次抄表日期
      */
     private LocalDateTime lastMeterReadingDate;
+
+    /**
+     * 当月已用电量
+     */
+    private Long currentMonthlyElectricityUsage;
+
+    List<JSONObject> billRecords;
 
 }

@@ -75,6 +75,7 @@ public class EbUserFeedbackServiceImpl extends ServiceImpl<EbUserFeedbackMapper,
             throw new BizIllegalException(Constant.FEEDBACK_NOT_EXIST);
         }
         FeedBackDetailVO feedBackDetailVO = BeanUtils.copyBean(ebUserFeedback, FeedBackDetailVO.class);
+
         Long userId = ebUserFeedback.getUserId();
         Long processorId = ebUserFeedback.getProcessorId();
         EbUser ebUser = ebUserMapper.selectById(userId);
@@ -82,10 +83,10 @@ public class EbUserFeedbackServiceImpl extends ServiceImpl<EbUserFeedbackMapper,
             throw new BizIllegalException(Constant.USER_NOT_EXIST);
         }
         EbAdmin ebAdmin = ebAdminMapper.selectById(processorId);
-        if (ebAdmin == null){
-            throw new BizIllegalException(Constant.ADMIN_NOT_EXIST);
+        if (ebAdmin != null){
+            feedBackDetailVO.setProcessorName(ebAdmin.getAdminName());
         }
-        feedBackDetailVO.setProcessorName(ebAdmin.getAdminName());
+        feedBackDetailVO.setUserName(ebUser.getUsername());
         return feedBackDetailVO;
     }
 

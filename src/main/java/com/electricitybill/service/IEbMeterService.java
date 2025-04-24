@@ -1,5 +1,6 @@
 package com.electricitybill.service;
 
+import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.electricitybill.entity.R;
 import com.electricitybill.entity.dto.meter.MeterCreateDTO;
@@ -43,4 +44,6 @@ public interface IEbMeterService extends IService<EbMeter> {
     Map<String, List<String>> getInspectionType();
 
     List<MeterInspectionVO> getInspectionById(String meterId);
+
+
 }

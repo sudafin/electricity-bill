@@ -1,8 +1,7 @@
 package com.electricitybill.entity.po;
 
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.*;
+
 import java.time.LocalDateTime;
 import java.io.Serializable;
 import io.swagger.annotations.ApiModel;
@@ -48,6 +47,7 @@ public class EbUser implements Serializable {
     private String address;
 
     @ApiModelProperty(value = "电表编号")
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     private String meterId;
 
     @ApiModelProperty(value = "用户类型: 居民用户/商业用户")

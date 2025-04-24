@@ -10,7 +10,7 @@ public class FeedBackDetailVO {
     private String feedbackType;
     private String feedbackStatus;
     private String userName;
-    private String FeedBackContent;
+    private String content;
     private LocalDateTime submitTime;
     private LocalDateTime processTime;
     private String processorName;

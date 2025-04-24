@@ -11,7 +11,6 @@ import com.electricitybill.entity.dto.meter.MeterInspectionDTO;
 import com.electricitybill.entity.dto.meter.MeterPageQuery;
 import com.electricitybill.entity.po.EbMeter;
 import com.electricitybill.entity.po.EbMeterInspection;
-import com.electricitybill.entity.po.EbNotification;
 import com.electricitybill.entity.po.EbUser;
 import com.electricitybill.entity.vo.meter.MeterDetailVO;
 import com.electricitybill.entity.vo.meter.MeterInspectionVO;
@@ -29,9 +28,9 @@ import com.electricitybill.utils.ObjectUtils;
 import com.electricitybill.utils.StringUtils;
 import org.springframework.stereotype.Service;
 import com.electricitybill.entity.dto.PageDTO;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import javax.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,10 +74,9 @@ public class EbMeterServiceImpl extends ServiceImpl<EbMeterMapper, EbMeter> impl
             meterPageVO.setModel(ebMeter.getModel());
             meterPageVO.setStatus(ebMeter.getStatus());
             EbUser ebUser = ebUserMapper.selectById(ebMeter.getUserId());
-            if (ebUser == null) {
-                throw new BizIllegalException(Constant.USER_NOT_EXIST);
+            if (ebUser != null) {
+                meterPageVO.setUserName(ebUser.getUsername());
             }
-            meterPageVO.setUserName(ebUser.getUsername());
             meterPageVO.setInstallDate(ebMeter.getInstallDate());
             meterPageVO.setLastMeterReadingDate(ebMeter.getLastMeterReadingDate());
             meterPageVO.setStartReading(ebMeter.getStartReading());
@@ -96,14 +94,6 @@ public class EbMeterServiceImpl extends ServiceImpl<EbMeterMapper, EbMeter> impl
             throw new BizIllegalException(Constant.CONVERT_ERROR);
         }
         ebMeter.setValidType(ValidType.VALID.getValue());
-        EbUser ebUser = ebUserMapper.selectOne(new LambdaQueryWrapper<EbUser>().eq(EbUser::getIdCardNo, meterCreateDTO.getIdCardNo()));
-        if(ebUser == null){
-            throw new BizIllegalException(Constant.USER_NOT_EXIST);
-        }
-        if(ebUser.getMeterId() != null){
-            throw new BizIllegalException(Constant.USER_HAS_METER);
-        }
-        ebMeter.setUserId(ebUser.getId());
         save(ebMeter);
         return R.ok(null);
     }
@@ -114,26 +104,31 @@ public class EbMeterServiceImpl extends ServiceImpl<EbMeterMapper, EbMeter> impl
     }
 
     @Override
-    public R<Object> editMeter(MeterEditDTO meterBindDTO) {
-        Long meterId = meterBindDTO.getMeterId();
-
-        EbMeter ebMeter = lambdaQuery().eq(EbMeter::getId, meterId).eq(EbMeter::getValidType, ValidType.VALID.getValue()).one();
+    @Transactional
+    public R<Object> editMeter(MeterEditDTO meterEditDTO) {
+        EbMeter ebMeter = lambdaQuery().eq(EbMeter::getId, meterEditDTO.getId()).eq(EbMeter::getValidType, ValidType.VALID.getValue()).one();
         if (ebMeter == null) {
             throw new BizIllegalException(Constant.METER_NOT_EXIST);
         }
-        ObjectUtils.assignIfNotNull(ebMeter, meterBindDTO.getModel(), EbMeter::setModel);
-        ObjectUtils.assignIfNotNull(ebMeter, meterBindDTO.getStatus(), EbMeter::setStatus);
-        ObjectUtils.assignIfNotNull(ebMeter, meterBindDTO.getInstallPlace(), EbMeter::setInstallPlace);
-        if(meterBindDTO.getIdCardNo() != null){
-            EbUser ebUser = ebUserMapper.selectOne(new LambdaQueryWrapper<EbUser>().eq(EbUser::getIdCardNo, meterBindDTO.getIdCardNo()));
-            if (ebUser == null) {
-                throw new BizIllegalException(Constant.USER_NOT_EXIST);
-            }
-            ebMeter.setUserId(ebUser.getId());
-            ebUser.setMeterId(ebMeter.getId());
-            ebUserMapper.updateById(ebUser);
-        }
+        ObjectUtils.assignIfNotNull(ebMeter, meterEditDTO.getModel(), EbMeter::setModel);
+        ObjectUtils.assignIfNotNull(ebMeter, meterEditDTO.getStatus(), EbMeter::setStatus);
+        ObjectUtils.assignIfNotNull(ebMeter, meterEditDTO.getInstallPlace(), EbMeter::setInstallPlace);
+        ObjectUtils.assignIfNotNull(ebMeter, meterEditDTO.getInstallDate(), EbMeter::setInstallDate);
+        ObjectUtils.assignIfNotNull(ebMeter, meterEditDTO.getLastMeterReadingDate(), EbMeter::setLastMeterReadingDate);
+        ObjectUtils.assignIfNotNull(ebMeter, meterEditDTO.getStartReading(), EbMeter::setStartReading);
+        ObjectUtils.assignIfNotNull(ebMeter, meterEditDTO.getEndingReading(), EbMeter::setEndingReading);
+        ObjectUtils.assignIfNotNull(ebMeter, meterEditDTO.getStartMeterReadingDate(), EbMeter::setStartMeterReadingDate);
         updateById(ebMeter);
+        if(meterEditDTO.getInspectionId() != null){
+            EbMeterInspection ebMeterInspection = ebMeterInspectionService.lambdaQuery().eq(EbMeterInspection::getId, meterEditDTO.getInspectionId()).one();
+            ObjectUtils.assignIfNotNull(ebMeterInspection, meterEditDTO.getInspectorName(), EbMeterInspection::setInspectorName);
+            ObjectUtils.assignIfNotNull(ebMeterInspection, meterEditDTO.getInspectionResult(), EbMeterInspection::setInspectionResult);
+            ObjectUtils.assignIfNotNull(ebMeterInspection, meterEditDTO.getInspectionTime(), EbMeterInspection::setInspectionTime);
+            ObjectUtils.assignIfNotNull(ebMeterInspection, meterEditDTO.getInspectionType(), EbMeterInspection::setInspectionType);
+            ObjectUtils.assignIfNotNull(ebMeterInspection, meterEditDTO.getInspectionStatus(), EbMeterInspection::setStatus);
+            ObjectUtils.assignIfNotNull(ebMeterInspection, meterEditDTO.getRemark(), EbMeterInspection::setRemark);
+            ebMeterInspectionService.updateById(ebMeterInspection);
+        }
         return R.ok(null);
     }
 
@@ -154,13 +149,21 @@ public class EbMeterServiceImpl extends ServiceImpl<EbMeterMapper, EbMeter> impl
         if (ebMeter == null) {
             throw new BizIllegalException(Constant.METER_NOT_EXIST);
         }
+
         MeterDetailVO meterDetailVO = BeanUtils.copyBean(ebMeter, MeterDetailVO.class);
-        if(ebMeter.getInspectionId() != null){
-            EbMeterInspection ebMeterInspection = ebMeterInspectionService.getById(ebMeter.getInspectionId());
-            if (ebMeterInspection == null){
-                throw new BizIllegalException(Constant.METER_INSPECTION_NOT_EXIST);
-            }
+        List<EbMeterInspection> ebMeterInspections = ebMeterInspectionService.lambdaQuery().eq(EbMeterInspection::getMeterId, meterId).orderByDesc(EbMeterInspection::getInspectionTime).list();
+        if(!ebMeterInspections.isEmpty()){
+            EbMeterInspection ebMeterInspection = ebMeterInspections.get(0);
             BeanUtils.copyProperties(ebMeterInspection, meterDetailVO);
+            meterDetailVO.setInspectionId(ebMeterInspection.getId());
+            meterDetailVO.setInspectionStatus(ebMeterInspection.getStatus());
+        }
+        //拿到的是meter的状态，上面检修信息复制字段时会将status字赋值给它，但我们要的不是inspectionStatus
+        meterDetailVO.setStatus(ebMeter.getStatus());
+        EbUser ebUser = ebUserMapper.selectById(ebMeter.getUserId());
+        if (ebUser != null) {
+            meterDetailVO.setUsername(ebUser.getUsername());
+            meterDetailVO.setUserId(ebUser.getId());
         }
         return meterDetailVO;
     }
@@ -172,12 +175,7 @@ public class EbMeterServiceImpl extends ServiceImpl<EbMeterMapper, EbMeter> impl
             throw new BizIllegalException(Constant.METER_NOT_EXIST);
         }
         EbMeterInspection ebMeterInspection = BeanUtils.copyBean(meterInspectionDTO, EbMeterInspection.class);
-        boolean save = ebMeterInspectionService.save(ebMeterInspection);
-        if (save) {
-            EbMeterInspection meterInspection = ebMeterInspectionService.lambdaQuery().eq(EbMeterInspection::getMeterId, meterInspectionDTO.getMeterId()).one();
-            ebMeter.setInspectionId(meterInspection.getId());
-            updateById(ebMeter);
-        }
+        ebMeterInspectionService.save(ebMeterInspection);
         return R.ok(null);
     }
 
@@ -205,11 +203,12 @@ public class EbMeterServiceImpl extends ServiceImpl<EbMeterMapper, EbMeter> impl
         return ebMeterInspections.stream().map(ebMeterInspection -> {
             MeterInspectionVO meterInspectionVO = BeanUtils.copyBean(ebMeterInspection, MeterInspectionVO.class);
             EbUser ebUser = ebUserMapper.selectById(ebMeterInspection.getUserId());
-            if(ebUser == null){
-                throw new BizIllegalException(Constant.USER_NOT_EXIST);
+            if(ebUser != null){
+                meterInspectionVO.setUserName(ebUser.getUsername());
             }
-            meterInspectionVO.setUserName(ebUser.getUsername());
             return meterInspectionVO;
         }).collect(Collectors.toList());
     }
+
+
 }

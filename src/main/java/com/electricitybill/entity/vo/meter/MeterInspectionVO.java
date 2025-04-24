@@ -25,7 +25,6 @@ public class MeterInspectionVO {
 
     private LocalDateTime inspectionTime;
 
-
     private String userName;
 
     private String remark;

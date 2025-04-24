@@ -1,8 +1,6 @@
 package com.electricitybill.entity.vo.meter;
 
 
-import com.baomidou.mybatisplus.annotation.TableField;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -12,12 +10,10 @@ import java.time.LocalDateTime;
 @Data
 public class MeterDetailVO {
     private String model;
-
     private String status;
-
-    private String userName;
-
-    private LocalDate installDate;
+    private String username;
+    private Long userId;
+    private LocalDateTime installDate;
 
     private LocalDateTime startMeterReadingDate;
     /**
@@ -66,14 +62,12 @@ public class MeterDetailVO {
 
     private LocalDateTime inspectionTime;
 
-    private LocalDateTime nextInspectionTime;
-
-    private BigDecimal repairCost;
-
     private String remark;
 
     /**
      * 状态: pending（待处理）/processing（处理中）/completed（已完成）
      */
     private String inspectionStatus;
+
+    private Long inspectionId;
 }

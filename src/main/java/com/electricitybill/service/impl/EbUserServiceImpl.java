@@ -2,6 +2,7 @@ package com.electricitybill.service.impl;
 
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.electricitybill.constants.Constant;
@@ -23,10 +24,8 @@ import com.electricitybill.mapper.*;
 import com.electricitybill.service.IEbUserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.electricitybill.service.IEbUserTypeService;
-import com.electricitybill.utils.BeanUtils;
-import com.electricitybill.utils.CollUtils;
-import com.electricitybill.utils.ObjectUtils;
-import com.electricitybill.utils.UserContextUtils;
+import com.electricitybill.utils.*;
+import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,6 +56,18 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
     private IEbUserTypeService ebUserTypeService;
     @Resource
     private EbScheduledTaskMapper ebScheduledTaskMapper;
+
+    private static List<String> getStringList(EbScheduledTask ebScheduledTask, Long userId, Boolean userEditDTO) {
+        String userIds = ebScheduledTask.getUserIds();
+        //,逗号切割,转为list
+        List<String> userIdList = Arrays.asList(userIds.split(","));
+        if (userIdList.contains(String.valueOf(userId)) && !userEditDTO) {
+            userIdList.remove(String.valueOf(userId));
+        } else if (!userIdList.contains(String.valueOf(userId)) && userEditDTO) {
+            userIdList.add(String.valueOf(userId));
+        }
+        return userIdList;
+    }
 
     @Override
     public PageDTO<UserPageVO> queryUserPage(UserPageQuery userPageQuery) {
@@ -105,13 +116,24 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
         }
         log.debug("userDetailVO的数据:{}", userDetailVO);
         EbMeter ebMeter = ebMeterMapper.selectOne(new LambdaQueryWrapper<EbMeter>().eq(EbMeter::getUserId, userId));
-        long unPaidBills = ebBillMapper.selectList(new LambdaQueryWrapper<EbBill>().eq(EbBill::getUserId, ebUser.getId())).stream().filter(ebBill -> !ebBill.getStatus().equals(BillType.PAID.getDesc())).count();
-        userDetailVO.setOutstandingBill((int) unPaidBills);
+        List<EbBill> ebBillList = ebBillMapper.selectList(new LambdaQueryWrapper<EbBill>().eq(EbBill::getUserId, ebUser.getId())).stream().filter(ebBill -> !ebBill.getStatus().equals(BillType.PAID.getDesc())).collect(Collectors.toList());
+        userDetailVO.setOutstandingBill(ebBillList.size());
         if (ObjectUtils.isEmpty(ebMeter)) {
-           userDetailVO.setLastMeterReadingDate(null);
-           return userDetailVO;
+            userDetailVO.setLastMeterReadingDate(null);
+            return userDetailVO;
         }
         userDetailVO.setLastMeterReadingDate(ebMeter.getLastMeterReadingDate());
+        ArrayList<cn.hutool.json.JSONObject> billRecords = new ArrayList<>();
+        ebBillList.forEach(ebBill -> {
+            cn.hutool.json.JSONObject jsonObject = new JSONObject();
+            jsonObject.set("billId", ebBill.getId());
+            jsonObject.set("usageAmount", ebBill.getUsageAmount());
+            jsonObject.set("paymentMethod", ebBill.getPaymentMethod());
+            jsonObject.set("paymentDate", ebBill.getUpdatedAt());
+            jsonObject.set("billTotalAmount", ebBill.getTotalAmount());
+            billRecords.add(jsonObject);
+        });
+        userDetailVO.setBillRecords(billRecords);
         return userDetailVO;
     }
 
@@ -143,21 +165,25 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
         return R.ok();
     }
 
-
     @Override
     public R adminUpdateUser(UserCreateDTO userCreateDTO) {
-        if (ObjectUtils.isEmpty(baseMapper.selectOne(new LambdaQueryWrapper<EbUser>().eq(EbUser::getIdCardNo, userCreateDTO.idCardNo)))) {
+        EbUser ebUser = baseMapper.selectOne(new LambdaQueryWrapper<EbUser>().eq(EbUser::getIdCardNo, userCreateDTO.idCardNo));
+        if (ObjectUtils.isEmpty(ebUser)) {
             throw new DbException(Constant.USER_NOT_EXIST);
         }
-        EbUser user = BeanUtils.copyBean(userCreateDTO, EbUser.class);
-        baseMapper.updateById(user);
+        ObjectUtils.assignIfNotNull(ebUser, userCreateDTO.getUserType(), EbUser::setUserType);
+        ObjectUtils.assignIfNotNull(ebUser, userCreateDTO.getUsername(), EbUser::setUsername);
+        ObjectUtils.assignIfNotNull(ebUser, userCreateDTO.getPhone(), EbUser::setPhone);
+        ObjectUtils.assignIfNotNull(ebUser, userCreateDTO.getAddress(), EbUser::setAddress);
+        ObjectUtils.assignIfNotNull(ebUser, userCreateDTO.getMeterNo(), EbUser::setMeterId);
+        baseMapper.updateById(ebUser);
         return R.ok();
     }
 
     @Override
     public List<String> getUserTypeList() {
         List<EbUserType> res = ebUserTypeService.lambdaQuery().eq(EbUserType::getStatus, ValidType.VALID.getValue()).list();
-        if(res.isEmpty()){
+        if (res.isEmpty()) {
             return ListUtil.empty();
         }
         return res.stream().map(EbUserType::getTypeName).collect(Collectors.toList());
@@ -177,11 +203,11 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
     @Override
     public R userEditInfo(UserEditDTO userEditDTO) {
         Long userId = UserContextUtils.getUserId();
-        if(ObjectUtils.isEmpty(userId)){
+        if (ObjectUtils.isEmpty(userId)) {
             throw new BadRequestException(Constant.REQUEST_PARAM_MISSING);
         }
         EbUser ebUser = getById(userId);
-        if(ObjectUtils.isEmpty(ebUser)){
+        if (ObjectUtils.isEmpty(ebUser)) {
             throw new DbException(Constant.USER_NOT_EXIST);
         }
         if (ebUser.getValidType().equals(ValidType.INVALID.getValue())) {
@@ -203,7 +229,7 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
                 List<String> userIdList = getStringList(ebScheduledTask, userId, userEditDTO.getBillReminder());
                 ebScheduledTask.setUserIds(String.join(",", userIdList));
             }
-            if (ebScheduledTask.getId().equals((long)UserTaskType.PAYMENT_REMINDER.getValue())) {
+            if (ebScheduledTask.getId().equals((long) UserTaskType.PAYMENT_REMINDER.getValue())) {
                 List<String> userIdList = getStringList(ebScheduledTask, userId, userEditDTO.getPaymentReminder());
                 ebScheduledTask.setUserIds(String.join(",", userIdList));
             }
@@ -214,23 +240,11 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
         return R.ok();
     }
 
-    private static List<String> getStringList(EbScheduledTask ebScheduledTask, Long userId, Boolean userEditDTO) {
-        String userIds = ebScheduledTask.getUserIds();
-        //,逗号切割,转为list
-        List<String> userIdList = Arrays.asList(userIds.split(","));
-        if (userIdList.contains(String.valueOf(userId)) && !userEditDTO) {
-            userIdList.remove(String.valueOf(userId));
-        } else if (!userIdList.contains(String.valueOf(userId)) && userEditDTO) {
-            userIdList.add(String.valueOf(userId));
-        }
-        return userIdList;
-    }
-
     @Override
     public UserInfoVO getUserInfo() {
         Long userId = UserContextUtils.getUserId();
         EbUser ebUser = getById(userId);
-        if(ObjectUtils.isEmpty(ebUser)){
+        if (ObjectUtils.isEmpty(ebUser)) {
             throw new DbException(Constant.USER_NOT_EXIST);
         }
         if (ebUser.getValidType().equals(ValidType.INVALID.getValue())) {
@@ -254,26 +268,75 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
         }
         ebScheduledTasks.forEach(ebScheduledTask -> {
             //拿到账单提醒的任务
-            if (ebScheduledTask.getId().equals((long)UserTaskType.BILL_REMINDER.getValue())) {
+            if (ebScheduledTask.getId().equals((long) UserTaskType.BILL_REMINDER.getValue())) {
                 String userIds = ebScheduledTask.getUserIds();
                 //,逗号切割,转为list
                 List<String> userIdList = Arrays.asList(userIds.split(","));
-                if (userIdList.contains(String.valueOf(userId))) {
-                    userInfoVO.setBillReminder(true);
-                }else
-                    userInfoVO.setBillReminder(false);
+                userInfoVO.setBillReminder(userIdList.contains(String.valueOf(userId)));
             }
             if (ebScheduledTask.getId().equals((long) UserTaskType.PAYMENT_REMINDER.getValue())) {
                 String userIds = ebScheduledTask.getUserIds();
                 //,逗号切割,转为list
                 List<String> userIdList = Arrays.asList(userIds.split(","));
-                if (userIdList.contains(String.valueOf(userId))) {
-                    userInfoVO.setPaymentReminder(true);
-                }else
-                    userInfoVO.setPaymentReminder(false);
+                userInfoVO.setPaymentReminder(userIdList.contains(String.valueOf(userId)));
             }
         });
         return userInfoVO;
+    }
+
+    @Override
+    public JSONObject getUserInfoByIdCard(String idCardNo) {
+        EbUser ebUser = lambdaQuery().eq(EbUser::getIdCardNo, idCardNo).one();
+        if (ObjectUtils.isEmpty(ebUser)) {
+            throw new DbException(Constant.USER_NOT_EXIST);
+        }
+        if (ebUser.getValidType().equals(ValidType.INVALID.getValue())) {
+            throw new BizIllegalException(Constant.USER_INVALID);
+        }
+        if (ebUser.getMeterId() != null) {
+            throw new BizIllegalException(Constant.USER_HAS_METER);
+        }
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.set("id", ebUser.getId());
+        jsonObject.set("username", ebUser.getUsername());
+        jsonObject.set("phone", ebUser.getPhone());
+        return jsonObject;
+    }
+
+    @Override
+    public R bindMeter(JSONObject jsonObject) {
+        String meterId = jsonObject.getStr("meterId");
+        String userId = jsonObject.getStr("userId");
+        //1表示绑定用户，2表示解绑用户
+        String status = jsonObject.getStr("status");
+        if (StringUtils.isBlank(meterId) || StringUtils.isBlank(userId) || StringUtils.isBlank(status)) {
+            throw new BadRequestException(Constant.REQUEST_PARAM_MISSING);
+        }
+        EbUser ebUser = getById(userId);
+        EbMeter ebMeter = ebMeterMapper.selectById(meterId);
+        if (ObjectUtils.isEmpty(ebUser) || ObjectUtils.isEmpty(ebMeter)) {
+            throw new DbException(Constant.USER_NOT_EXIST);
+        }
+        if (ebUser.getValidType().equals(ValidType.INVALID.getValue())) {
+            throw new BizIllegalException(Constant.USER_INVALID);
+        }
+        if (ebUser.getMeterId() != null && status.equals("1")) {
+            throw new BizIllegalException(Constant.USER_HAS_BIND);
+        }
+        if (ebUser.getMeterId() == null && status.equals("2")) {
+            throw new BizIllegalException(Constant.USER_HAS_UNBIND);
+        }
+        if (status.equals("1")) {
+            ebUser.setMeterId(meterId);
+            ebMeter.setUserId(Long.valueOf(userId));
+        } else {
+            ebUser.setMeterId(null);
+            ebMeter.setUserId(null);
+        }
+        updateById(ebUser);
+        ebMeterMapper.updateById(ebMeter);
+        return R.ok();
+
     }
 
 }

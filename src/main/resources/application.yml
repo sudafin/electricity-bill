@@ -31,7 +31,8 @@ mybatis-plus:
   global-config:
     db-config:
       id-type: ASSIGN_ID
-
+      #      更新策略，用于mybatisplus自带的update时更新时允许设置null值
+      update-strategy: ignored
 #日志配置
 logging:
   level: #    把com.example.electricitybill包下的日志级别设置为debug

@@ -2,11 +2,9 @@ package com.electricitybill.entity.po;
 
 import java.math.BigDecimal;
 
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.*;
+
 import java.time.LocalDate;
-import com.baomidou.mybatisplus.annotation.TableId;
 import java.time.LocalDateTime;
 import java.io.Serializable;
 import io.swagger.annotations.ApiModel;
@@ -45,7 +43,7 @@ public class EbMeter implements Serializable {
     private String status;
 
     @ApiModelProperty(value = "用户ID")
-    @TableField("user_id")
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     private Long userId;
 
     @ApiModelProperty(value = "周期最后一次抄表时间")
@@ -72,9 +70,6 @@ public class EbMeter implements Serializable {
     @TableField("ending_reading")
     private BigDecimal endingReading;
 
-    @ApiModelProperty(value = "检查电表的id")
-    @TableField("inspection_id")
-    private Long inspectionId;
 
 
     @ApiModelProperty(value = "安装地点")
