@@ -1,6 +1,10 @@
 package com.electricitybill.controller.admin;
 
-import com.electricitybill.entity.vo.user.UserBillVO;
+import com.electricitybill.entity.dto.PageDTO;
+import com.electricitybill.entity.dto.bill.BillPageQuery;
+import com.electricitybill.entity.vo.bill.BillAdminDetailVO;
+import com.electricitybill.entity.vo.bill.BillPageAdminVO;
+import com.electricitybill.entity.vo.bill.BillUserDetailVO;
 import com.electricitybill.service.IEbBillService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -27,10 +31,16 @@ import java.util.List;
 public class EbAdminBillController {
     @Resource
     private IEbBillService ebBillService;
-    @ApiOperation("管理端查询用户账单")
-    @GetMapping("{userId}")
-    public List<UserBillVO> queryUserBill(@PathVariable @NotNull Long userId){
-        return ebBillService.queryUserBill(userId);
+    @ApiOperation("管理端分页查询账单")
+    @GetMapping("page")
+    public PageDTO<BillPageAdminVO> query(BillPageQuery billPageQuery){
+        return ebBillService.queryAdmin(billPageQuery);
     }
-    
+
+    @ApiOperation("管理端查询用户账单")
+    @GetMapping("{id}")
+    public BillAdminDetailVO queryUserBill(@PathVariable("id") @NotNull Long billId){
+        return ebBillService.queryUserBillByAdmin(billId);
+    }
+
 }

@@ -13,7 +13,6 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -27,7 +26,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/rate")
 @Api(tags = "管理端费率管理")
-public class EbRateController {
+public class EbAdminRateController {
     @Resource
     private IEbRateService ebRateService;
 
@@ -59,6 +58,7 @@ public class EbRateController {
     public R createRate(@RequestBody RateCrateDTO rateCrateDTO) {
         return ebRateService.createRate(rateCrateDTO);
     }
+
 
     @ApiOperation("删除费率")
     @DeleteMapping("delete")

@@ -26,7 +26,7 @@ import java.util.concurrent.Future;
 @RestController
 @RequestMapping("/report")
 @Api(tags = "管理端报表管理")
-public class EbReportController {
+public class EbAdminReportController {
     @Resource
     private IEbElectricityUsageService ebElectricityUsageService;
 

@@ -1,7 +1,5 @@
-package com.electricitybill.entity.vo.user;
+package com.electricitybill.entity.vo.bill;
 
-import com.baomidou.mybatisplus.annotation.TableField;
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -9,7 +7,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
-public class UserBillVO {
+public class BillUserDetailVO {
 
     private String username;
 

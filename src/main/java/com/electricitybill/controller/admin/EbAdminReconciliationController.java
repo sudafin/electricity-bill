@@ -32,7 +32,7 @@ import java.util.concurrent.Future;
 @RequestMapping("/reconciliation")
 @Slf4j
 @Api(tags = "管理端对账管理")
-public class EbReconciliationController {
+public class EbAdminReconciliationController {
     @Resource
     private IEbReconciliationService ebReconciliationService;
 

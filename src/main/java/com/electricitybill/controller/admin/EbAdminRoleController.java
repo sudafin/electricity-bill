@@ -29,7 +29,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/admin/role")
 @Api(tags = "管理端角色管理")
-public class EbRoleController {
+public class EbAdminRoleController {
     @Resource
     private IEbRoleService ebRoleService;
 

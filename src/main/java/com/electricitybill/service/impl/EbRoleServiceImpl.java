@@ -120,11 +120,10 @@ public class EbRoleServiceImpl extends ServiceImpl<EbRoleMapper, EbRole> impleme
         Page<EbAdmin> ebAdminPage = new Page<>(rolePageQuery.getPageNo(), rolePageQuery.getPageSize());
         EbRole ebRole = new EbRole();
         if(StringUtils.isNotBlank(rolePageQuery.getRole())){
-        ebRole = ebRoleMapper.selectOne(new LambdaQueryWrapper<EbRole>()
+            ebRole = ebRoleMapper.selectOne(new LambdaQueryWrapper<EbRole>()
                 .eq(EbRole::getRoleName, rolePageQuery.getRole()));
         }
         Page<EbAdmin> adminPage = ebAdminMapper.selectPage(ebAdminPage, new LambdaQueryWrapper<EbAdmin>()
-                .eq(rolePageQuery.getAdminId() != null, EbAdmin::getId, rolePageQuery.getAdminId())
                 .eq(StringUtils.isNotBlank(rolePageQuery.getAccount()), EbAdmin::getAccount, rolePageQuery.getAccount())
                 .eq(ebRole.getId() !=null ,EbAdmin::getRoleId, ebRole.getId())
                 .ge(rolePageQuery.getStartDate() != null, EbAdmin::getCreatedAt, rolePageQuery.getStartDate())

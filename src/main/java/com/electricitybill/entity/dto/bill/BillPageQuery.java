@@ -7,6 +7,6 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class BillPageQuery extends PageQuery {
-    private Long billId;
+    private Long billId;;
     private String status;
 }

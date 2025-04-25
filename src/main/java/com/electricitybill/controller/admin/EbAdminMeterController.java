@@ -1,6 +1,5 @@
 package com.electricitybill.controller.admin;
 
-import cn.hutool.json.JSONObject;
 import com.electricitybill.entity.R;
 import com.electricitybill.entity.dto.meter.MeterCreateDTO;
 import com.electricitybill.entity.dto.meter.MeterEditDTO;
@@ -19,7 +18,6 @@ import javax.annotation.Resource;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.List;
-import java.util.Map;
 
 /**
  * <p>
@@ -32,7 +30,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/admin/meter")
 @Api(tags = "管理端电表管理")
-public class EbMeterController {
+public class EbAdminMeterController {
     @Resource
     private IEbMeterService ebMeterService;
 

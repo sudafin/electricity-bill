@@ -16,20 +16,17 @@ import com.electricitybill.constants.Constant;
 import com.electricitybill.entity.dto.AliPay;
 import com.electricitybill.entity.dto.PageDTO;
 import com.electricitybill.entity.dto.bill.BillPageQuery;
-import com.electricitybill.entity.po.EbBill;
-import com.electricitybill.entity.po.EbMeter;
-import com.electricitybill.entity.po.EbPayment;
-import com.electricitybill.entity.po.EbUser;
+import com.electricitybill.entity.po.*;
+import com.electricitybill.entity.vo.bill.BillAdminDetailVO;
+import com.electricitybill.entity.vo.bill.BillPageAdminVO;
 import com.electricitybill.entity.vo.bill.BillPageVO;
-import com.electricitybill.entity.vo.user.UserBillVO;
+import com.electricitybill.entity.vo.bill.BillUserDetailVO;
+import com.electricitybill.entity.vo.payment.PaymentDetailVO;
 import com.electricitybill.enums.BillType;
 import com.electricitybill.enums.PaymentType;
 import com.electricitybill.expcetions.BizIllegalException;
 import com.electricitybill.expcetions.DbException;
-import com.electricitybill.mapper.EbBillMapper;
-import com.electricitybill.mapper.EbMeterMapper;
-import com.electricitybill.mapper.EbPaymentMapper;
-import com.electricitybill.mapper.EbUserMapper;
+import com.electricitybill.mapper.*;
 import com.electricitybill.service.IEbBillService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.electricitybill.utils.BeanUtils;
@@ -42,11 +39,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * <p>
@@ -71,9 +70,11 @@ public class EbBillServiceImpl extends ServiceImpl<EbBillMapper, EbBill> impleme
     private EbMeterMapper meterMapper;
     @Resource
     private EbPaymentMapper paymentMapper;
+    @Resource
+    private EbReconciliationMapper ebReconciliationMapper;
 
     @Override
-    public List<UserBillVO> queryUserBill(Long userId) {
+    public List<BillUserDetailVO> queryUserBill(Long userId) {
         EbUser ebUser = userMapper.selectById(userId);
         if (ObjectUtils.isEmpty(ebUser)) {
             throw new DbException(Constant.USER_NOT_EXIST);
@@ -86,13 +87,13 @@ public class EbBillServiceImpl extends ServiceImpl<EbBillMapper, EbBill> impleme
         if (CollUtils.isEmpty(ebBills)) {
             throw new BizIllegalException(Constant.BILL_NOT_EXIST);
         }
-        List<UserBillVO> userBillVOS = BeanUtils.copyList(ebBills, UserBillVO.class);
-        userBillVOS.forEach(userBillVO -> {
-            userBillVO.setUserType(ebUser.getUserType());
-            userBillVO.setMeterId(ebUser.getMeterId());
-            userBillVO.setUsername(ebUser.getUsername());
+        List<BillUserDetailVO> billUserDetailVOS = BeanUtils.copyList(ebBills, BillUserDetailVO.class);
+        billUserDetailVOS.forEach(billUserDetailVO -> {
+            billUserDetailVO.setUserType(ebUser.getUserType());
+            billUserDetailVO.setMeterId(ebUser.getMeterId());
+            billUserDetailVO.setUsername(ebUser.getUsername());
         });
-        return userBillVOS;
+        return billUserDetailVOS;
     }
 
     @Override
@@ -117,17 +118,17 @@ public class EbBillServiceImpl extends ServiceImpl<EbBillMapper, EbBill> impleme
     }
 
     @Override
-    public UserBillVO detailBill(Long billId) {
+    public BillUserDetailVO detailBill(Long billId) {
         EbBill ebBill = getById(billId);
         if (ObjectUtils.isEmpty(ebBill)) {
             throw new DbException(Constant.BILL_NOT_EXIST);
         }
-        UserBillVO userBillVO = BeanUtils.copyBean(ebBill, UserBillVO.class);
+        BillUserDetailVO billUserDetailVO = BeanUtils.copyBean(ebBill, BillUserDetailVO.class);
         EbUser ebUser = userMapper.selectById(ebBill.getUserId());
-        userBillVO.setUsername(ebUser.getUsername());
-        userBillVO.setUserType(ebUser.getUserType());
-        userBillVO.setMeterId(ebUser.getMeterId());
-        return userBillVO;
+        billUserDetailVO.setUsername(ebUser.getUsername());
+        billUserDetailVO.setUserType(ebUser.getUserType());
+        billUserDetailVO.setMeterId(ebUser.getMeterId());
+        return billUserDetailVO;
     }
 
     @Override
@@ -286,6 +287,77 @@ public class EbBillServiceImpl extends ServiceImpl<EbBillMapper, EbBill> impleme
         }
 
         return "success";
+    }
+
+    @Override
+    public PageDTO<BillPageAdminVO> queryAdmin(BillPageQuery billPageQuery) {
+        Page<EbBill> page = new Page<>(billPageQuery.getPageNo(), billPageQuery.getPageSize());
+        Page<EbBill> ebBillPage = lambdaQuery()
+                .eq(billPageQuery.getBillId() != null, EbBill::getId, billPageQuery.getBillId())
+                .eq(StringUtils.isNotBlank(billPageQuery.getStatus()), EbBill::getStatus, billPageQuery.getStatus())
+                .between(billPageQuery.getStartDate() != null && billPageQuery.getEndDate() != null, EbBill::getUpdatedAt, billPageQuery.getStartDate(), billPageQuery.getEndDate())
+                .orderByDesc(EbBill::getUpdatedAt)
+                .page(page);
+        if (ebBillPage.getTotal()== 0) {
+            return PageDTO.empty(page);
+        }
+        Stream<BillPageAdminVO> billPageAdminVOStream = ebBillPage.getRecords().stream().map(ebBill -> {
+            BillPageAdminVO billPageAdminVO = new BillPageAdminVO();
+            billPageAdminVO.setBillId(ebBill.getId());
+            billPageAdminVO.setUserId(ebBill.getUserId());
+            billPageAdminVO.setStatus(ebBill.getStatus());
+            EbUser ebUser = userMapper.selectById(ebBill.getUserId());
+            billPageAdminVO.setUsername(ebUser.getUsername());
+            billPageAdminVO.setUserType(ebUser.getUserType());
+            billPageAdminVO.setUsageAmount(ebBill.getUsageAmount());
+            billPageAdminVO.setPaymentAmount(ebBill.getTotalAmount());
+
+            if (ebBill.getPaymentId() != null) {
+                billPageAdminVO.setPaymentId(ebBill.getPaymentId());
+                billPageAdminVO.setPaymentTime(paymentMapper.selectById(ebBill.getPaymentId()).getPaymentTime());
+            }
+            return billPageAdminVO;
+        });
+        return PageDTO.of(ebBillPage, billPageAdminVOStream.collect(Collectors.toList()));
+    }
+
+    @Override
+    public BillAdminDetailVO queryUserBillByAdmin(Long billId) {
+        EbBill ebBill = getById(billId);
+        if (ObjectUtils.isEmpty(ebBill)) {
+            throw new DbException(Constant.BILL_NOT_EXIST);
+        }
+        BillAdminDetailVO billAdminDetailVO = BeanUtils.copyBean(ebBill, BillAdminDetailVO.class);
+        EbUser ebUser = userMapper.selectById(ebBill.getUserId());
+        billAdminDetailVO.setUsername(ebUser.getUsername());
+        billAdminDetailVO.setUserType(ebUser.getUserType());
+        billAdminDetailVO.setMeterId(ebUser.getMeterId());
+        List<EbPayment> ebPayments = paymentMapper.selectList(new LambdaQueryWrapper<EbPayment>()
+                .eq(EbPayment::getId, ebBill.getPaymentId())
+        );
+        if(!ebPayments.isEmpty()) {
+            ArrayList<PaymentDetailVO> paymentDetailVOS = new ArrayList<>();
+            ebPayments.forEach(ebPayment -> {
+                PaymentDetailVO paymentDetailVO = new PaymentDetailVO();
+                paymentDetailVO.setPaymentId(ebPayment.getId());
+                paymentDetailVO.setUsername(ebUser.getUsername());
+                paymentDetailVO.setPaymentMethod(ebPayment.getPaymentMethod());
+                paymentDetailVO.setStatus(ebPayment.getStatus());
+                paymentDetailVO.setPaymentTime(ebPayment.getPaymentTime());
+                EbReconciliation ebReconciliation = ebReconciliationMapper.selectById(ebPayment.getReconciliationId());
+                if(ebReconciliation != null) {
+                    paymentDetailVO.setIsReconciliation(true);
+                    paymentDetailVO.setReconciliationId(ebPayment.getReconciliationId());
+                    paymentDetailVO.setReconciliationStatus(ebReconciliation.getStatus());
+                    paymentDetailVO.setReconciliationComment(ebReconciliation.getComment());
+                }else {
+                    paymentDetailVO.setIsReconciliation(false);
+                }
+                paymentDetailVOS.add(paymentDetailVO);
+            });
+            billAdminDetailVO.setPaymentDetailVOList(paymentDetailVOS);
+        }
+        return billAdminDetailVO;
     }
 
     /**

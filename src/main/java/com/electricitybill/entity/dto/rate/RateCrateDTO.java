@@ -15,20 +15,20 @@ public class RateCrateDTO {
     private BigDecimal peakPrice;
     private BigDecimal valleyPrice;
     private BigDecimal summerPeakPrice;
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate effectiveDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate expireDate;
 
-    @JsonFormat(pattern = "HH:mm")
+    @JsonFormat(pattern = "HH:mm:ss")  // 允许秒数
     private LocalTime peakStart;
-
-    @JsonFormat(pattern = "HH:mm")
+    @JsonFormat(pattern = "HH:mm:ss")  // 允许秒数
     private LocalTime peakEnd;
-
-    @JsonFormat(pattern = "HH:mm")
+    @JsonFormat(pattern = "HH:mm:ss")  // 允许秒数
     private LocalTime valleyStart;
-
-    @JsonFormat(pattern = "HH:mm")
+    @JsonFormat(pattern = "HH:mm:ss")  // 允许秒数
     private LocalTime valleyEnd;
+
     private String summerPeriod;
     private BigDecimal discount;
 }

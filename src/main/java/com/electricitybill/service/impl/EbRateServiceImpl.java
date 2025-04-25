@@ -82,9 +82,9 @@ public class EbRateServiceImpl extends ServiceImpl<EbRateMapper, EbRate> impleme
         if (StringUtils.isBlank(userType)) {
             throw new BadRequestException(Constant.INVALID_USER_TYPE);
         }
-        lambdaQuery().eq(EbRate::getUserType, userType).oneOpt().ifPresent(ebRate -> {
-            throw new BadRequestException(Constant.RATE_USER_TYPE_EXIST);
-        });
+//        lambdaQuery().eq(EbRate::getUserType, userType).oneOpt().ifPresent(ebRate -> {
+//            throw new BadRequestException(Constant.RATE_USER_TYPE_EXIST);
+//        });
         EbRate ebRate = BeanUtils.copyBean(rateCrateDTO, EbRate.class);
         save(ebRate);
         return R.ok();
