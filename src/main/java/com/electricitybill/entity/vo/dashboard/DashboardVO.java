@@ -28,11 +28,6 @@ public class DashboardVO {
     private Long currentMonthlyDebtBillTotal;
 
     /**
-     * 最近一周用电量分布
-     */
-    private List<Double> electricityWeekUsageList;
-
-    /**
      * 用户类型分布
      */
     private Map<String, Long> userTypeMap;

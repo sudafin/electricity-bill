@@ -94,4 +94,8 @@ public class EbUsageSummary implements Serializable {
     @TableField("date_type")
     private String dateType;
 
+    @ApiModelProperty(value = "账单id")
+    @TableField("bill_id")
+    private Long billId;
+
 }

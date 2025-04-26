@@ -100,38 +100,9 @@ public class EbAdminServiceImpl extends ServiceImpl<EbAdminMapper, EbAdmin> impl
         if (CollUtils.isEmpty(ebUsageSummaryList)) {
             //如果没有数据,则默认为0或空,不用抛错误
             dashboardVO.setCurrentMonthlyElectricityUsageTotal(0L);
-            dashboardVO.setElectricityWeekUsageList(CollUtils.emptyList());
         } else {
             double totalElectricity = ebUsageSummaryList.stream().mapToDouble(usage -> new BigDecimal(String.valueOf(usage.getTotalUsage())).doubleValue()).sum();
-            //将数据倒序,按时间降序,时间最新的在前面方便获取最新的7个数据
-            List<EbUsageSummary> ebUsageSummaries = ebUsageSummaryList.stream().sorted(Comparator.comparing(EbUsageSummary::getSummaryDateStart).reversed()).collect(toList());
-            //拿到最近7天的数据,设置为0
-            // 生成最近7天的日期列表
-            List<LocalDate> recentDates = IntStream.range(0, 7).mapToObj(LocalDate.now()::minusDays).sorted().collect(toList());
-            // 生成 Map<LocalDate, BigDecimal>，这里假设 BigDecimal 的值为每个日期的日期差的 BigDecimal 表示
-            Map<LocalDate, BigDecimal> dateToValueMap = recentDates.stream().collect(Collectors.toMap(date -> date, // 使用日期作为 key
-                    date -> BigDecimal.ZERO, // 初始值为 0
-                    (existing, replacement) -> existing, // 处理键冲突的策略
-                    LinkedHashMap::new // 使用 LinkedHashMap 保持插入顺序
-            ));
-            ebUsageSummaries.stream().limit(7)
-                    //再次把最新的日期放到列表最后面
-                    .sorted(Comparator.comparing(EbUsageSummary::getSummaryDateStart)).forEach(usage -> {
-                        //拿到当前用电量的日期
-                        LocalDate endDate = usage.getSummaryDateEnd().toLocalDate();
-                        //如果是最近7天,就加入到list中,否则就跳过
-                        if (dateToValueMap.containsKey(endDate)) {
-                            dateToValueMap.put(endDate, usage.getTotalUsage());
-                        }
-                    });
-            //将dateToValueMap的value转为list
-            List<Double> electricityWeekUsageList = dateToValueMap.values().stream()
-                    //日期排序
-                    .map(BigDecimal::doubleValue).collect(toList());
-            log.debug("总用电量:{}", totalElectricity);
-            log.debug("最近7天的用电量:{}", electricityWeekUsageList);
             dashboardVO.setCurrentMonthlyElectricityUsageTotal((long) totalElectricity);
-            dashboardVO.setElectricityWeekUsageList(electricityWeekUsageList);
         }
         //补充账单总数和总金额
         List<EbBill> ebBillList = ebBillMapper.selectList(

@@ -83,4 +83,9 @@ public class EbBill implements Serializable {
     @ApiModelProperty(value = "一个周期内读表现在的度数")
     @TableField("ending_reading")
     private BigDecimal endingReading;
+
+
+    @ApiModelProperty(value = "支付时间")
+    @TableField("payment_time")
+    private LocalDateTime paymentTime;
 }
