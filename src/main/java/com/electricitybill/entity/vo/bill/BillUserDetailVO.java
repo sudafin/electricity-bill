@@ -1,45 +1,38 @@
 package com.electricitybill.entity.vo.bill;
 
+import cn.hutool.json.JSONObject;
 import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class BillUserDetailVO {
-
-    private String username;
+    private String billPeriod;
 
     private String userType;
 
     private String meterId;;
 
-    private LocalDate startDate;
+    private BigDecimal usage;
 
-    private LocalDate endDate;
-
-    private BigDecimal usageAmount;
-
-    private BigDecimal totalAmount;
+    private BigDecimal amount;
 
     private String status;
 
-    private Long paymentId;
+    private LocalDateTime billDate;
 
-    private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
+    private LocalDateTime paymentDate;
 
     private String paymentMethod;
-
-    private BigDecimal baseElectricityUsage;
-
-    private BigDecimal hotElectricityUsage;
 
     private LocalDateTime dueDate;
 
     private BigDecimal startReading; //开始读数
 
     private BigDecimal endReading;  // 结束读数
+
+    private List<JSONObject> billDetails;
 }

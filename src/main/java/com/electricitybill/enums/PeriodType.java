@@ -26,4 +26,7 @@ public enum PeriodType implements BaseEnum{
     public static PeriodType of(String value) {
         return Arrays.stream(values()).filter(type -> Objects.equals(type.getDesc(), value)).findFirst().orElseThrow(() -> new BadRequestException(Constant.INVALID_PERIOD_TYPE));
     }
+    public static Integer getSize() {
+        return PeriodType.values().length;
+    }
 }

@@ -220,7 +220,7 @@ public class EbNotificationServiceImpl extends ServiceImpl<EbNotificationMapper,
     @Override
     public PageDTO<NotificationUserPageVO> getNewNotificationList(PageQuery pageQuery) {
         Page<EbNotification> page = new Page<>(pageQuery.getPageNo(), pageQuery.getPageSize());
-        Long userId = UserContextUtils.getUserId() == null ? 1 : UserContextUtils.getUserId();
+        Long userId = UserContextUtils.getUserId();
         EbUser ebUser = ebUserMapper.selectById(userId);
         if (ObjectUtils.isEmpty(ebUser)) {
             throw new BizIllegalException(Constant.USER_NOT_EXIST);

@@ -1,5 +1,7 @@
 package com.electricitybill.service;
 
+import cn.hutool.json.JSONObject;
+import com.alipay.api.AlipayApiException;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.electricitybill.entity.dto.AliPay;
 import com.electricitybill.entity.dto.PageDTO;
@@ -27,7 +29,7 @@ public interface IEbBillService extends IService<EbBill> {
 
     List<BillUserDetailVO> queryUserBill(@NotNull Long userId);
 
-    PageDTO<BillPageVO> query(BillPageQuery billPageQuery);
+    PageDTO<BillPageVO> query(JSONObject billPageQuery);
 
     BillUserDetailVO detailBill(Long billId);
 
@@ -38,4 +40,8 @@ public interface IEbBillService extends IService<EbBill> {
     PageDTO<BillPageAdminVO> queryAdmin(BillPageQuery billPageQuery);
 
     BillAdminDetailVO queryUserBillByAdmin(@NotNull Long billId);
+
+    JSONObject overview();
+
+    String queryStatus(Long billId) throws AlipayApiException;
 }

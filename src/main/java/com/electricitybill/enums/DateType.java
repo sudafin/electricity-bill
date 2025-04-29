@@ -18,8 +18,7 @@ public enum DateType {
     DAILY(1, "日"),
     WEEKLY(2, "周"),
     MONTHLY(3, "月"),
-    QUARTERLY(4, "季度"),
-    YEARLY(5, "年");
+    YEARLY(4, "年");
 
     private final int value;
     private final String desc;

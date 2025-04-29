@@ -7,10 +7,11 @@ import java.time.LocalDateTime;
 
 @Data
 public class BillPageVO {
-    private Long paymentId;
-    private Long id;
-    private BigDecimal usageAmount;
-    private BigDecimal paymentAmount;
-    private LocalDateTime paymentTime;
+    private Long billId;;
+    private BigDecimal usage;
+    private BigDecimal amount;
+    private LocalDateTime paymentDate;
+    private LocalDateTime dueDate;
+    private String status;
 
 }
