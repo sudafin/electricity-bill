@@ -11,7 +11,7 @@ import cn.hutool.jwt.signers.JWTSigner;
 import cn.hutool.jwt.signers.JWTSignerUtil;
 import com.electricitybill.constants.Constant;
 import com.electricitybill.constants.ErrorInfo;
-import com.electricitybill.entity.dto.admin.AdminDTO;
+import com.electricitybill.entity.dto.admin.LoginDTO;
 import com.electricitybill.expcetions.BadRequestException;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,13 +38,13 @@ public class JwtUtils {
     }
     /**
      * 创建token
-     * @param adminDTO token需要携带的用户对象信息,如用户id姓名等
+     * @param loginDTO token需要携带的用户对象信息,如用户id姓名等
      * @return token
      */
-    public String createToken(AdminDTO adminDTO){
+    public String createToken(LoginDTO loginDTO){
                 //将密钥算法加密生成签名,防止token被修改
         String token = JWT.create()
-                .setPayload("adminDTO", adminDTO)
+                .setPayload("adminDTO", loginDTO)
                 .setExpiresAt(new Date(System.currentTimeMillis() + expirationTime))
                 .setSigner(jwtSigner)
                 .sign();
@@ -52,9 +52,9 @@ public class JwtUtils {
     }
 
     //解析token
-    public AdminDTO parseToken(String token){
+    public LoginDTO parseToken(String token){
         Object payload = JWT.of(token).getPayload("adminDTO");
-        return BeanUtil.toBean(payload, AdminDTO.class);
+        return BeanUtil.toBean(payload, LoginDTO.class);
     }
 
     //验证token是否过期
@@ -85,26 +85,26 @@ public class JwtUtils {
     /**
      * 创建刷新token，并将token的JTI记录到Redis中
      *
-     * @param adminDTO 用户信息
+     * @param loginDTO 用户信息
      * @return 刷新token
      */
-    public String createRefreshToken(AdminDTO adminDTO) {
+    public String createRefreshToken(LoginDTO loginDTO) {
         // 1.生成 JTI
         String jti = UUID.randomUUID().toString(true);
         // 2.生成jwt
         // 2.1.如果是记住我，则有效期7天，否则30分钟
-        Duration ttl = BooleanUtils.isTrue(adminDTO.getRememberMe()) ?
+        Duration ttl = BooleanUtils.isTrue(loginDTO.getRememberMe()) ?
                 Constant.JWT_REMEMBER_ME_TTL : JWT_REFRESH_TTL;
         // 2.2.生成token
         String token = JWT.create()
                 .setJWTId(jti)
-                .setPayload("adminDTO", adminDTO)
+                .setPayload("adminDTO", loginDTO)
                 .setExpiresAt(new Date(System.currentTimeMillis() + ttl.toMillis()))
                 .setSigner(jwtSigner)
                 .sign();
         // 3.缓存jti，有效期与token一致，过期或删除JTI后，对应的refresh-token失效
         stringRedisTemplate.opsForValue()
-                .set(Constant.JWT_REDIS_KEY_PREFIX + adminDTO.getId(), jti, ttl);
+                .set(Constant.JWT_REDIS_KEY_PREFIX + loginDTO.getId(), jti, ttl);
         return token;
     }
 
@@ -114,7 +114,7 @@ public class JwtUtils {
      * @param refreshToken 刷新token
      * @return 解析刷新token得到的用户信息
      */
-    public AdminDTO parseRefreshToken(String refreshToken) {
+    public LoginDTO parseRefreshToken(String refreshToken) {
         // 1.校验token是否为空
         AssertUtils.isNotNull(refreshToken, ErrorInfo.Msg.INVALID_TOKEN);
         // 2.校验并解析jwt
@@ -144,21 +144,21 @@ public class JwtUtils {
         }
 
         // 5.数据解析
-        AdminDTO adminDTO;
+        LoginDTO loginDTO;
         try {
-            adminDTO = ((JSONObject) adminPayload).toBean(AdminDTO.class);
+            loginDTO = ((JSONObject) adminPayload).toBean(LoginDTO.class);
         } catch (RuntimeException e) {
             // 数据格式有误
             throw new BadRequestException(400, ErrorInfo.Msg.INVALID_TOKEN);
         }
 
         // 6.JTI校验
-        String jti = stringRedisTemplate.opsForValue().get(Constant.JWT_REDIS_KEY_PREFIX + adminDTO.getId());
+        String jti = stringRedisTemplate.opsForValue().get(Constant.JWT_REDIS_KEY_PREFIX + loginDTO.getId());
         if (!StringUtils.equals(jti, jtiPayload.toString())) {
             // jti不一致
             throw new BadRequestException(400, ErrorInfo.Msg.INVALID_TOKEN);
         }
-        return adminDTO;
+        return loginDTO;
     }
     public void cleanJtiCache() {
         stringRedisTemplate.delete(Constant.JWT_REDIS_KEY_PREFIX + AdminContextUtils.getAdminId());

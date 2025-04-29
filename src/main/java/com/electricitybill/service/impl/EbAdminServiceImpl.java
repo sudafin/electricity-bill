@@ -5,8 +5,8 @@ import cn.hutool.captcha.ICaptcha;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.electricitybill.constants.Constant;
 import com.electricitybill.entity.R;
-import com.electricitybill.entity.dto.admin.AdminDTO;
-import com.electricitybill.entity.dto.admin.AdminFormDTO;
+import com.electricitybill.entity.dto.admin.LoginDTO;
+import com.electricitybill.entity.dto.admin.LoginFormDTO;
 import com.electricitybill.entity.po.*;
 import com.electricitybill.entity.vo.admin.LoginVO;
 import com.electricitybill.entity.vo.dashboard.DashboardVO;
@@ -34,13 +34,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.Temporal;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import static java.util.stream.Collectors.toList;
 
 /**
  * <p>
@@ -157,11 +152,11 @@ public class EbAdminServiceImpl extends ServiceImpl<EbAdminMapper, EbAdmin> impl
 
 
     @Override
-    public R<LoginVO> login(AdminFormDTO adminFormDTO) {
-        log.info("前端登录信息：{}", adminFormDTO);
+    public R<LoginVO> login(LoginFormDTO loginFormDTO) {
+        log.info("前端登录信息：{}", loginFormDTO);
         //根据账号密码查询用户
-        String account = adminFormDTO.getAccount();
-        String password = adminFormDTO.getPassword();
+        String account = loginFormDTO.getAccount();
+        String password = loginFormDTO.getPassword();
         EbAdmin admin = lambdaQuery().eq(EbAdmin::getAccount, account).one();
         //判断账号是否存在
         if (ObjectUtils.isEmpty(admin)) {
@@ -180,20 +175,21 @@ public class EbAdminServiceImpl extends ServiceImpl<EbAdminMapper, EbAdmin> impl
         if(ObjectUtils.isEmpty(ebRole)){
             throw new UnauthorizedException(Constant.ROLE_NOT_EXIST);
         }
-        AdminDTO adminDTO = AdminDTO.builder()
+        LoginDTO loginDTO = LoginDTO.builder()
+                .isUser(false)
                 .id(admin.getId())
                 .userName(admin.getAccount())
                 .roleName(ebRole.getRoleName())
-                .rememberMe(adminFormDTO.getRememberMe())
+                .rememberMe(loginFormDTO.getRememberMe())
                 .build();
         String token;
         try {
             //生成token
-            token = jwtUtils.createToken(adminDTO);
+            token = jwtUtils.createToken(loginDTO);
             //生成refreshToken
-            String refreshToken = jwtUtils.createRefreshToken(adminDTO);
+            String refreshToken = jwtUtils.createRefreshToken(loginDTO);
             //生成refreshToken在cookie的最大有效期
-            int maxAge = Math.toIntExact(BooleanUtils.isTrue(adminDTO.getRememberMe()) ?
+            int maxAge = Math.toIntExact(BooleanUtils.isTrue(loginDTO.getRememberMe()) ?
                     Constant.JWT_REMEMBER_ME_TTL.getSeconds() : -1);
             //在Cookie中设置name  = "refresh" value = refreshToken
             WebUtils.cookieBuilder()
@@ -207,7 +203,7 @@ public class EbAdminServiceImpl extends ServiceImpl<EbAdminMapper, EbAdmin> impl
             throw new UnauthorizedException(Constant.TOKEN_GENERATE_FAILED);
         }
         log.debug("token:{}", token);
-        return R.ok(LoginVO.builder().adminDTO(adminDTO).token(token).build());
+        return R.ok(LoginVO.builder().loginDTO(loginDTO).token(token).build());
     }
 
     @Override
@@ -242,9 +238,9 @@ public class EbAdminServiceImpl extends ServiceImpl<EbAdminMapper, EbAdmin> impl
     @Override
     public String refreshToken(String token) {
         // 1.校验refresh-token,校验JTI
-        AdminDTO adminDTO = jwtUtils.parseRefreshToken(token);
+        LoginDTO loginDTO = jwtUtils.parseRefreshToken(token);
         // 2.生成新的access-token、refresh-token
-        return generateToken(adminDTO);
+        return generateToken(loginDTO);
     }
 
     @Override
@@ -261,13 +257,13 @@ public class EbAdminServiceImpl extends ServiceImpl<EbAdminMapper, EbAdmin> impl
     }
 
 
-    private String generateToken(AdminDTO adminDTO) {
+    private String generateToken(LoginDTO loginDTO) {
         // 2.2.生成access-token
-        String token = jwtUtils.createToken(adminDTO);
+        String token = jwtUtils.createToken(loginDTO);
         // 2.3.生成refresh-token，将refresh-token的JTI 保存到Redis
-        String refreshToken = jwtUtils.createRefreshToken(adminDTO);
+        String refreshToken = jwtUtils.createRefreshToken(loginDTO);
         // 2.4.将refresh-token写入用户cookie，并设置HttpOnly为true
-        int maxAge = BooleanUtils.isTrue(adminDTO.getRememberMe()) ?
+        int maxAge = BooleanUtils.isTrue(loginDTO.getRememberMe()) ?
                 (int) Constant.JWT_REMEMBER_ME_TTL.toSeconds() : -1;
         WebUtils.cookieBuilder()
                 .name(Constant.REFRESH_HEADER)

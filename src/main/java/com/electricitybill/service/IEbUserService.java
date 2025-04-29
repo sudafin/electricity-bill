@@ -3,6 +3,7 @@ package com.electricitybill.service;
 import cn.hutool.json.JSONObject;
 import com.electricitybill.entity.R;
 import com.electricitybill.entity.dto.PageDTO;
+import com.electricitybill.entity.dto.admin.LoginFormDTO;
 import com.electricitybill.entity.dto.user.UserCreateDTO;
 import com.electricitybill.entity.dto.user.UserPageQuery;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -41,4 +42,6 @@ public interface IEbUserService extends IService<EbUser> {
     JSONObject getUserInfoByIdCard(String idCardNo);
 
     R bindMeter(JSONObject jsonObject);
+
+    R login(LoginFormDTO loginFormDTO);
 }

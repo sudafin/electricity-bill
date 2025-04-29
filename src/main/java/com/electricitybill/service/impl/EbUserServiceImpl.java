@@ -8,22 +8,25 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.electricitybill.constants.Constant;
 import com.electricitybill.entity.R;
 import com.electricitybill.entity.dto.PageDTO;
+import com.electricitybill.entity.dto.admin.LoginDTO;
+import com.electricitybill.entity.dto.admin.LoginFormDTO;
 import com.electricitybill.entity.dto.user.UserCreateDTO;
 import com.electricitybill.entity.dto.user.UserPageQuery;
 import com.electricitybill.entity.dto.usertype.UserTypeCreateDTO;
 import com.electricitybill.entity.po.*;
+import com.electricitybill.entity.vo.admin.LoginVO;
 import com.electricitybill.entity.vo.user.UserDetailVO;
 import com.electricitybill.entity.vo.user.UserPageVO;
 import com.electricitybill.enums.*;
-import com.electricitybill.expcetions.BadRequestException;
-import com.electricitybill.expcetions.BizIllegalException;
-import com.electricitybill.expcetions.DbException;
+import com.electricitybill.expcetions.*;
 import com.electricitybill.mapper.*;
 import com.electricitybill.service.IEbUserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.electricitybill.service.IEbUserTypeService;
 import com.electricitybill.utils.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.BooleanUtils;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,6 +56,12 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
     private IEbUserTypeService ebUserTypeService;
     @Resource
     private EbScheduledTaskMapper ebScheduledTaskMapper;
+
+    @Resource
+    private PasswordEncoder passwordEncoder;
+
+    @Resource
+    private JwtUtils jwtUtils;
 
     private static List<String> getStringList(EbScheduledTask ebScheduledTask, Long userId, Boolean userEditDTO) {
         String userIds = ebScheduledTask.getUserIds();
@@ -250,6 +259,52 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
         ebMeterMapper.updateById(ebMeter);
         return R.ok();
 
+    }
+
+    @Override
+    public R login(LoginFormDTO loginFormDTO) {
+        log.info("前端登录信息：{}", loginFormDTO);
+        //根据账号密码查询用户
+        String account = loginFormDTO.getAccount();
+        String password = loginFormDTO.getPassword();
+        EbUser ebUser = lambdaQuery().eq(EbUser::getAccount, account).one();
+        //判断账号是否存在
+        if (ObjectUtils.isEmpty(ebUser)) {
+            R.error(4001,"账号不存在");
+        }
+        //判断密码是否正确,通过bcrypt加密的匹配password是真秘密, admin.getPassword()是加密后的密码,返回值判断是否匹配
+        boolean matches = passwordEncoder.matches(password, ebUser.getPassword());
+        if (!matches) {
+            R.error(4001,"账号或密码错误");
+        }
+        LoginDTO loginDTO = LoginDTO.builder()
+                .isUser(true)
+                .id(ebUser.getId())
+                .userName(ebUser.getUsername())
+                .rememberMe(loginFormDTO.getRememberMe())
+                .build();
+        String token;
+        try {
+            //生成token
+            token = jwtUtils.createToken(loginDTO);
+            //生成refreshToken
+            String refreshToken = jwtUtils.createRefreshToken(loginDTO);
+            //生成refreshToken在cookie的最大有效期
+            int maxAge = Math.toIntExact(BooleanUtils.isTrue(loginDTO.getRememberMe()) ?
+                    Constant.JWT_REMEMBER_ME_TTL.getSeconds() : -1);
+            //在Cookie中设置name  = "refresh" value = refreshToken
+            WebUtils.cookieBuilder()
+                    .name(Constant.REFRESH_HEADER)
+                    .value(refreshToken)
+                    .maxAge(maxAge)
+                    .httpOnly(true)
+                    .build();
+        } catch (Exception e) {
+            log.error("生成token失败", e);
+            throw new UnauthorizedException(Constant.TOKEN_GENERATE_FAILED);
+        }
+        log.debug("token:{}", token);
+        return R.ok(LoginVO.builder().loginDTO(loginDTO).token(token).build());
     }
 
 }

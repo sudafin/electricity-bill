@@ -3,10 +3,11 @@ package com.electricitybill.controller;
 
 import com.electricitybill.constants.Constant;
 import com.electricitybill.entity.R;
-import com.electricitybill.entity.dto.admin.AdminFormDTO;
+import com.electricitybill.entity.dto.admin.LoginFormDTO;
 import com.electricitybill.entity.vo.admin.LoginVO;
 import com.electricitybill.expcetions.BadRequestException;
 import com.electricitybill.service.IEbAdminService;
+import com.electricitybill.service.IEbUserService;
 import com.electricitybill.utils.RSAUtils;
 
 import com.electricitybill.utils.WebUtils;
@@ -35,6 +36,8 @@ import java.security.KeyPair;
 public class EbLoginController {
     @Resource
     private IEbAdminService ebAdminService;
+    @Resource
+    private IEbUserService ebUserService;
 
     //生成RSA密钥对
     public static final KeyPair keyPair = RSAUtils.generateKeyPair();
@@ -46,17 +49,17 @@ public class EbLoginController {
         return RSAUtils.getPublicKey(keyPair);
     }
 
-    @PostMapping("/login")
-    public R<LoginVO> login(@RequestBody @Validated AdminFormDTO adminFormDTO) throws Exception {
+    @PostMapping("/admin")
+    public R<LoginVO> login(@RequestBody @Validated LoginFormDTO loginFormDTO) throws Exception {
         //检查验证码
-        R captchaResult = ebAdminService.checkCaptcha(adminFormDTO.getKey(), adminFormDTO.getCode());
+        R captchaResult = ebAdminService.checkCaptcha(loginFormDTO.getKey(), loginFormDTO.getCode());
         if(captchaResult.getCode() == 4001){
             return R.error(captchaResult.getCode(),captchaResult.getMsg());
         }
         //将前端传递过来的加密密码解密
-        String decryptedPassword = RSAUtils.decrypt(adminFormDTO.getPassword(), RSAUtils.getPrivateKey(keyPair));
-        adminFormDTO.setPassword(decryptedPassword);
-        return ebAdminService.login(adminFormDTO);
+        String decryptedPassword = RSAUtils.decrypt(loginFormDTO.getPassword(), RSAUtils.getPrivateKey(keyPair));
+        loginFormDTO.setPassword(decryptedPassword);
+        return ebAdminService.login(loginFormDTO);
     }
     @PostMapping("/logout")
     public void logout(){
@@ -76,7 +79,7 @@ public class EbLoginController {
      * @return 返回新的authToken
      */
     @ApiOperation("刷新token")
-    @GetMapping(value = "/refresh")
+    @GetMapping(value = "refresh")
     public String refreshToken(@CookieValue(value = Constant.REFRESH_HEADER, required = false) String adminToken) {
         if(adminToken == null){
             throw new BadRequestException("登录超时");
@@ -84,4 +87,17 @@ public class EbLoginController {
         return ebAdminService.refreshToken(WebUtils.cookieBuilder().decode(adminToken));
     }
 
+    @ApiOperation("用户登录")
+    @PostMapping(value = "/user")
+    public R userLogin(@RequestBody @Validated LoginFormDTO loginFormDTO) throws Exception {
+        //检查验证码
+        R captchaResult = ebAdminService.checkCaptcha(loginFormDTO.getKey(), loginFormDTO.getCode());
+        if(captchaResult.getCode() == 4001){
+            return R.error(captchaResult.getCode(),captchaResult.getMsg());
+        }
+        //将前端传递过来的加密密码解密
+        String decryptedPassword = RSAUtils.decrypt(loginFormDTO.getPassword(), RSAUtils.getPrivateKey(keyPair));
+        loginFormDTO.setPassword(decryptedPassword);
+        return ebUserService.login(loginFormDTO);
+    }
 }

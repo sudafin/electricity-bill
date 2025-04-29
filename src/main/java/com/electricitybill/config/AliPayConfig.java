@@ -31,6 +31,5 @@ public class AliPayConfig {
         config.alipayPublicKey = this.alipayPublicKey;
         config.notifyUrl = this.notifyUrl;
         Factory.setOptions(config);
-        System.out.println("=======支付宝SDK初始化成功=======");
     }
 }

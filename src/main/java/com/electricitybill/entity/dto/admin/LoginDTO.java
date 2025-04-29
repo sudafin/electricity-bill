@@ -5,7 +5,8 @@ import lombok.Data;
 
 @Data
 @Builder
-public class AdminDTO {
+public class LoginDTO {
+    private Boolean isUser;
     private String roleName;
     private String userName;
     private Boolean rememberMe;
