@@ -5,7 +5,6 @@ import cn.hutool.json.JSONObject;
 import com.alibaba.fastjson.JSON;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
-import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.request.AlipayTradeCancelRequest;
 import com.alipay.api.request.AlipayTradePrecreateRequest;
 import com.alipay.api.request.AlipayTradeQueryRequest;
@@ -15,8 +14,6 @@ import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.alipay.easysdk.factory.Factory;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.electricitybill.config.AliPayConfig;
-import com.electricitybill.config.AlipayClientConfig;
 import com.electricitybill.config.WebSocketHandler;
 import com.electricitybill.constants.Constant;
 import com.electricitybill.entity.dto.AliPay;
@@ -40,22 +37,33 @@ import com.electricitybill.utils.BeanUtils;
 import com.electricitybill.utils.CollUtils;
 import com.electricitybill.utils.ObjectUtils;
 import com.electricitybill.utils.StringUtils;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import com.electricitybill.entity.po.EbUser;
+import com.electricitybill.mapper.EbUserMapper;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.scheduling.annotation.AsyncResult;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.util.function.Function;
 
 /**
  * <p>
@@ -117,16 +125,16 @@ public class EbBillServiceImpl extends ServiceImpl<EbBillMapper, EbBill> impleme
         List<BillPageVO> billPageVOS = List.of();
         try {
             billPageVOS = records.stream().map(
-                    ebBill -> {
-                        BillPageVO billPageVO = new BillPageVO();
-                        billPageVO.setBillId(ebBill.getId());
-                        billPageVO.setUsage(ebBill.getUsageAmount());
-                        billPageVO.setAmount(ebBill.getTotalAmount());
-                        billPageVO.setPaymentDate(ebBill.getPaymentTime());
-                        billPageVO.setDueDate(ebBill.getDueDate());
-                        billPageVO.setStatus(ebBill.getStatus());
-                        return billPageVO;
-                    }).
+                            ebBill -> {
+                                BillPageVO billPageVO = new BillPageVO();
+                                billPageVO.setBillId(ebBill.getId());
+                                billPageVO.setUsage(ebBill.getUsageAmount());
+                                billPageVO.setAmount(ebBill.getTotalAmount());
+                                billPageVO.setPaymentDate(ebBill.getPaymentTime());
+                                billPageVO.setDueDate(ebBill.getDueDate());
+                                billPageVO.setStatus(ebBill.getStatus());
+                                return billPageVO;
+                            }).
                     collect(Collectors.toList());
         } catch (Exception e) {
             log.info("转换异常");
@@ -155,24 +163,30 @@ public class EbBillServiceImpl extends ServiceImpl<EbBillMapper, EbBill> impleme
         billUserDetailVO.setDueDate(ebBill.getDueDate());
         billUserDetailVO.setStartReading(ebBill.getStartReading());
         billUserDetailVO.setEndReading(ebBill.getEndingReading());
+        ArrayList<JSONObject> jsonObjectArrayList = getJsonObjects(ebUsageSummary);
+        billUserDetailVO.setBillDetails(jsonObjectArrayList);
+        return billUserDetailVO;
+    }
+
+    private static ArrayList<JSONObject> getJsonObjects(EbUsageSummary ebUsageSummary) {
         ArrayList<JSONObject> jsonObjectArrayList = new ArrayList<>();
         for (PeriodType periodType : PeriodType.values()) {
             JSONObject jsonObject = new JSONObject();
             if (PeriodType.PEAK.getDesc().equals(periodType.getDesc())) {
                 jsonObject.set("name", periodType.getDesc());
                 jsonObject.set("value", ebUsageSummary.getPeakCost());
-            }else if (PeriodType.FLAT.getDesc().equals(periodType.getDesc())) {
+            } else if (PeriodType.FLAT.getDesc().equals(periodType.getDesc())) {
                 jsonObject.set("name", periodType.getDesc());
                 jsonObject.set("value", ebUsageSummary.getFlatCost());
-            }else if (PeriodType.VALLEY.getDesc().equals(periodType.getDesc())) {
+            } else if (PeriodType.VALLEY.getDesc().equals(periodType.getDesc())) {
                 jsonObject.set("name", periodType.getDesc());
                 jsonObject.set("value", ebUsageSummary.getValleyCost());
             }
             jsonObjectArrayList.add(jsonObject);
         }
-        billUserDetailVO.setBillDetails(jsonObjectArrayList);
-        return billUserDetailVO;
+        return jsonObjectArrayList;
     }
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Map<String, Object> pay(AliPay aliPay) {
@@ -275,6 +289,7 @@ public class EbBillServiceImpl extends ServiceImpl<EbBillMapper, EbBill> impleme
 
         return resp;
     }
+
     private void cancelOrder(AlipayClient client, String outTradeNo) {
         try {
             AlipayTradeCancelRequest request = new AlipayTradeCancelRequest();
@@ -363,7 +378,7 @@ public class EbBillServiceImpl extends ServiceImpl<EbBillMapper, EbBill> impleme
                 .between(billPageQuery.getStartDate() != null && billPageQuery.getEndDate() != null, EbBill::getUpdatedAt, billPageQuery.getStartDate(), billPageQuery.getEndDate())
                 .orderByDesc(EbBill::getUpdatedAt)
                 .page(page);
-        if (ebBillPage.getTotal()== 0) {
+        if (ebBillPage.getTotal() == 0) {
             return PageDTO.empty(page);
         }
         Stream<BillPageAdminVO> billPageAdminVOStream = ebBillPage.getRecords().stream().map(ebBill -> {
@@ -400,7 +415,7 @@ public class EbBillServiceImpl extends ServiceImpl<EbBillMapper, EbBill> impleme
         List<EbPayment> ebPayments = paymentMapper.selectList(new LambdaQueryWrapper<EbPayment>()
                 .eq(EbPayment::getId, ebBill.getPaymentId())
         );
-        if(!ebPayments.isEmpty()) {
+        if (!ebPayments.isEmpty()) {
             ArrayList<PaymentDetailVO> paymentDetailVOS = new ArrayList<>();
             ebPayments.forEach(ebPayment -> {
                 PaymentDetailVO paymentDetailVO = new PaymentDetailVO();
@@ -410,12 +425,12 @@ public class EbBillServiceImpl extends ServiceImpl<EbBillMapper, EbBill> impleme
                 paymentDetailVO.setStatus(ebPayment.getStatus());
                 paymentDetailVO.setPaymentTime(ebPayment.getPaymentTime());
                 EbReconciliation ebReconciliation = ebReconciliationMapper.selectById(ebPayment.getReconciliationId());
-                if(ebReconciliation != null) {
+                if (ebReconciliation != null) {
                     paymentDetailVO.setIsReconciliation(true);
                     paymentDetailVO.setReconciliationId(ebPayment.getReconciliationId());
                     paymentDetailVO.setReconciliationStatus(ebReconciliation.getStatus());
                     paymentDetailVO.setReconciliationComment(ebReconciliation.getComment());
-                }else {
+                } else {
                     paymentDetailVO.setIsReconciliation(false);
                 }
                 paymentDetailVOS.add(paymentDetailVO);
@@ -450,7 +465,7 @@ public class EbBillServiceImpl extends ServiceImpl<EbBillMapper, EbBill> impleme
         AlipayTradeQueryRequest request = new AlipayTradeQueryRequest();
         request.setBizContent("{\"out_trade_no\":\"" + billId + "\"}");
 
-        AlipayTradeQueryResponse response =client.execute(request);
+        AlipayTradeQueryResponse response = client.execute(request);
 
         if (response.isSuccess()) {
             EbPayment ebPayment = paymentMapper.selectById(ebBill.getPaymentId());
@@ -465,6 +480,94 @@ public class EbBillServiceImpl extends ServiceImpl<EbBillMapper, EbBill> impleme
         } else {
             return "QUERY_FAILED";  // 查询失败
         }
+    }
+
+    @Override
+    public Future<String> export() throws IOException {
+        List<EbBill> list = list();
+// 获取表的行数
+        int row = list.size();
+// 获取表的各个列名
+        String[] columnName = {"账单ID", "用户ID", "用电量（度）", "总金额", "状态", "支付记录ID", "创建时间", "更新时间", "支付方式", "最晚支付时间", "开始读表度数", "结束读表度数", "电表ID", "支付时间"};
+
+// 创建工作簿和表格
+        Workbook excel = new XSSFWorkbook();
+        Sheet sheet = excel.createSheet();
+
+// 设置样式：字体、颜色、对齐方式等
+        CellStyle headerStyle = excel.createCellStyle();
+        headerStyle.setAlignment(HorizontalAlignment.CENTER); // 设置水平居中
+        headerStyle.setVerticalAlignment(VerticalAlignment.CENTER); // 设置垂直居中
+        Font headerFont = excel.createFont();
+        headerFont.setBold(true); // 设置字体加粗
+        headerStyle.setFont(headerFont);
+
+// 为每列设置自适应宽度
+        for (int i = 0; i < columnName.length; i++) {
+            sheet.setColumnWidth(i, 15 * 256); // 设置列宽（调整15为合适的列宽值）
+        }
+
+// 创建表头
+        Row headerRow = sheet.createRow(0); // 创建一行
+        for (int columnNum = 0; columnNum < columnName.length; columnNum++) {
+            Cell cell = headerRow.createCell(columnNum);
+            cell.setCellValue(columnName[columnNum]); // 设置列名
+            cell.setCellStyle(headerStyle); // 应用样式
+        }
+
+// 创建列映射
+        Map<Integer, Function<EbBill, Object>> columnMap = new HashMap<>();
+        columnMap.put(0, EbBill::getId);
+        columnMap.put(1, EbBill::getUserId);
+        columnMap.put(2, EbBill::getUsageAmount);
+        columnMap.put(3, EbBill::getTotalAmount);
+        columnMap.put(4, EbBill::getStatus);
+        columnMap.put(5, EbBill::getPaymentId);
+        columnMap.put(6, EbBill::getCreatedAt);
+        columnMap.put(7, EbBill::getUpdatedAt);
+        columnMap.put(8, EbBill::getPaymentMethod);
+        columnMap.put(9, EbBill::getDueDate);
+        columnMap.put(10, EbBill::getStartReading);
+        columnMap.put(11, EbBill::getEndingReading);
+        columnMap.put(12, EbBill::getMeterId);
+        columnMap.put(13, EbBill::getPaymentTime);
+
+// 设置数据行的样式
+        CellStyle dataStyle = excel.createCellStyle();
+        dataStyle.setAlignment(HorizontalAlignment.CENTER); // 水平居中
+        dataStyle.setVerticalAlignment(VerticalAlignment.CENTER); // 垂直居中
+        dataStyle.setBorderTop(BorderStyle.THIN); // 设置边框
+        dataStyle.setBorderRight(BorderStyle.THIN);
+        dataStyle.setBorderBottom(BorderStyle.THIN);
+        dataStyle.setBorderLeft(BorderStyle.THIN);
+
+// 按列插入数据
+        for (int rowNum = 1; rowNum <= row; rowNum++) {
+            Row sheetRow = sheet.createRow(rowNum);
+            EbBill ebBill = list.get(rowNum - 1);
+            for (int columnNum = 0; columnNum < columnName.length; columnNum++) {
+                Object value = columnMap.getOrDefault(columnNum, bill -> "").apply(ebBill);
+                if (value == null) {
+                    value = ""; // 或者其他默认值
+                }
+                Cell cell = sheetRow.createCell(columnNum);
+                cell.setCellValue(value.toString());
+                cell.setCellStyle(dataStyle); // 应用数据行样式
+            }
+        }
+
+// 把excel保存到临时文件中
+        String tempDir = System.getProperty("java.io.tmpdir");
+        String fileName = "bill_report_" + System.currentTimeMillis() + ".xlsx";
+        String filePath = tempDir + File.separator + fileName;
+        FileOutputStream outputStream = new FileOutputStream(filePath);
+        excel.write(outputStream);
+        excel.close();
+        outputStream.close();
+        log.info("文件路径：{}", filePath);
+// 异步操作结果封装
+        return new AsyncResult<>(filePath);
+
     }
 
 
@@ -496,7 +599,6 @@ public class EbBillServiceImpl extends ServiceImpl<EbBillMapper, EbBill> impleme
             }
         }
     }
-
 
 
 }

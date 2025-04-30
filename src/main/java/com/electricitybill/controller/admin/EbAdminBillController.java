@@ -1,5 +1,6 @@
 package com.electricitybill.controller.admin;
 
+import com.electricitybill.annotation.ExportExcel;
 import com.electricitybill.entity.dto.PageDTO;
 import com.electricitybill.entity.dto.bill.BillPageQuery;
 import com.electricitybill.entity.vo.bill.BillAdminDetailVO;
@@ -16,7 +17,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import javax.validation.constraints.NotNull;
+import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 /**
  * @author huangdada
@@ -31,6 +35,7 @@ import java.util.List;
 public class EbAdminBillController {
     @Resource
     private IEbBillService ebBillService;
+
     @ApiOperation("管理端分页查询账单")
     @GetMapping("page")
     public PageDTO<BillPageAdminVO> query(BillPageQuery billPageQuery){
@@ -41,6 +46,15 @@ public class EbAdminBillController {
     @GetMapping("{id}")
     public BillAdminDetailVO queryUserBill(@PathVariable("id") @NotNull Long billId){
         return ebBillService.queryUserBillByAdmin(billId);
+    }
+    //导出报表
+    @ExportExcel
+    @ApiOperation("导出账单报表")
+    @GetMapping("/export")
+
+    public String export() throws IOException, ExecutionException, InterruptedException {
+        Future<String> future = ebBillService.export();
+        return future.get();
     }
 
 }

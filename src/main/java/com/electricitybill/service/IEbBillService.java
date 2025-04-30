@@ -14,8 +14,11 @@ import com.electricitybill.entity.vo.bill.BillUserDetailVO;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Future;
 
 /**
  * <p>
@@ -44,4 +47,6 @@ public interface IEbBillService extends IService<EbBill> {
     JSONObject overview();
 
     String queryStatus(Long billId) throws AlipayApiException;
+
+    Future<String> export() throws IOException;
 }

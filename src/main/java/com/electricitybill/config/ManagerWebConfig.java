@@ -2,7 +2,7 @@ package com.electricitybill.config;
 
 import com.electricitybill.filter.CxmRequestValidFilter;
 import com.electricitybill.handler.GlobalExceptionHandler;
-import com.electricitybill.interceptor.RoleInterceptor;
+import com.electricitybill.interceptor.LogRoleInterceptor;
 import com.electricitybill.interceptor.LoginInfoInterceptor;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
@@ -51,8 +51,8 @@ public class ManagerWebConfig implements WebMvcConfigurer {
         return new LoginInfoInterceptor();
     };
     @Bean
-    public RoleInterceptor roleInterceptor(){
-        return new RoleInterceptor();
+    public LogRoleInterceptor roleInterceptor(){
+        return new LogRoleInterceptor();
     }
 
     @Override

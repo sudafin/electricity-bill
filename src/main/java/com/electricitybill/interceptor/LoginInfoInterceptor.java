@@ -28,11 +28,4 @@ public class LoginInfoInterceptor implements HandlerInterceptor {
         }
         return true;
     }
-    //拦截后
-    @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
-        //清除上下文
-        AdminContextUtils.removeAdmin();
-        UserContextUtils.removeUser();
-    }
 }

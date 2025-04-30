@@ -25,8 +25,7 @@ public class AdminContextUtils {
      * @return 用户id
      */
     public static Long getAdminId(){
-        //TODO
-        return TL.get() == null ? 1L : TL.get();
+        return TL.get();
     }
 
     public static Object getRes() {
