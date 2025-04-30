@@ -13,6 +13,7 @@ import com.electricitybill.expcetions.BizIllegalException;
 import com.electricitybill.mapper.EbScheduledTaskMapper;
 import com.electricitybill.mapper.EbUserMapper;
 import com.electricitybill.service.UserProfileService;
+import com.electricitybill.utils.RSAUtils;
 import com.electricitybill.utils.UserContextUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import static com.electricitybill.controller.EbLoginController.keyPair;
 import static net.sf.jsqlparser.statement.select.PlainSelect.getStringList;
 
 @Slf4j
@@ -166,37 +168,29 @@ public class UserProfileServiceImpl implements UserProfileService {
             log.warn("修改密码参数不完整");
             throw new BadRequestException("请填写完整的密码信息");
         }
-
-        if (!Objects.equals(newPassword, confirmPassword)) {
-            log.warn("新密码与确认密码不一致");
-            throw new BadRequestException("新密码与确认密码不一致");
+        try {
+            //接口密钥传递的密码
+            currentPassword = RSAUtils.decrypt(currentPassword, RSAUtils.getPrivateKey(keyPair));
+            newPassword = RSAUtils.decrypt(newPassword, RSAUtils.getPrivateKey(keyPair));
+            confirmPassword = RSAUtils.decrypt(confirmPassword, RSAUtils.getPrivateKey(keyPair));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-
-        // 密码强度校验
-        if (newPassword.length() < 8) {
-            log.warn("新密码强度不足");
-            throw new BadRequestException("密码长度不能少于8个字符");
-        }
-
-        Long userId = UserContextUtils.getUserId();
-        EbUser user = ebUserMapper.selectById(userId);
-
-        if (user == null) {
-            log.error("未找到用户信息, userId: {}", userId);
+        EbUser ebUser = ebUserMapper.selectById(UserContextUtils.getUserId());
+        if (ebUser == null) {
             throw new BadRequestException("用户信息不存在");
         }
-
-        // 验证当前密码是否正确
-        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
-            log.warn("当前密码验证失败, userId: {}", userId);
-            throw new BadRequestException("当前密码不正确");
+        if(!passwordEncoder.matches(currentPassword, ebUser.getPassword())){
+            throw new BadRequestException("当前原密码错误");
         }
-
+        if(!newPassword.equals(confirmPassword)){
+            throw new BadRequestException("新密码与确认密码不一致");
+        }
+        //对密码进行bcrypt加密
+        String encodedPassword= passwordEncoder.encode(newPassword);
         // 更新密码
-        user.setPassword(passwordEncoder.encode(newPassword));
-        user.setUpdatedAt(LocalDateTime.now());
-
-        int result = ebUserMapper.updateById(user);
+        ebUser.setPassword(encodedPassword);
+        int result = ebUserMapper.updateById(ebUser);
         return result > 0;
 
 

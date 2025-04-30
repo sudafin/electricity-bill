@@ -34,9 +34,9 @@ public class AuthorizeFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request,  HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        HttpServletRequest requestWrapper = new CxmHttpServletRequestWrapper((HttpServletRequest) request);
+        HttpServletRequest requestWrapper = new CxmHttpServletRequestWrapper(request);
         // 获取请求路径
-        String path  = request.getRequestURI();
+        String path  = requestWrapper.getRequestURI();
         // 查看请求路径是否在这个白名单中
         if (isExclude(path)) {
             filterChain.doFilter(request, response);  // 白名单路径跳过过滤
@@ -44,7 +44,7 @@ public class AuthorizeFilter extends OncePerRequestFilter {
         }
 
         // 获取请求头中的 token
-        String token = request.getHeader("Authorization");
+        String token = requestWrapper.getHeader("Authorization");
 
         if (StrUtil.isEmpty(token)) {
             // 如果没有 token，返回 401 未授权
@@ -78,12 +78,12 @@ public class AuthorizeFilter extends OncePerRequestFilter {
             response.getWriter().write("Unauthorized: Token is invalid or expired");
             return;
         }
+        // 登录信息放入请求头中，供后续处理使用
+        requestWrapper.setAttribute("loginInfo", JSONUtil.toJsonStr(loginDTO));
 
-        // 将用户信息放入请求头中，供后续处理使用
-        request.setAttribute("userInfo", JSONUtil.toJsonStr(loginDTO));
 
 
-        filterChain.doFilter(request, response);  // 继续过滤链
+        filterChain.doFilter(requestWrapper, response);  // 继续过滤链
     }
 
     private boolean isExclude (String path){

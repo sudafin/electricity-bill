@@ -25,7 +25,6 @@ public class UserContextUtils {
      * @return 用户id
      */
     public static Long getUserId(){
-        //TODO
         return TL.get() == null ? 1L : TL.get();
     }
 
