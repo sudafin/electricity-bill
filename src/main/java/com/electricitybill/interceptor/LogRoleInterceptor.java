@@ -32,15 +32,19 @@ public class LogRoleInterceptor implements HandlerInterceptor {
     private Boolean isChecked =  false;
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-//         isChecked = ebPermissionService.roleCheck(request);
-//        if(isChecked) {
-//            String requestBody = getRequestBody(request);
-//            logDTO.setRequestBody(requestBody);
-//            return true;
-//        }else{
-//            response.setStatus(403);
-//            return false;
-//        }
+        String[] split = request.getRequestURI().split("/");
+        //只有管理端才有权限校验
+        if (split[1].equals("admin")) {
+            isChecked = ebPermissionService.roleCheck(request);
+            if(isChecked) {
+                String requestBody = getRequestBody(request);
+                logDTO.setRequestBody(requestBody);
+                return true;
+            }else{
+                response.setStatus(403);
+                return false;
+            }
+        }
         return true;
     }
 

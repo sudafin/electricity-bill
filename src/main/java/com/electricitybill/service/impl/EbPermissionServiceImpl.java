@@ -41,10 +41,10 @@ public class EbPermissionServiceImpl extends ServiceImpl<EbPermissionMapper, EbP
         AtomicReference<Boolean> isValid = new AtomicReference<>(false);
         String requestURI = request.getRequestURI();
         String[] split = requestURI.split("/");
-        String module = split[1];
+        String module = split[2];
         String actions;
-        if(split.length >=3) {
-            actions = split[2];
+        if(split.length >=4) {
+            actions = split[3];
         } else {
             actions = "";
         }
