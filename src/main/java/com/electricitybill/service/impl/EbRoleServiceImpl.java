@@ -335,7 +335,8 @@ public class EbRoleServiceImpl extends ServiceImpl<EbRoleMapper, EbRole> impleme
         String permissionRoleMapJson = stringRedisTemplate.opsForValue().get(Constant.PERMISSION_ROLE_MAP);
         //查看当前是否有缓存数据
         if(StrUtil.isNotEmpty(permissionRoleMapJson)){
-            return JSONUtil.toBean(permissionRoleMapJson, new TypeReference<Map<Long, List<Long>>>() {},false);
+            return JSONUtil.toBean(permissionRoleMapJson, new TypeReference<>() {
+            },false);
         }
         //没有就重新获取
             //permissionIds和permissionRoleMap进行排除,

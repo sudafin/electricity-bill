@@ -67,7 +67,7 @@ public class LogRoleInterceptor implements HandlerInterceptor {
                     logDTO.setErrorMsg("权限未通过");
                 }
                 else {
-                    logDTO.setErrorMsg(ex.getMessage());
+                    logDTO.setErrorMsg(ex.getMessage() == null ? "发生错误" : ex.getMessage());
                     logDTO.setStatus("error");
                 }
             } else {

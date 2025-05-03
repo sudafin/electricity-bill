@@ -43,7 +43,7 @@ public class EbAdminBillController {
     }
 
     @ApiOperation("管理端查询用户账单")
-    @GetMapping("{id}")
+    @GetMapping("detail/{id}")
     public BillAdminDetailVO queryUserBill(@PathVariable("id") @NotNull Long billId){
         return ebBillService.queryUserBillByAdmin(billId);
     }

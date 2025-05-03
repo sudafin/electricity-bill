@@ -94,7 +94,7 @@ public class EbAdminMeterController {
      * @param meterId 电表ID
      * @return 电表详细信息
      */
-    @GetMapping("/{meterId}")
+    @GetMapping("detail/{meterId}")
     public MeterDetailVO getMeterDetail(@PathVariable @NotNull String meterId) {
         return ebMeterService.getMeterDetail(meterId);
     }

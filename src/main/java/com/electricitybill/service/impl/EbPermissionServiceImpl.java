@@ -11,6 +11,7 @@ import com.electricitybill.service.IEbPermissionService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.electricitybill.service.IEbRoleService;
 import com.electricitybill.utils.AdminContextUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
  * @since 2024-11-26
  */
 @Service
+@Slf4j
 public class EbPermissionServiceImpl extends ServiceImpl<EbPermissionMapper, EbPermission> implements IEbPermissionService {
     @Resource
     private IEbRoleService ebRoleService;
@@ -57,6 +59,10 @@ public class EbPermissionServiceImpl extends ServiceImpl<EbPermissionMapper, EbP
         currentPermissionRoleMap.forEach((key,value)->{
             //拿到key的模块名称
             EbPermission ebPermission = baseMapper.selectById(key);
+            if (ebPermission == null){
+                log.warn("当前模块{}不存在",  key);
+                return;
+            }
             if(ebPermission.getPermissionCode().equals(module)){
                 if (value.isEmpty()) {
                     isValid.set(true);

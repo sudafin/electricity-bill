@@ -53,7 +53,7 @@ public class EbNotificationServiceImpl extends ServiceImpl<EbNotificationMapper,
 
     @Override
     public PageDTO<NotificationPageVO> queryPage(NotificationPageQuery notificationPageQuery) {
-        // 获取当前用户的通知接收信息
+        // 获取当前管理员的通知接收信息
         List<EbNotificationRecipient> ebNotificationRecipientList = ebNotificationRecipientService.lambdaQuery()
                 .eq(EbNotificationRecipient::getRecipientId, AdminContextUtils.getAdminId())
                 .eq(StringUtils.isNotBlank(notificationPageQuery.getReadStatus()), EbNotificationRecipient::getReadStatus, notificationPageQuery.getReadStatus())
@@ -66,22 +66,28 @@ public class EbNotificationServiceImpl extends ServiceImpl<EbNotificationMapper,
                 .eq(EbNotification::getValidType, ValidType.VALID.getValue())
                 .list();
 
-        // 联接两张表，通过通知ID进行过滤
+        ArrayList<EbNotification> ebNotifications = new ArrayList<>();
+        // 联接两张表，如果是内部通知就通过->通知ID进行过滤
         List<EbNotification> filteredRecords = records.stream()
+                .filter(ebNotification -> !ebNotification.getType().equals(NotificationType.INTERNAL_NOTIFICATION.getDesc()))
                 .filter(ebNotification -> ebNotificationRecipientList.stream()
                         .anyMatch(ebNotificationRecipient -> ebNotificationRecipient.getNotificationId().equals(ebNotification.getId())))
                 .collect(Collectors.toList());
-
+        //添加内部通知
+        CollUtils.addAll(ebNotifications,filteredRecords);
+        //添加公告通知
+        List<EbNotification> annunciations = records.stream().filter(ebNotification -> ebNotification.getType().equals(NotificationType.ANNOUNCEMENT_NOTIFICATION.getDesc())).collect(Collectors.toList());
+        CollUtils.addAll(ebNotifications,annunciations);
         // 如果过滤后的数据为空，直接返回空分页
-        if (CollUtils.isEmpty(filteredRecords)) {
+        if (CollUtils.isEmpty(ebNotifications)) {
             Page<NotificationPageVO> emptyPage = new Page<>(notificationPageQuery.getPageNo(), notificationPageQuery.getPageSize());
             emptyPage.setTotal(0);  // 总数为0
             emptyPage.setRecords(Collections.emptyList());  // 数据为空
             return PageDTO.empty(emptyPage);
         }
-
+        ebNotifications.sort(Comparator.comparing(EbNotification::getCreatedAt).reversed());
         // 创建分页对象，手动设置分页逻辑
-        int total = filteredRecords.size();  // 总记录数
+        int total = ebNotifications.size();  // 总记录数
         int pageSize = notificationPageQuery.getPageSize();  // 每页条数
         int pageNo = notificationPageQuery.getPageNo();  // 当前页数
 
@@ -90,7 +96,7 @@ public class EbNotificationServiceImpl extends ServiceImpl<EbNotificationMapper,
         int toIndex = Math.min(fromIndex + pageSize, total);
 
         // 获取当前页的数据
-        List<EbNotification> pageData = filteredRecords.subList(fromIndex, toIndex);
+        List<EbNotification> pageData = ebNotifications.subList(fromIndex, toIndex);
 
         // 转换为 VO 对象
         List<NotificationPageVO> notificationPageVOS = new ArrayList<>(pageData.size());
@@ -156,7 +162,7 @@ public class EbNotificationServiceImpl extends ServiceImpl<EbNotificationMapper,
         ebNotification.setTitle(notificationDTO.getTitle());
         ebNotification.setContent(notificationDTO.getContent());
         ebNotification.setType(notificationDTO.getType());
-        ebNotification.setSenderType(notificationDTO.getSenderType());
+        ebNotification.setSenderType("admin");
         ebNotification.setSenderId(AdminContextUtils.getAdminId());
         ebNotification.setValidType(ValidType.VALID.getValue());
         ebNotification.setExpireTime(notificationDTO.getExpireTime());
@@ -164,42 +170,42 @@ public class EbNotificationServiceImpl extends ServiceImpl<EbNotificationMapper,
         if (insert != 1) {
             throw new DbException(Constant.DB_INSERT_FAILURE);
         }
-
-        List<String> senderList = notificationDTO.getSenderList();
-        // 获取发送者的列表
-        if (CollUtils.isEmpty(senderList)) {
-            throw new DbException(Constant.NOTIFICATION_SENDER_LIST_EMPTY);
-        }
-
-        // 去重 senderList，避免重复插入
-        Set<String> senderSet = new HashSet<>(senderList);
-        Set<EbNotificationRecipient> ebNotificationRecipients = new HashSet<>();
-        long finalId = id;
-        for (String sender : senderSet) {
-            // 获取对应角色
-            EbRole ebRole = ebRoleMapper.selectOne(new LambdaQueryWrapper<EbRole>().eq(EbRole::getRoleName, sender));
-            if (ObjectUtils.isEmpty(ebRole)) {
-                throw new DbException(Constant.ROLE_NOT_EXIST);
+        if(NotificationType.INTERNAL_NOTIFICATION.getDesc().equals(notificationDTO.getType())){
+            List<String> senderList = notificationDTO.getSenderList();
+            // 获取发送者的列表
+            if (CollUtils.isEmpty(senderList)) {
+                throw new DbException(Constant.NOTIFICATION_SENDER_LIST_EMPTY);
             }
-            // 获取对应角色的管理员列表
-            List<EbAdmin> ebAdminList = ebAdminMapper.selectList(new LambdaQueryWrapper<EbAdmin>().eq(EbAdmin::getRoleId, ebRole.getId()));
-            if (CollUtils.isEmpty(ebAdminList)) {
-                continue;
+            // 去重 senderList，避免重复插入
+            Set<String> senderSet = new HashSet<>(senderList);
+            Set<EbNotificationRecipient> ebNotificationRecipients = new HashSet<>();
+            long finalId = id;
+            for (String sender : senderSet) {
+                // 获取对应角色
+                EbRole ebRole = ebRoleMapper.selectOne(new LambdaQueryWrapper<EbRole>().eq(EbRole::getRoleName, sender));
+                if (ObjectUtils.isEmpty(ebRole)) {
+                    throw new DbException(Constant.ROLE_NOT_EXIST);
+                }
+                // 获取对应角色的管理员列表
+                List<EbAdmin> ebAdminList = ebAdminMapper.selectList(new LambdaQueryWrapper<EbAdmin>().eq(EbAdmin::getRoleId, ebRole.getId()));
+                if (CollUtils.isEmpty(ebAdminList)) {
+                    continue;
+                }
+                ebAdminList.forEach(ebAdmin -> {
+                    //需要在最内层里循环内创建对象不然数据会被覆盖
+                    EbNotificationRecipient ebNotificationRecipient = new EbNotificationRecipient();
+                    ebNotificationRecipient.setNotificationId(finalId);
+                    ebNotificationRecipient.setRecipientType(sender);
+                    ebNotificationRecipient.setReadStatus(ReadStatusType.UNREAD.getValue());
+                    ebNotificationRecipient.setRecipientId(ebAdmin.getId());
+                    ebNotificationRecipients.add(ebNotificationRecipient);
+                });
             }
-            ebAdminList.forEach(ebAdmin -> {
-                //需要在最内层里循环内创建对象不然数据会被覆盖
-                EbNotificationRecipient ebNotificationRecipient = new EbNotificationRecipient();
-                ebNotificationRecipient.setNotificationId(finalId);
-                ebNotificationRecipient.setRecipientType(sender);
-                ebNotificationRecipient.setReadStatus(ReadStatusType.UNREAD.getValue());
-                ebNotificationRecipient.setRecipientId(ebAdmin.getId());
-                ebNotificationRecipients.add(ebNotificationRecipient);
-            });
-        }
-        if (CollUtils.isNotEmpty(ebNotificationRecipients)) {
-            ebNotificationRecipientService.saveBatch(ebNotificationRecipients);
-        }else if (CollUtils.isEmpty(ebNotificationRecipients)) {
-            throw new DbException(Constant.NOTIFICATION_RECIPIENT_LIST_EMPTY);
+            if (CollUtils.isNotEmpty(ebNotificationRecipients)) {
+                ebNotificationRecipientService.saveBatch(ebNotificationRecipients);
+            }else if (CollUtils.isEmpty(ebNotificationRecipients)) {
+                throw new DbException(Constant.NOTIFICATION_RECIPIENT_LIST_EMPTY);
+            }
         }
         return R.ok();
     }
