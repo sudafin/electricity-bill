@@ -1,5 +1,6 @@
 package com.electricitybill.service.impl;
 
+import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.electricitybill.constants.Constant;
 import com.electricitybill.entity.R;
@@ -7,21 +8,17 @@ import com.electricitybill.entity.dto.PageDTO;
 import com.electricitybill.entity.dto.feedback.FeedBackPageQuery;
 import com.electricitybill.entity.dto.feedback.FeedBackProcessDTO;
 import com.electricitybill.entity.dto.feedback.FeedBackSubmitDTO;
-import com.electricitybill.entity.po.EbAdmin;
-import com.electricitybill.entity.po.EbUser;
-import com.electricitybill.entity.po.EbUserFeedback;
+import com.electricitybill.entity.po.*;
 import com.electricitybill.entity.vo.feedback.FeedBackDetailVO;
 import com.electricitybill.entity.vo.feedback.FeedBackPageVO;
-import com.electricitybill.enums.FeedbackStatusType;
-import com.electricitybill.enums.FeedbackType;
+import com.electricitybill.enums.*;
 import com.electricitybill.expcetions.BizIllegalException;
-import com.electricitybill.mapper.EbAdminMapper;
-import com.electricitybill.mapper.EbUserFeedbackMapper;
-import com.electricitybill.mapper.EbUserMapper;
+import com.electricitybill.mapper.*;
 import com.electricitybill.service.IEbUserFeedbackService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.electricitybill.utils.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.HashMap;
@@ -43,6 +40,10 @@ public class EbUserFeedbackServiceImpl extends ServiceImpl<EbUserFeedbackMapper,
     private EbUserMapper ebUserMapper;
     @Resource
     private EbAdminMapper ebAdminMapper;
+    @Resource
+    private EbNotificationRecipientMapper ebNotificationRecipientMapper;
+    @Resource
+    private EbNotificationMapper ebNotificationMapper;
     @Override
     public PageDTO<FeedBackPageVO> queryFeedBackPage(FeedBackPageQuery feedBackPageQuery) {
         Page<EbUserFeedback> page = new Page<>(feedBackPageQuery.getPageNo(), feedBackPageQuery.getPageSize());
@@ -50,6 +51,7 @@ public class EbUserFeedbackServiceImpl extends ServiceImpl<EbUserFeedbackMapper,
                 .eq(StringUtils.isNotBlank(feedBackPageQuery.getFeedbackStatus()), EbUserFeedback::getFeedbackStatus, feedBackPageQuery.getFeedbackStatus())
                 .eq(StringUtils.isNotBlank(feedBackPageQuery.getFeedbackId()), EbUserFeedback::getId, feedBackPageQuery.getFeedbackId())
                 .between(feedBackPageQuery.getStartDate() != null && feedBackPageQuery.getEndDate() != null, EbUserFeedback::getSubmitTime, feedBackPageQuery.getStartDate(), feedBackPageQuery.getEndDate())
+                .orderByDesc(EbUserFeedback::getSubmitTime)
                 .page(page);
         if(ebUserFeedbackPage.getRecords() == null){
             return PageDTO.empty(page);
@@ -91,6 +93,7 @@ public class EbUserFeedbackServiceImpl extends ServiceImpl<EbUserFeedbackMapper,
     }
 
     @Override
+    @Transactional
     public R<Object> processFeedBack(FeedBackProcessDTO feedBackProcessDTO) {
         EbUserFeedback ebUserFeedback = getById(feedBackProcessDTO.getFeedbackId());
         if (ebUserFeedback == null){
@@ -106,13 +109,31 @@ public class EbUserFeedbackServiceImpl extends ServiceImpl<EbUserFeedbackMapper,
         }
         FeedbackStatusType feedbackStatusType = FeedbackStatusType.value(feedBackProcessDTO.getFeedbackStatus());
         if (ebUserFeedback.getFeedbackStatus().equals(feedbackStatusType.getDesc())) {
-            return R.error("重复状态");
+            throw new BizIllegalException("重复状态");
         }
         ebUserFeedback.setFeedbackStatus(feedbackStatusType.getDesc());
         if(StringUtils.isNotBlank(feedBackProcessDTO.getResponse())){
             ebUserFeedback.setResponse(feedBackProcessDTO.getResponse());
         }
         updateById(ebUserFeedback);
+        //设置通知
+        EbNotification ebNotification = new EbNotification();
+        long notificationId = IdUtil.getSnowflakeNextId();
+        ebNotification.setId(notificationId);
+        ebNotification.setValidType(ValidType.VALID.getValue());
+        ebNotification.setContent(feedBackProcessDTO.getResponse());
+        ebNotification.setSenderId(adminId);
+        ebNotification.setSenderType("admin");
+        ebNotification.setTitle("反馈处理返回信息："+ebUserFeedback.getContent());
+        ebNotification.setType(NotificationType.FEEDBACK_NOTIFICATION.getDesc());
+        ebNotificationMapper.insert(ebNotification);
+        //设置接受人
+        EbNotificationRecipient ebNotificationRecipient = new EbNotificationRecipient();
+        ebNotificationRecipient.setNotificationId(notificationId);
+        ebNotificationRecipient.setRecipientType("user");
+        ebNotificationRecipient.setRecipientId(ebUserFeedback.getUserId());
+        ebNotificationRecipient.setReadStatus(ReadStatusType.UNREAD.getValue());
+        ebNotificationRecipientMapper.insert(ebNotificationRecipient);
         return R.ok(null);
     }
 

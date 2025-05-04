@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.electricitybill.entity.po.*;
 import com.electricitybill.enums.NotificationType;
+import com.electricitybill.enums.ReadStatusType;
 import com.electricitybill.enums.ValidType;
 import com.electricitybill.service.*;
 import com.electricitybill.utils.UserContextUtils;
@@ -15,6 +16,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -175,14 +179,44 @@ public class UserDashboardServiceImpl implements UserDashboardService {
 
     @Override
     public int getUnreadNotificationCount() {
-        Long userId = UserContextUtils.getUserId();
-        
-        LambdaQueryWrapper<EbNotificationRecipient> query = new LambdaQueryWrapper<>();
-        query.eq(EbNotificationRecipient::getRecipientId, userId)
-             .eq(EbNotificationRecipient::getRecipientType, "user")
-             .eq(EbNotificationRecipient::getReadStatus, 0); // 0 表示未读
-        
-        return Math.toIntExact(notificationRecipientService.count(query));
+        Long currentUserId = UserContextUtils.getUserId();
+
+        // 用户通知接收记录（反馈通知）
+        List<EbNotificationRecipient> recipientList = notificationRecipientService.lambdaQuery()
+                .eq(EbNotificationRecipient::getRecipientId, currentUserId)
+                .eq(EbNotificationRecipient::getRecipientType, "user")
+                .list();
+
+        Map<Long, EbNotificationRecipient> recipientMap = recipientList.stream()
+                .collect(Collectors.toMap(EbNotificationRecipient::getNotificationId, Function.identity(), (a, b) -> a));
+
+        // 所有有效通知（不包括内部通知）
+        List<EbNotification> allNotifications = notificationService.lambdaQuery()
+                .ne(EbNotification::getType, NotificationType.INTERNAL_NOTIFICATION.getDesc())
+                .eq(EbNotification::getValidType, ValidType.VALID.getValue())
+                .list();
+
+        int unreadCount = 0;
+
+        for (EbNotification notification : allNotifications) {
+            String type = notification.getType();
+            Long id = notification.getId();
+            EbNotificationRecipient recipient = recipientMap.get(id);
+
+            if (NotificationType.ANNOUNCEMENT_NOTIFICATION.getDesc().equals(type)) {
+                // 公告：如果用户从未接收过，视为未读
+                if (recipient == null) {
+                    unreadCount++;
+                }
+            } else if (NotificationType.FEEDBACK_NOTIFICATION.getDesc().equals(type)) {
+                // 反馈：有接收记录且状态为未读
+                if (recipient != null && recipient.getReadStatus().equals(ReadStatusType.UNREAD.getValue())) {
+                    unreadCount++;
+                }
+            }
+        }
+
+        return unreadCount;
     }
 
     @Override
