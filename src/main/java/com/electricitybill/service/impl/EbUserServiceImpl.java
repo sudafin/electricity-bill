@@ -86,7 +86,8 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
         // 分页查询条件
         Page<EbUser> ebUserPage = new Page<>(userPageQuery.getPageNo(), userPageQuery.getPageSize());
         // 查询数据库条件
-        Page<EbUser> page = lambdaQuery().eq(EbUser::getValidType, ValidType.VALID.getValue()).eq(StrUtil.isNotBlank(userPageQuery.getUserType()), EbUser::getUserType, userPageQuery.getUserType()).eq(StrUtil.isNotBlank(userPageQuery.getPhone()), EbUser::getPhone, userPageQuery.getPhone()).like(StrUtil.isNotBlank(userPageQuery.getName()), EbUser::getUsername, userPageQuery.getName()).eq(StrUtil.isNotBlank(userPageQuery.getMeterId()), EbUser::getMeterId, userPageQuery.getMeterId()).ge(userPageQuery.getStartDate() != null, EbUser::getLastPaymentDate, userPageQuery.getStartDate()).le(userPageQuery.getEndDate() != null, EbUser::getLastPaymentDate, userPageQuery.getEndDate()).page(ebUserPage);
+        Page<EbUser> page = lambdaQuery().eq(EbUser::getValidType, ValidType.VALID.getValue()).eq(StrUtil.isNotBlank(userPageQuery.getUserType()), EbUser::getUserType, userPageQuery.getUserType()).eq(StrUtil.isNotBlank(userPageQuery.getPhone()), EbUser::getPhone, userPageQuery.getPhone()).like(StrUtil.isNotBlank(userPageQuery.getName()), EbUser::getUsername, userPageQuery.getName()).eq(StrUtil.isNotBlank(userPageQuery.getMeterId()), EbUser::getMeterId, userPageQuery.getMeterId()).ge(userPageQuery.getStartDate() != null, EbUser::getLastPaymentDate, userPageQuery.getStartDate()).le(userPageQuery.getEndDate() != null, EbUser::getLastPaymentDate, userPageQuery.getEndDate())
+                .orderByDesc(EbUser::getCreatedAt).page(ebUserPage);
         //判断数据是否为空
         /**
          * page.getSize(): 每页的记录数 一页10条数据大小

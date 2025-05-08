@@ -66,14 +66,14 @@ public class EbRateServiceImpl extends ServiceImpl<EbRateMapper, EbRate> impleme
                 .eq(StringUtils.isNotBlank(ratePageQuery.getStatus()), EbRate::getStatus, ratePageQuery.getStatus())
                 .eq(StringUtils.isNotBlank(ratePageQuery.getRateId()), EbRate::getId, ratePageQuery.getRateId())
                 .between(ratePageQuery.getStartDate() != null && ratePageQuery.getEndDate() != null, EbRate::getEffectiveDate, ratePageQuery.getStartDate(), ratePageQuery.getEndDate())
+                .orderByDesc(EbRate::getEffectiveDate)
                 .page(page);
         if (ebRatePage.getTotal() == 0) {
             return PageDTO.empty(page);
         }
         List<EbRate> records = ebRatePage.getRecords();
         List<RatePageVO> ratePageVOS = records.stream().map(ebRate -> BeanUtils.copyBean(ebRate, RatePageVO.class)).collect(Collectors.toList());
-        PageDTO<RatePageVO> ratePageVOPageDTO = PageDTO.of(page, ratePageVOS);
-        return ratePageVOPageDTO;
+        return PageDTO.of(page, ratePageVOS);
     }
 
     @Override

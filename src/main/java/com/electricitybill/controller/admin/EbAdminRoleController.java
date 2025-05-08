@@ -1,6 +1,7 @@
 package com.electricitybill.controller.admin;
 
 
+import cn.hutool.json.JSONObject;
 import com.electricitybill.entity.R;
 import com.electricitybill.entity.dto.PageDTO;
 import com.electricitybill.entity.dto.role.PermissionDTO;
@@ -79,4 +80,6 @@ public class EbAdminRoleController {
     public List<RoleInfoVO> roleList(){
         return ebRoleService.roleList();
     }
+
+
 }

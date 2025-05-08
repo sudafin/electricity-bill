@@ -206,6 +206,7 @@ public class EbMeterServiceImpl extends ServiceImpl<EbMeterMapper, EbMeter> impl
             if(ebUser != null){
                 meterInspectionVO.setUserName(ebUser.getUsername());
             }
+
             return meterInspectionVO;
         }).collect(Collectors.toList());
     }

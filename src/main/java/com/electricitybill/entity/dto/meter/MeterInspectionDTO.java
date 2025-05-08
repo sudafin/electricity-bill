@@ -50,5 +50,5 @@ public class MeterInspectionDTO {
     /**
      * 状态: pending（待处理）/processing（处理中）/completed（已完成）
      */
-    private String inspectionStatus;
+    private String status;
 }

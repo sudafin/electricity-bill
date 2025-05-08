@@ -42,4 +42,5 @@ public interface IEbRoleService extends IService<EbRole> {
     List<RoleInfoVO> roleList();
     Map<Long, List<Long>> permissionRoleIdToMap();
     Map<Long, List<Long>> currentPermissionRoleMap(Map<Long, List<Long>> permissionRoleMap, List<Long> permissionIds);
+
 }

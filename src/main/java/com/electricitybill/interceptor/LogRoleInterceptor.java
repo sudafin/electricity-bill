@@ -57,27 +57,31 @@ public class LogRoleInterceptor implements HandlerInterceptor {
             logDTO.setPath(request.getRequestURI());
             logDTO.setUserAgent(request.getHeader("User-Agent"));
             logDTO.setIp(request.getRemoteAddr());
+
             Object adminRes = AdminContextUtils.getRes();
             Object userRes = UserContextUtils.getRes();
+
             if (adminRes != null) {
                 logDTO.setRequestParamMap(AdminContextUtils.getParams());
                 logDTO.setResponseBody(JSONUtil.toJsonStr(adminRes));
                 logDTO.setStatus("success");
-                if(!isChecked){
+
+                if (!isChecked) {
                     logDTO.setErrorMsg("权限未通过");
-                }
-                else {
+                } else if (ex != null) {
                     logDTO.setErrorMsg(ex.getMessage() == null ? "发生错误" : ex.getMessage());
                     logDTO.setStatus("error");
                 }
             } else {
-                logDTO.setResponseBody(JSONUtil.toJsonStr(userRes));
                 logDTO.setRequestParamMap(UserContextUtils.getParams());
+                logDTO.setResponseBody(JSONUtil.toJsonStr(userRes));
                 logDTO.setStatus("success");
             }
-        }finally {
+        } catch (Exception e) {
+            log.error("记录日志时异常", e);
+        } finally {
             ebSystemLogService.saveLog(logDTO);
-            //清除上下文
+            // 清理上下文
             UserContextUtils.removeParams();
             UserContextUtils.removeRes();
             AdminContextUtils.removeRes();
@@ -85,6 +89,7 @@ public class LogRoleInterceptor implements HandlerInterceptor {
             AdminContextUtils.removeAdmin();
             UserContextUtils.removeUser();
         }
+
     }
 
     public String getRequestBody(HttpServletRequest request) throws IOException {
