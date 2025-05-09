@@ -9,7 +9,7 @@ public class UserContextUtils {
      * 保存用户信息
      * @param userId 用户id
      */
-    public static void setUser(Long userId){
+    public static void setUserId(Long userId){
         TL.set(userId);
     }
 
@@ -24,7 +24,7 @@ public class UserContextUtils {
      * 获取用户
      * @return 用户id
      */
-    public static Long getUser(){
+    public static Long getUserId(){
         return TL.get();
     }
 

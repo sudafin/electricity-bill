@@ -1,7 +1,7 @@
 package com.electricitybill.config;
-
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.StrUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Configuration;
 import javax.annotation.Resource;
 
 @Configuration
+@Slf4j
 public class RedissonConfiguration {
 
     @Resource
@@ -29,6 +30,7 @@ public class RedissonConfiguration {
         if (StrUtil.isNotEmpty(redisProperties.getPassword())) {
             serverConfig.setPassword(redisProperties.getPassword());
         }
+        log.info("redisson初始化完成");
         return Redisson.create(config);
     }
 

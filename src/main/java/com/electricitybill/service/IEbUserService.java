@@ -1,16 +1,18 @@
 package com.electricitybill.service;
 
+import cn.hutool.json.JSONObject;
 import com.electricitybill.entity.R;
 import com.electricitybill.entity.dto.PageDTO;
-import com.electricitybill.entity.dto.user.UserDTO;
+import com.electricitybill.entity.dto.admin.LoginFormDTO;
+import com.electricitybill.entity.dto.user.UserCreateDTO;
 import com.electricitybill.entity.dto.user.UserPageQuery;
-import com.electricitybill.entity.po.EbUser;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.electricitybill.entity.vo.dashboard.DashboardVO;
+import com.electricitybill.entity.dto.usertype.UserTypeCreateDTO;
+import com.electricitybill.entity.po.EbUser;
 import com.electricitybill.entity.vo.user.UserDetailVO;
 import com.electricitybill.entity.vo.user.UserPageVO;
-import com.electricitybill.entity.vo.user.UserPaymentVO;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 /**
@@ -23,19 +25,23 @@ import java.util.List;
  */
 public interface IEbUserService extends IService<EbUser> {
 
-    DashboardVO getDashboardInfo();
-
     PageDTO<UserPageVO> queryUserPage(UserPageQuery userPageQuery);
 
     UserDetailVO queryUserDetail(Long userId);
 
-    R insertUser(UserDTO userDTO);
+    R insertUser(UserCreateDTO userCreateDTO);
 
     R deleteUser(List<Long> userIds);
 
-    R updateUser(UserDTO userDTO);
+    R adminUpdateUser(UserCreateDTO userCreateDTO);
 
-    R pay(Long userId, Double money, String paymentMethod);
+    List<String> getUserTypeList();
 
-    UserPaymentVO queryUserPayment(Long userId);
+    R addUserType(@NotNull UserTypeCreateDTO ebUserType);
+
+    JSONObject getUserInfoByIdCard(String idCardNo);
+
+    R bindMeter(JSONObject jsonObject);
+
+    R login(LoginFormDTO loginFormDTO);
 }

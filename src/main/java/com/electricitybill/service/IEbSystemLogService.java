@@ -3,8 +3,8 @@ package com.electricitybill.service;
 import com.electricitybill.entity.dto.PageDTO;
 import com.electricitybill.entity.dto.log.LogDTO;
 import com.electricitybill.entity.dto.log.LogPageQuery;
-import com.electricitybill.entity.po.EbSystemLog;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.electricitybill.entity.po.EbSystemLog;
 import com.electricitybill.entity.vo.log.LogDetailVO;
 import com.electricitybill.entity.vo.log.LogPageVO;
 
@@ -20,6 +20,7 @@ import java.util.concurrent.Future;
  * @since 2024-11-26
  */
 public interface IEbSystemLogService extends IService<EbSystemLog> {
+
 
     PageDTO<LogPageVO> queryPage(LogPageQuery logPageQuery);
 

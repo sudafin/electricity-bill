@@ -1,9 +1,13 @@
 package com.electricitybill.service;
 
 import com.electricitybill.entity.R;
-import com.electricitybill.entity.po.EbRate;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.electricitybill.entity.vo.rate.RateInfoVO;
+import com.electricitybill.entity.dto.PageDTO;
+import com.electricitybill.entity.dto.rate.RateCrateDTO;
+import com.electricitybill.entity.dto.rate.RatePageQuery;
+import com.electricitybill.entity.po.EbRate;
+import com.electricitybill.entity.vo.rate.RateDetailVO;
+import com.electricitybill.entity.vo.rate.RatePageVO;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -18,7 +22,14 @@ import java.util.List;
  */
 public interface IEbRateService extends IService<EbRate> {
 
-    List<RateInfoVO> getRate();
+    RateDetailVO getRateDetail(Long id);
 
-    R editRate(Long id, BigDecimal rateValue);
+
+    PageDTO<RatePageVO> queryRatePage(RatePageQuery pageDTO);
+
+    R createRate(RateCrateDTO rateCrateDTO);
+
+    R deleteRate(List<Long> ids);
+
+    R editRate(Long id, RateCrateDTO rateCrateDTO);
 }

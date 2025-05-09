@@ -1,0 +1,92 @@
+#端口信息
+server:
+  port: 8080
+spring:
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+#redis配置
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    password: 123456
+
+  #数据库信息
+  datasource:
+    url: jdbc:mysql://localhost:3306/electricity_bill
+    username: root
+    password: 123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  #mybatis-plus配置
+mybatis-plus:
+  mapper-locations: classpath:/mapper/*.xml
+  type-aliases-package: com.example.electricitybill.entity
+  configuration: #在映射实体或者属性时，将数据库中表名和字段名中的下划线去掉，按照驼峰命名法映射
+    map-underscore-to-camel-case: true
+    #    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+  global-config:
+    db-config:
+      id-type: ASSIGN_ID
+#      更新策略，用于mybatisplus自带的update时更新时允许设置null值
+      update-strategy: ignored
+
+#日志配置
+logging:
+  level: #    把com.example.electricitybill包下的日志级别设置为debug
+    com.electricitybill: debug
+    #    把org.springframework包下的日志级别设置为info
+    org.springframework: info
+
+#jwt配置
+jwt:
+  token:
+    expirationTime: 3600000 # 以毫秒为单位，例如1分钟=60000毫秒
+    secret: ThisIsRandomSecretKey # 密钥，用于签名和验证token
+
+  #过滤器不拦截的路径,拦截器路径在MangerWebConfig中设置
+eb:
+  noAuthPaths:
+    - /login/**
+    - /doc.html
+    - /v2/api-docs
+    - /swagger-resources
+    - /webjars/**
+    - /error
+    - /user/bill/pay/**
+    - /user/bill/notify/**
+    - /ws/**
+
+  swagger:
+    enable: true
+    enableResponseWrap: true
+    packagePath: com.electricitybill.controller
+    title: My API Documentation
+    description: API documentation for my project
+    contactName: John Doe
+    contactUrl: http://example.com
+    contactEmail: john@example.com
+    version: 1.0.0
+
+# 设置redis缓存过期时间
+redis:
+  ttl:
+    default-range:
+      min: 3600    # 1小时
+      max: 7200    # 2小时
+    short-range:
+      min: 60      # 1分钟
+      max: 300     # 5分钟
+    long-range:
+      min: 7200    # 2小时
+      max: 14400   # 4小时
+    temp-range:
+      min: 10      # 10秒
+      max: 30      # 30秒
+
+alipay:
+  appId: 9021000135634332
+  appPrivateKey: MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCbyoo6Aw7TZqZnsHmSDjCzqUeItpd8H9mI1jzSmVu24om7sXz4waLZIEYE0yBHsKMso2CGd5gyI9+u5gVXWoK+3H2W7UeKkDxzhd5EwSvNNWEq4vbPRlrJt/+MciG6W8UZOOlcfPY5jff5ZS0aMzqUBwo6CqrLxz+EqU7UEVOOmPGBq0uCW9gFeXZp+euqekIIDyd7rs/kVJCKbhsSqEOrSV5EBrmhBts0ZYjLCc3GRNFGLL/SOPNjPYefQPJOeG+AtvDTkc767X7aCpOXH4a58+kR5gl44AoNf1mBu+DuZkz0J0swJWJyprwZ+b/Cpjn+aKSQw5HEX8NxCrYpl7NzAgMBAAECggEAUNjI5tYTaY2JqaGhVTRb/cBJSR9IebelkidrpPbE66GgTHENI6KJOhhPfc16oPl/lHisbNu/dbW8LO1dtDlaRGX0HtDAIZ48YM8Fy7RbYMDkzfa+kk42axw7V80ax7U8EZzBLagDt1Z/a0MgJsqTCaKlof1LKTkbM2MRb2gWbpcGk11+GGZsKrVFoUpYonhrg4ugt/+HfyYg6demA7Wqc6eWrDzSuai9xP9hBRu8ED0o/hf5uvLl6qA1GFCpkv/9eookCcdAdkNH64rjiLsIXSOmaB7nqJST3voOU8UPSSRsCtAWUc98Mf5Ls+KpHznEwfwIQEZTH3wI+U0uKiWOoQKBgQD/hLQMmnPapooBXhdHWn1Qk/zhyYaM+sgl9qX4C4ukRNApUlWOfYiTIq8CDdasip44VBpJaLMGyQl+N1MXT2tHcG5gHSng61688qLuW4J8vX75Uvpz2hvwfmoTLEZIgKw3sdWHa0cPUMCTLUDBmNQtWDce90z3znw992vVs73M6QKBgQCcFbb3rzFBVTrBurJ35VW0OjlKj7Il/Nne5x5icRUE22K2jHhYkbXlkfucXlnyP5nScaadOwPwJMsI0J6FBe89ZEZZEnQyi//MrTqE8a1R0w6dfYOa+8FXa7iLfrpi1V0RbQr0k33TdcNugTdpfKxWmSaAEnsykX9Q3W4axWaT+wKBgQDqPw0U9M+7Jqwj/s9WgbWalmDh2W95dTrh2tFiqar2CIPRLgLzY1A+mzBXsLoaaeYM+8UxgUOGt+z1AeEx4IQX9RGrGXFYGk865zHJVKk2lD6AcbrbVJwCiNHUC+XO9+9qC6UWxZlaiAxToMvZ77Ksc0/tGog8Mdcis93vBx28aQKBgF0a4uKKQZJcOclYCZ9VULNKS+R7JOReGMRLDyfflo8oIpEL57nFaUCAvRsAeRz07VfH7YA6tNWpzOb8MqLc8GGpkAEP7fo84qB/8LlexGlbwYsWVMu9Qw5XtmSXeqz74yFC71cHJ/Zcd/BR6fDlqpOZlYqt+4klm1FsVIJpoA/DAoGBAJMMoFDgkx1++XT7oMo9nyvNK86mc/pXVA9rEql3LzcP9sgAXHuL6V5lO1HlIX3m+Iw2VAQd9HYcKSHJVfeJg9YZcasHqkXxAY7D/6iaK8AFsMuBbXMbns7ISG3J/ZpjGcdW3AXI8VlIJuoRAAIVSeheEuGdeHBLkh7L6mGx+JxP
+  alipayPublicKey: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvrwlCCyS8cX8M/FtxIROLXsDFaNZw4J3tb9AlWFX7QajbQr/2/52J9NEF9Cynls2SwGKVXGrdySGeGMyvn+yupxBIiO3Vw66BuoSQL7akYGxL3fpFLQ5JlFt+6B0oC4OLeXQnFfprLN4dAghRXA6WRx/eOzTNS4BpN0ao2D2mAnGPU66KkD7kH5U7ei7Syf30ssIECSsKu5vskSo/yRfotwWoTHZqeiKjKtMpehH9MiNqXHrlNZDf5KsT/1UHquDwFlK9Id5hXIg+9KdfDSxLYVlDNNChTIqe8CRM4kEZnwWbGrBjaVVuinOOLf1YkIZDpr+l+rcFAake7LZxNG7+QIDAQAB
+  notifyUrl: http://36cf0c9a.r26.cpolar.top/user/bill/notify

@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import java.time.LocalDateTime;
 import java.io.Serializable;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -15,46 +17,41 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author huangdada
- * @since 2024-11-26
+ * @since 2025-03-17
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @TableName("eb_notification_recipient")
+@ApiModel(value="EbNotificationRecipient对象", description="")
 public class EbNotificationRecipient implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @TableId(value = "id", type = IdType.INPUT)
+    @ApiModelProperty(value = "接收记录ID")
+    @TableId(value = "id", type = IdType.ASSIGN_ID)
     private Long id;
 
-    /**
-     * 通知ID
-     */
+    @ApiModelProperty(value = "通知ID")
     private Long notificationId;
 
-    /**
-     * 接收对象类型:user/admin
-     */
+    @ApiModelProperty(value = "接收者类型: user（用户）/admin（管理员）")
     private String recipientType;
 
-    /**
-     * 接收者ID
-     */
+    @ApiModelProperty(value = "接收者ID")
     private Long recipientId;
 
-    /**
-     * 阅读状态:0未读/1已读
-     */
+
+    @ApiModelProperty(value = "阅读状态: 0未读/1已读")
     private Integer readStatus;
 
-    /**
-     * 阅读时间
-     */
+    @ApiModelProperty(value = "阅读时间")
     private LocalDateTime readTime;
 
+    @ApiModelProperty(value = "创建时间")
     private LocalDateTime createdAt;
 
+    @ApiModelProperty(value = "更新时间")
     private LocalDateTime updatedAt;
 
 

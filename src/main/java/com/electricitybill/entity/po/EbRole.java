@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import java.time.LocalDateTime;
 import java.io.Serializable;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -15,36 +17,34 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author huangdada
- * @since 2024-11-26
+ * @since 2025-03-17
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @TableName("eb_role")
+@ApiModel(value="EbRole对象", description="")
 public class EbRole implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @TableId(value = "id", type = IdType.INPUT)
+    @ApiModelProperty(value = "角色ID")
+    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    /**
-     * 角色名称
-     */
+    @ApiModelProperty(value = "角色名称")
     private String roleName;
 
-    /**
-     * 角色描述
-     */
+    @ApiModelProperty(value = "角色描述")
     private String roleDesc;
 
-    /**
-     * 状态:0禁用/1启用
-     */
+    @ApiModelProperty(value = "状态: 0禁用/1启用")
     private Integer status;
 
+    @ApiModelProperty(value = "创建时间")
     private LocalDateTime createdAt;
 
+    @ApiModelProperty(value = "更新时间")
     private LocalDateTime updatedAt;
 
 

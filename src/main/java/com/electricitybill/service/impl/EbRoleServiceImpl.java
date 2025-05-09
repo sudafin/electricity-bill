@@ -20,6 +20,7 @@ import com.electricitybill.entity.po.EbRolePermission;
 import com.electricitybill.entity.vo.role.PermissionDetailVO;
 import com.electricitybill.entity.vo.role.RoleInfoVO;
 import com.electricitybill.entity.vo.role.RolePageVO;
+import com.electricitybill.enums.ValidType;
 import com.electricitybill.expcetions.BadRequestException;
 import com.electricitybill.expcetions.BizIllegalException;
 import com.electricitybill.expcetions.DbException;
@@ -30,8 +31,6 @@ import com.electricitybill.mapper.EbRolePermissionMapper;
 import com.electricitybill.service.IEbRoleService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.electricitybill.utils.*;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
-import nonapi.io.github.classgraph.json.JSONUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -40,13 +39,14 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.electricitybill.controller.admin.EbAdminController.keyPair;
+import static com.electricitybill.controller.EbLoginController.keyPair;
 
 /**
  * <p>
- *  服务实现类
+ * 服务实现类
  * </p>
  *
  * @author huangdada
@@ -69,71 +69,107 @@ public class EbRoleServiceImpl extends ServiceImpl<EbRoleMapper, EbRole> impleme
 
     @Override
     @Transactional
-    public PermissionDetailVO editRoleAndAdminDetail(Long id) {
-        //获取当前管理人员
+    public PermissionDetailVO roleAndAdminDetail(Long id) {
+        // 获取当前管理人员
         EbAdmin ebAdmin = ebAdminMapper.selectById(id);
-        //判断当前管理人员是否存在
         if (ObjectUtils.isEmpty(ebAdmin)) {
             throw new BadRequestException(Constant.ACCOUNT_NOT_EXIST);
         }
-        //获取当前管理人员的角色id,然后拿到角色信息
+
+        // 获取角色信息
         Long roleId = ebAdmin.getRoleId();
         EbRole ebRole = ebRoleMapper.selectById(roleId);
-        //获取当前管理人员拥有的所有权限列表
-        List<EbRolePermission> ebRolePermissions = ebRolePermissionMapper.selectList(new LambdaQueryWrapper<EbRolePermission>().eq(EbRolePermission::getRoleId, roleId));
+
+        // 获取权限ID列表
+        List<EbRolePermission> ebRolePermissions = ebRolePermissionMapper.selectList(
+                new LambdaQueryWrapper<EbRolePermission>().eq(EbRolePermission::getRoleId, roleId));
         if (CollUtils.isEmpty(ebRolePermissions)) {
             throw new BizIllegalException("当前角色设置错误");
         }
-        //我们的eb_permission 表是分为menu还有actions,然后我们需要找到对应的menu然后再找到他们对应的actions; key是父类型的id, value是孩子的id集合
+
+        List<Long> permissionIds = ebRolePermissions.stream()
+                .map(EbRolePermission::getPermissionId)
+                .collect(Collectors.toList());
+
+        // 构造完整权限结构
         Map<Long, List<Long>> allPermissionRoleMap = permissionRoleIdToMap();
-        //拿到遍历拿到elRolePermissions里对象id的集合
-        List<Long> permissionIds = ebRolePermissions.stream().map(EbRolePermission::getPermissionId).collect(Collectors.toList());
-        Map<Long, List<Long>> currentPermissionRoleMap= currentPermissionRoleMap(allPermissionRoleMap, permissionIds);
-        //设置返回值
+        Map<Long, List<Long>> currentPermissionRoleMap = currentPermissionRoleMap(allPermissionRoleMap, permissionIds);
+
+        // 查询所有相关权限详情（避免多次调用数据库）
+        Set<Long> allRelevantPermissionIds = new HashSet<>(permissionIds);
+        allRelevantPermissionIds.addAll(currentPermissionRoleMap.keySet());
+
+        Map<Long, EbPermission> permissionMap = ebPermissionMapper.selectBatchIds(allRelevantPermissionIds)
+                .stream()
+                .collect(Collectors.toMap(EbPermission::getId, Function.identity()));
+
+        // 准备数据结构
         PermissionDetailVO permissionDetailVO = new PermissionDetailVO();
         permissionDetailVO.setAccount(ebAdmin.getAccount());
         permissionDetailVO.setRoleName(ebRole.getRoleName());
         permissionDetailVO.setRoleDesc(ebRole.getRoleDesc());
-        //设置权限信息
-        ArrayList<PermissionDTO> permissionVOArrayList = new ArrayList<>();
-        currentPermissionRoleMap.forEach((key, value)->{
-            ArrayList<PermissionDTO> childrenPermissionVOArrayList = new ArrayList<>();
-            PermissionDTO permissionDTO = new PermissionDTO();
-            permissionDTO.setPermissionId(key);
-            permissionDTO.setPermissionName(ebPermissionMapper.selectById(key).getPermissionName());
-            //设置儿子节点
-            value.forEach(permissionId -> {
-                PermissionDTO childrenPermissionDTO = new PermissionDTO();
-                childrenPermissionDTO.setPermissionId(permissionId);
-                childrenPermissionDTO.setPermissionName(ebPermissionMapper.selectById(permissionId).getPermissionName());
-                childrenPermissionDTO.setChildren(new ArrayList<>());
-                childrenPermissionVOArrayList.add(childrenPermissionDTO);
-            });
-            permissionDTO.setChildren(childrenPermissionVOArrayList);
-            //然后添加到总的列表中
-            permissionVOArrayList.add(permissionDTO);
-        });
+
+        List<PermissionDTO> permissionVOArrayList = new ArrayList<>();
+
+        // 避免重复出现的子权限
+        Set<Long> allChildPermissionIds = currentPermissionRoleMap.values()
+                .stream()
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
+
+        for (Map.Entry<Long, List<Long>> entry : currentPermissionRoleMap.entrySet()) {
+            Long parentId = entry.getKey();
+
+            // 跳过已经作为子权限出现的权限ID（防止重复）
+            if (allChildPermissionIds.contains(parentId)) {
+                continue;
+            }
+
+            EbPermission parentPermission = permissionMap.get(parentId);
+            if (parentPermission == null) continue;
+
+            PermissionDTO parentDTO = new PermissionDTO();
+            parentDTO.setPermissionId(parentId);
+            parentDTO.setPermissionName(parentPermission.getPermissionName());
+
+            List<PermissionDTO> children = new ArrayList<>();
+            for (Long childId : entry.getValue()) {
+                EbPermission childPermission = permissionMap.get(childId);
+                if (childPermission == null) continue;
+
+                PermissionDTO childDTO = new PermissionDTO();
+                childDTO.setPermissionId(childId);
+                childDTO.setPermissionName(childPermission.getPermissionName());
+                childDTO.setChildren(new ArrayList<>());
+                children.add(childDTO);
+            }
+
+            parentDTO.setChildren(children);
+            permissionVOArrayList.add(parentDTO);
+        }
+
         permissionDetailVO.setPermissionList(permissionVOArrayList);
         return permissionDetailVO;
     }
+
 
     @Override
     public PageDTO<RolePageVO> queryPage(RolePageQuery rolePageQuery) {
         Page<EbAdmin> ebAdminPage = new Page<>(rolePageQuery.getPageNo(), rolePageQuery.getPageSize());
         EbRole ebRole = new EbRole();
-        if(StringUtils.isNotBlank(rolePageQuery.getRole())){
-        ebRole = ebRoleMapper.selectOne(new LambdaQueryWrapper<EbRole>()
-                .eq(EbRole::getRoleName, rolePageQuery.getRole()));
+        if (StringUtils.isNotBlank(rolePageQuery.getRole())) {
+            ebRole = ebRoleMapper.selectOne(new LambdaQueryWrapper<EbRole>()
+                    .eq(EbRole::getRoleName, rolePageQuery.getRole()));
         }
         Page<EbAdmin> adminPage = ebAdminMapper.selectPage(ebAdminPage, new LambdaQueryWrapper<EbAdmin>()
-                .eq(rolePageQuery.getAdminId() != null, EbAdmin::getId, rolePageQuery.getAdminId())
                 .eq(StringUtils.isNotBlank(rolePageQuery.getAccount()), EbAdmin::getAccount, rolePageQuery.getAccount())
-                .eq(ebRole.getId() !=null ,EbAdmin::getRoleId, ebRole.getId())
+                .eq(ebRole.getId() != null, EbAdmin::getRoleId, ebRole.getId())
                 .ge(rolePageQuery.getStartDate() != null, EbAdmin::getCreatedAt, rolePageQuery.getStartDate())
                 .le(rolePageQuery.getEndDate() != null, EbAdmin::getCreatedAt, rolePageQuery.getEndDate())
+                .orderByDesc(EbAdmin::getCreatedAt)
         );
         List<EbAdmin> adminPageRecords = adminPage.getRecords();
-        if(CollUtils.isEmpty(adminPageRecords)){
+        if (CollUtils.isEmpty(adminPageRecords)) {
             return PageDTO.empty(adminPage);
         }
         ArrayList<RolePageVO> rolePageVOArrayList = new ArrayList<>();
@@ -143,7 +179,7 @@ public class EbRoleServiceImpl extends ServiceImpl<EbRoleMapper, EbRole> impleme
             rolePageVO.setAdminId(ebAdmin.getId());
             rolePageVO.setStatus(ebAdmin.getStatus());
             EbRole role = ebRoleMapper.selectById(ebAdmin.getRoleId());
-            if(ObjectUtils.isEmpty(role)){
+            if (ObjectUtils.isEmpty(role)) {
                 throw new BizIllegalException("当前角色设置错误");
             }
             rolePageVO.setRole(role.getRoleName());
@@ -155,7 +191,7 @@ public class EbRoleServiceImpl extends ServiceImpl<EbRoleMapper, EbRole> impleme
     }
 
     @Override
-    public R deleteAdmins(List<Long> ids){
+    public R deleteAdmins(List<Long> ids) {
         int adminDeleteBatchIds = ebAdminMapper.deleteBatchIds(ids);
         if (adminDeleteBatchIds != ids.size()) {
             throw new DbException(Constant.DB_DELETE_FAILURE);
@@ -170,29 +206,29 @@ public class EbRoleServiceImpl extends ServiceImpl<EbRoleMapper, EbRole> impleme
         if (ObjectUtils.isEmpty(ebAdmin)) {
             throw new BadRequestException(Constant.ACCOUNT_NOT_EXIST);
         }
-        //处理管理员信息
-        EbRole ebRole = ebRoleMapper.selectOne(new LambdaQueryWrapper<EbRole>().eq(EbRole::getRoleName, roleEditDTO.getRole()));
-        if (ObjectUtils.isEmpty(ebRole)) {
-            throw new BadRequestException(Constant.ROLE_NOT_EXIST);
-        }
-        ebAdmin.setRoleId(ebRole.getId());
-        if(StringUtils.isNotBlank(roleEditDTO.getAccount())){
-            ebAdmin.setAccount(roleEditDTO.getAccount());
-        }
-        if(StringUtils.isNotBlank(roleEditDTO.getPassword())){
-        //对密码解密
-        try {
-            //keyPair在EbAdminController中设为public static便于获取, 因为在需要用EbAdminController中用这个生成公钥密钥,我们才能使用RSA私钥解密
-            String decryptedPassword = RSAUtils.decrypt(roleEditDTO.getPassword(), RSAUtils.getPrivateKey(keyPair));
-            //对密码进行bcrypt加密
-            String encodedPassword = passwordEncoder.encode(decryptedPassword);
-            ebAdmin.setPassword(encodedPassword);
-        } catch (Exception e) {
-            throw new BizIllegalException("密码安全问题");
-        }
+        if (roleEditDTO.getIsEditRole()) {
+            //处理管理员信息
+            EbRole ebRole = ebRoleMapper.selectOne(new LambdaQueryWrapper<EbRole>().eq(EbRole::getRoleName, roleEditDTO.getRole()));
+            if (ObjectUtils.isEmpty(ebRole)) {
+                throw new BadRequestException(Constant.ROLE_NOT_EXIST);
+            }
+            ebAdmin.setRoleId(ebRole.getId());
+        } else {
+            if (StringUtils.isNotBlank(roleEditDTO.getPassword())) {
+                //对密码解密
+                try {
+                    //keyPair在EbAdminController中设为public static便于获取, 因为在需要用EbAdminController中用这个生成公钥密钥,我们才能使用RSA私钥解密
+                    String decryptedPassword = RSAUtils.decrypt(roleEditDTO.getPassword(), RSAUtils.getPrivateKey(keyPair));
+                    //对密码进行bcrypt加密
+                    String encodedPassword = passwordEncoder.encode(decryptedPassword);
+                    ebAdmin.setPassword(encodedPassword);
+                } catch (Exception e) {
+                    throw new BizIllegalException("密码安全问题");
+                }
+            }
         }
         ebAdminMapper.updateById(ebAdmin);
-        if(StringUtils.isNotBlank(roleEditDTO.getPassword()) && UserContextUtils.getUser().equals(ebAdmin.getId())){
+        if (StringUtils.isNotBlank(roleEditDTO.getPassword()) && AdminContextUtils.getAdminId().equals(ebAdmin.getId())) {
             return R.of(401, "当前用户登录过期", null);
         }
         return R.ok();
@@ -203,7 +239,7 @@ public class EbRoleServiceImpl extends ServiceImpl<EbRoleMapper, EbRole> impleme
         R create;
         if (roleCreateDTO.getIsRole()) {
             create = isCreateRole(roleCreateDTO);
-        }else {
+        } else {
             create = isCreateAdmin(roleCreateDTO);
         }
         return create;
@@ -227,7 +263,7 @@ public class EbRoleServiceImpl extends ServiceImpl<EbRoleMapper, EbRole> impleme
     public List<PermissionDTO> getPermissionList() {
         Map<Long, List<Long>> permissionRoleIdToMap = permissionRoleIdToMap();
         ArrayList<PermissionDTO> permissionVOArrayList = new ArrayList<>();
-        permissionRoleIdToMap.forEach((key, value)->{
+        permissionRoleIdToMap.forEach((key, value) -> {
             ArrayList<PermissionDTO> childrenPermissionVOArrayList = new ArrayList<>();
             PermissionDTO permissionDTO = new PermissionDTO();
             permissionDTO.setPermissionId(key);
@@ -248,13 +284,12 @@ public class EbRoleServiceImpl extends ServiceImpl<EbRoleMapper, EbRole> impleme
 
     @Override
     public List<RoleInfoVO> roleList() {
-        List<EbRole> list = list(); 
+        List<EbRole> list = list();
         ArrayList<RoleInfoVO> roleInfoVOS = new ArrayList<>();
         list.forEach(ebRole -> {
             RoleInfoVO roleInfoVO = new RoleInfoVO();
             roleInfoVO.setLabel(ebRole.getRoleName());
             roleInfoVO.setValue(ebRole.getRoleName());
-
             if ("系统管理员".equals(ebRole.getRoleName())) {
                 roleInfoVO.setIcon("Management");
             } else if ("运营人员".equals(ebRole.getRoleName())) {
@@ -272,7 +307,7 @@ public class EbRoleServiceImpl extends ServiceImpl<EbRoleMapper, EbRole> impleme
         EbAdmin ebAdmin = new EbAdmin();
         //查看当前是否有相同账号
         EbAdmin admin = ebAdminMapper.selectOne(new LambdaQueryWrapper<EbAdmin>().eq(EbAdmin::getAccount, roleCreateDTO.getAccount()));
-        if(admin != null){
+        if (admin != null) {
             return R.error(404, "当前账号已存在");
         }
         //keyPair在EbAdminController中
@@ -285,9 +320,10 @@ public class EbRoleServiceImpl extends ServiceImpl<EbRoleMapper, EbRole> impleme
         //对密码进行bcrypt加密
         String encodedPassword = passwordEncoder.encode(decryptedPassword);
         ebAdmin.setPassword(encodedPassword);
+        ebAdmin.setAdminName("admin");
         ebAdmin.setAccount(roleCreateDTO.getAccount());
         EbRole ebRole = ebRoleMapper.selectOne(new LambdaQueryWrapper<EbRole>().eq(EbRole::getRoleName, roleCreateDTO.getRole()));
-        if(ebRole == null){
+        if (ebRole == null) {
             throw new BadRequestException(Constant.ROLE_NOT_EXIST);
         }
         ebAdmin.setRoleId(ebRole.getId());
@@ -301,24 +337,31 @@ public class EbRoleServiceImpl extends ServiceImpl<EbRoleMapper, EbRole> impleme
 
     private R isCreateRole(RoleCreateDTO roleCreateDTO) {
         EbRole ebRole = new EbRole();
-        if(ebRoleMapper.selectOne(new LambdaQueryWrapper<EbRole>().eq(EbRole::getRoleName, roleCreateDTO.getRole())) != null){
+        if (ebRoleMapper.selectOne(new LambdaQueryWrapper<EbRole>().eq(EbRole::getRoleName, roleCreateDTO.getRole())) != null) {
             return R.error(404, "当前角色已存在");
         }
         long ebRoleId = IdUtil.getSnowflakeNextId();
         ebRole.setId(ebRoleId);
         ebRole.setRoleDesc(roleCreateDTO.getRoleDesc());
-        ebRole.setStatus(1);
+        ebRole.setStatus(ValidType.VALID.getValue());
         ebRole.setRoleName(roleCreateDTO.getRole());
         ebRoleMapper.insert(ebRole);
         //设置权限
         List<Long> permissionIdList = roleCreateDTO.getPermissionIdList();
+        // 根据已有权限结构获取所有要授权的权限（包含子权限）
         Map<Long, List<Long>> currentPermissionRoleMap = currentPermissionRoleMap(permissionRoleIdToMap(), permissionIdList);
-        currentPermissionRoleMap.forEach((key,value)->{
-            ebRolePermissionMapper.insert(new EbRolePermission().setRoleId(ebRoleId).setPermissionId(key));
-            //如果有子节点
-            if(CollUtils.isNotEmpty(value))
-                value.forEach(permissionId -> ebRolePermissionMapper.insert(new EbRolePermission().setRoleId(ebRoleId).setPermissionId(permissionId)));
+        // 用 Set 去重所有权限 ID
+        Set<Long> allPermissionIds = new HashSet<>();
+        currentPermissionRoleMap.forEach((parentId, childIds) -> {
+            allPermissionIds.add(parentId);
+            allPermissionIds.addAll(childIds);
         });
+        // 批量插入
+        List<EbRolePermission> rolePermissions = allPermissionIds.stream()
+                .map(permissionId -> new EbRolePermission().setRoleId(ebRoleId).setPermissionId(permissionId))
+                .collect(Collectors.toList());
+
+        rolePermissions.forEach(ebRolePermissionMapper::insert);
         //删除缓存
         stringRedisTemplate.delete(Constant.PERMISSION_ROLE_MAP);
         return R.ok();
@@ -329,70 +372,63 @@ public class EbRoleServiceImpl extends ServiceImpl<EbRoleMapper, EbRole> impleme
      * 根据给定的权限ID列表更新权限与角色映射
      * 此方法旨在过滤和排序权限与角色的映射，确保只保留与给定权限ID列表匹配的权限
      *
-     * @param permissionRoleMap 原始的权限与角色映射，其中键为权限ID，值为拥有该权限的角色ID列表
-     * @param permissionIds 当前有效的权限ID列表
      * @return 返回一个新的、经过过滤和排序的权限与角色映射
      */
-    public Map<Long, List<Long>> currentPermissionRoleMap(Map<Long, List<Long>> permissionRoleMap, List<Long> permissionIds) {
-        //获取redis的缓存数据
-        String permissionRoleMapJson = stringRedisTemplate.opsForValue().get(Constant.PERMISSION_ROLE_MAP);
-        //查看当前是否有缓存数据
-        if(StrUtil.isNotEmpty(permissionRoleMapJson)){
-            return JSONUtil.toBean(permissionRoleMapJson, new TypeReference<Map<Long, List<Long>>>() {},false);
+    public Map<Long, List<Long>> currentPermissionRoleMap(Map<Long, List<Long>> fullPermissionMap, List<Long> selectedPermissionIds) {
+        Map<Long, List<Long>> resultMap = new HashMap<>();
+        Set<Long> selectedSet = new HashSet<>(selectedPermissionIds);
+
+        for (Map.Entry<Long, List<Long>> entry : fullPermissionMap.entrySet()) {
+            Long parentId = entry.getKey();
+            List<Long> childIds = entry.getValue();
+
+            // 只保留 selectedPermissionIds 中出现的 parentId
+            if (selectedSet.contains(parentId)) {
+                List<Long> filteredChildren = childIds.stream()
+                        .filter(selectedSet::contains)
+                        .collect(Collectors.toList());
+                resultMap.put(parentId, filteredChildren); // 即使是空也保留
+            }
         }
-        //没有就重新获取
-            //permissionIds和permissionRoleMap进行排除,
-            //把permissionRoleMap中没有permissionIds的key去掉
-        permissionRoleMap.keySet().removeIf(key -> !permissionIds.contains(key));
-            //把permissionRoleMap中list类型的value中没有permissionIds的值去掉
-        permissionRoleMap.replaceAll((key, value) ->
-                value.stream()
-                        .filter(permissionIds::contains)
-                        .collect(Collectors.toList())
-        );
-        //不使用stream流的写法
-        /**
-         *         for (Map.Entry<String, List<Long>> entry : permissionRoleMap.entrySet()) {
-         *             List<Long> filteredValue = new ArrayList<>();
-         *             //取出每个list的值然后遍历然后判断包含然后添加到新的list中
-         *             for (Long permissionId : entry.getValue()) {
-         *                 if (permissionIds.contains(permissionId)) {
-         *                     filteredValue.add(permissionId);
-         *                 }
-         *             }
-         *             entry.setValue(filteredValue);
-         *         }
-         */
-        //permissionRoleMap按key进行排序,通过TreeMap排序,并存入到redis缓存中,使用hash结构
-        Map<Long, List<Long>> orderMap = new TreeMap<>(permissionRoleMap);
-        //序列化后存入redis
-        stringRedisTemplate.opsForValue().set(Constant.PERMISSION_ROLE_MAP, JSONUtil.toJsonStr(orderMap),TTLGenerator.generateDefaultRandomTTL(), TimeUnit.SECONDS);
-        return orderMap;
+
+        return new TreeMap<>(resultMap); // 如需排序
     }
+
 
     /**
      * 生成权限与角色ID的映射
      * 该方法用于创建一个HashMap，其中键是权限ID，值是包含该权限下所有子权限ID的列表
      * 主要目的是为了快速查询某个权限下的所有子权限
      *
-     * @return HashMap<Long, List<Long>> 返回一个HashMap，键为权限ID，值为子权限ID列表
+     * @return HashMap<Long, List < Long>> 返回一个HashMap，键为权限ID，值为子权限ID列表
      */
     public Map<Long, List<Long>> permissionRoleIdToMap() {
         // 查询所有权限记录
         List<EbPermission> ebPermissionList = ebPermissionMapper.selectList(new LambdaQueryWrapper<>());
-        // 初始化权限映射HashMap
-        HashMap<Long, List<Long>> permissionMap = new HashMap<>();
-        // 遍历权限列表，为每个权限创建或更新映射
-        ebPermissionList.forEach(ebPermission -> {
-            // 如果权限的父ID为空，则将其作为父权限添加到映射中，并初始化其子权限列表
-            if (ebPermission.getParentId()  == null) {
-                permissionMap.putIfAbsent(ebPermission.getId(), new ArrayList<>());
-            }else {
-                // 如果权限的父ID不为空，则将其添加到对应父权限的子权限列表中
-                permissionMap.get(ebPermission.getParentId()).add(ebPermission.getId());
+
+        // 初始化权限映射 HashMap
+        Map<Long, List<Long>> permissionMap = new HashMap<>();
+
+        // 第一步：先把所有作为父权限的 ID 初始化为 key
+        for (EbPermission permission : ebPermissionList) {
+            if (permission.getParentId() == null) {
+                permissionMap.putIfAbsent(permission.getId(), new ArrayList<>());
             }
-        });
-        // 返回构建完成的权限映射
+        }
+
+        // 第二步：处理所有子权限，将其挂到对应的父权限上
+        for (EbPermission permission : ebPermissionList) {
+            Long parentId = permission.getParentId();
+            if (parentId != null) {
+                // 初始化父权限 key（兼容父ID不为null但父权限未出现在上面那步）
+                permissionMap.computeIfAbsent(parentId, k -> new ArrayList<>());
+                permissionMap.get(parentId).add(permission.getId());
+            }
+        }
+
+        // 返回 TreeMap（按 key 升序），如不需要排序可以直接返回 permissionMap
         return new TreeMap<>(permissionMap);
     }
+
+
 }

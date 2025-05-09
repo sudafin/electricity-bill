@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>扫码支付</title>
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
+        .qr-img {
+            width: 220px;
+            height: 220px;
+            margin: 20px auto;
+        }
+        .countdown {
+            font-size: 16px;
+            color: #666;
+        }
+        .paid-msg {
+            color: green;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<h2>请使用支付宝扫码支付</h2>
+<div id="qrcode" style="margin: 20px auto;"></div> <!-- 生成二维码的容器 -->
+<p id="countdownText" class="countdown">二维码将在 300 秒后过期</p>
+<p id="paidMsg" class="paid-msg" style="display: none;">支付成功！正在跳转...</p>
+
+<!-- 引入二维码生成库 -->
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+<script>
+    // 模拟后端传递的数据
+    const orderNo = "3213123";
+    const qrCode = "https://qr.alipay.com/bax01525sxbmllqjruqt005c";
+    const expireTime = 1744944207192; // 毫秒时间戳
+
+    // 使用 qrcode.js 生成二维码
+    new QRCode(document.getElementById("qrcode"), {
+        text: qrCode, // 这个是二维码链接
+        width: 220,
+        height: 220,
+    });
+
+    // 倒计时逻辑
+    const countdownElem = document.getElementById("countdownText");
+    const paidMsgElem = document.getElementById("paidMsg");
+    let countdown = Math.floor((expireTime - Date.now()) / 1000);
+
+    const timer = setInterval(() => {
+        if (countdown <= 0) {
+            countdownElem.innerText = "二维码已过期，请刷新页面";
+            clearInterval(timer);
+        } else {
+            countdownElem.innerText = `二维码将在 ${countdown} 秒后过期`;
+            countdown--;
+        }
+    }, 1000);
+
+    // WebSocket 连接
+    const socket = new WebSocket("ws://localhost:8080/ws/payStatus");
+
+    socket.onopen = () => {
+        console.log("WebSocket 连接成功");
+    };
+
+    socket.onmessage = (event) => {
+        console.log("收到消息：", event.data);
+        if (event.data === orderNo || event.data.includes("PAY_SUCCESS")) {
+            paidMsgElem.style.display = "block";
+            clearInterval(timer);
+            setTimeout(() => {
+                location.reload(); // 或跳转到支付成功页
+            }, 2000);
+        }
+    };
+
+    socket.onclose = () => {
+        console.log("WebSocket 已关闭");
+    };
+
+    socket.onerror = (err) => {
+        console.error("WebSocket 错误：", err);
+    };
+</script>
+
+</body>
+</html>

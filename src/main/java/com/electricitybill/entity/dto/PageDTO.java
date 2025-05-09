@@ -25,6 +25,8 @@ public class PageDTO<T> {
 
     protected List<T> list;
 
+
+
     public static <T> PageDTO<T> empty(Long total, Long pages) {
         return new PageDTO<>(total, pages, CollUtils.emptyList());
     }

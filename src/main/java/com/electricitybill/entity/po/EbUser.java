@@ -1,11 +1,11 @@
 package com.electricitybill.entity.po;
 
-import java.math.BigDecimal;
-import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.*;
+
 import java.time.LocalDateTime;
 import java.io.Serializable;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -16,70 +16,59 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author huangdada
- * @since 2024-11-26
+ * @since 2025-03-17
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @TableName("eb_user")
+@ApiModel(value="EbUser对象", description="")
 public class EbUser implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    /**
-     * 用户ID
-     */
+    @ApiModelProperty(value = "用户ID")
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    /**
-     * 用户名
-     */
+    @ApiModelProperty(value = "账号")
+    private String account;
+
+    @ApiModelProperty(value = "密码")
+    private String password;
+
+    @ApiModelProperty(value = "用户名")
     private String username;
 
-    /**
-     * 电话
-     */
+    @ApiModelProperty(value = "电话")
     private String phone;
 
-    /**
-     * 地址
-     */
+    @ApiModelProperty(value = "地址")
     private String address;
 
-    /**
-     * 电表编号
-     */
-    private String meterNo;
+    @ApiModelProperty(value = "电表编号")
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    private String meterId;
 
-    /**
-     * 用户类型:居民用户/商业用户
-     */
+    @ApiModelProperty(value = "用户类型: 居民用户/商业用户")
     private String userType;
 
-    /**
-     * 账号状态:正常/欠费/停用
-     */
+    @ApiModelProperty(value = "账号状态: 正常/欠费/停用")
     private String accountStatus;
 
-    /**
-     * 电费余额
-     */
-    private BigDecimal balance;
+    @ApiModelProperty(value = "身份证号")
+    private String idCardNo;
 
-    /**
-     * 用电量
-     */
-    private BigDecimal electricityUsage;
-
-    /**
-     * 最近缴费时间
-     */
+    @ApiModelProperty(value = "最近缴费时间")
     private LocalDateTime lastPaymentDate;
 
+    @ApiModelProperty(value = "创建时间")
     private LocalDateTime createdAt;
 
+    @ApiModelProperty(value = "更新时间")
     private LocalDateTime updatedAt;
 
 
+    @ApiModelProperty(value = "是否有效")
+    private Integer validType;
 }

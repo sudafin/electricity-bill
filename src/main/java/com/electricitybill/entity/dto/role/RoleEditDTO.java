@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 @ApiModel("修改角色")
 public class RoleEditDTO {
-    private String account;
+    private Boolean isEditRole;
     private String role;
     private String password;
 }

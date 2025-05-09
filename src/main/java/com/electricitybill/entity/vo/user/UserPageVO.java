@@ -1,5 +1,6 @@
 package com.electricitybill.entity.vo.user;
 
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -26,25 +27,23 @@ public class UserPageVO {
     /**
      * 电表编号
      */
-    private String meterNo;
+    private String meterId;
     /**
      * 用户状态
      */
     private String accountStatus;
     /**
-     * 用电量
-     */
-    private BigDecimal electricityUsage;
-    /**
      * 用户类型
      */
     private String userType;
     /**
-     * 电费余额
-     */
-    private BigDecimal balance;
-    /**
      * 上次缴费时间
      */
     private LocalDateTime lastPaymentDate;
+    /**
+     * 身份证号
+     */
+    private String idCardNo;
+
+
 }

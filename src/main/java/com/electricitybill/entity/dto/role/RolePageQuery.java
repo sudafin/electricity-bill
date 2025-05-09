@@ -8,6 +8,5 @@ import lombok.EqualsAndHashCode;
 @Data
 public class RolePageQuery extends PageQuery {
     private String account;
-    private String adminId;
     private String role;
 }

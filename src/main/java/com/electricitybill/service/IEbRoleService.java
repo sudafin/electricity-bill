@@ -6,8 +6,8 @@ import com.electricitybill.entity.dto.role.PermissionDTO;
 import com.electricitybill.entity.dto.role.RoleCreateDTO;
 import com.electricitybill.entity.dto.role.RoleEditDTO;
 import com.electricitybill.entity.dto.role.RolePageQuery;
-import com.electricitybill.entity.po.EbRole;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.electricitybill.entity.po.EbRole;
 import com.electricitybill.entity.vo.role.PermissionDetailVO;
 import com.electricitybill.entity.vo.role.RoleInfoVO;
 import com.electricitybill.entity.vo.role.RolePageVO;
@@ -25,7 +25,7 @@ import java.util.Map;
  */
 public interface IEbRoleService extends IService<EbRole> {
 
-    PermissionDetailVO editRoleAndAdminDetail(Long id);
+    PermissionDetailVO roleAndAdminDetail(Long id);
 
     PageDTO<RolePageVO> queryPage(RolePageQuery rolePageQuery);
 
@@ -42,4 +42,5 @@ public interface IEbRoleService extends IService<EbRole> {
     List<RoleInfoVO> roleList();
     Map<Long, List<Long>> permissionRoleIdToMap();
     Map<Long, List<Long>> currentPermissionRoleMap(Map<Long, List<Long>> permissionRoleMap, List<Long> permissionIds);
+
 }

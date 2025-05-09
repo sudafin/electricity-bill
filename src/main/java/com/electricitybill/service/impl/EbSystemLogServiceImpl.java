@@ -8,17 +8,16 @@ import com.electricitybill.entity.dto.log.LogDTO;
 import com.electricitybill.entity.dto.log.LogPageQuery;
 import com.electricitybill.entity.po.EbAdmin;
 import com.electricitybill.entity.po.EbSystemLog;
+import com.electricitybill.entity.po.EbUser;
 import com.electricitybill.entity.vo.log.LogDetailVO;
 import com.electricitybill.entity.vo.log.LogPageVO;
 import com.electricitybill.expcetions.BadRequestException;
 import com.electricitybill.mapper.EbAdminMapper;
 import com.electricitybill.mapper.EbSystemLogMapper;
+import com.electricitybill.mapper.EbUserMapper;
 import com.electricitybill.service.IEbSystemLogService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.electricitybill.utils.CollUtils;
-import com.electricitybill.utils.ObjectUtils;
-import com.electricitybill.utils.StringUtils;
-import com.electricitybill.utils.UserContextUtils;
+import com.electricitybill.utils.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -50,6 +49,9 @@ import java.util.function.Function;
 public class EbSystemLogServiceImpl extends ServiceImpl<EbSystemLogMapper, EbSystemLog> implements IEbSystemLogService {
     @Resource
     private EbAdminMapper ebAdminMapper;
+    @Resource
+    private EbUserMapper ebUserMapper;
+
     @Override
     public PageDTO<LogPageVO> queryPage(LogPageQuery logPageQuery) {
         Page<EbSystemLog> ebSystemLogPage = new Page<>(logPageQuery.getPageNo(), logPageQuery.getPageSize());
@@ -191,10 +193,18 @@ public class EbSystemLogServiceImpl extends ServiceImpl<EbSystemLogMapper, EbSys
     @Override
     public void saveLog(LogDTO logDTO) {
         EbSystemLog ebSystemLog = new EbSystemLog();
-        Long user = UserContextUtils.getUser();
-        EbAdmin ebAdmin = ebAdminMapper.selectById(user);
-        ebSystemLog.setOperatorId(ebAdmin.getId());
-        ebSystemLog.setOperatorName(ebAdmin.getAccount());
+        EbAdmin ebAdmin = new EbAdmin();
+        EbUser ebUser = new EbUser();
+        if(AdminContextUtils.getAdminId() != null){
+            ebAdmin = ebAdminMapper.selectById(AdminContextUtils.getAdminId());
+            ebSystemLog.setOperatorId(ebAdmin.getId());
+            ebSystemLog.setOperatorName(ebAdmin.getAccount());
+        }
+        if(UserContextUtils.getUserId() != null){
+            ebUser = ebUserMapper.selectById(UserContextUtils.getUserId());
+            ebSystemLog.setOperatorId(ebUser.getId());
+            ebSystemLog.setOperatorName(ebUser.getUsername());
+        }
         ebSystemLog.setRequestBody(logDTO.getRequestBody());
         ebSystemLog.setRequestParams(logDTO.getRequestParamMap());
         ebSystemLog.setResponseData(logDTO.getResponseBody());
@@ -204,22 +214,22 @@ public class EbSystemLogServiceImpl extends ServiceImpl<EbSystemLogMapper, EbSys
         ebSystemLog.setErrorMsg(logDTO.getErrorMsg());
         //eg: /user/page ,拿到第一个字符串
         String[] split = logDTO.getPath().split("/");
-        String module = split[1];
+        String module = split[1] + "/" + split[2];
         ebSystemLog.setModule(module);
         String method = logDTO.getMethod();
         switch (method) {
             case "GET":
                 ebSystemLog.setOperationType("查询");
-                ebSystemLog.setDescription(ebAdmin.getAccount() +"查询" + module);
+                ebSystemLog.setDescription(ebAdmin.getAccount() != null ? ebAdmin.getAccount() : ebUser.getUsername() +"查询" + module);
             break;
             case "POST": ebSystemLog.setOperationType("新增");
-            ebSystemLog.setDescription(ebAdmin.getAccount() +"新增" + module);
+            ebSystemLog.setDescription(ebAdmin.getAccount() !=  null ? ebAdmin.getAccount() : ebUser.getUsername() +"新增" + module);
             break;
             case "PUT": ebSystemLog.setOperationType("修改");
-            ebSystemLog.setDescription(ebAdmin.getAccount() +"修改" + module);
+            ebSystemLog.setDescription(ebAdmin.getAccount() != null  ? ebAdmin.getAccount() : ebUser.getUsername() +"修改" + module);
             break;
             case "DELETE": ebSystemLog.setOperationType("删除");
-            ebSystemLog.setDescription(ebAdmin.getAccount() +"删除" + module);
+            ebSystemLog.setDescription(ebAdmin.getAccount() != null  ? ebAdmin.getAccount() : ebUser.getUsername() +"删除" + module);
             break;
             default: ebSystemLog.setOperationType("未知");
             ebSystemLog.setDescription("未知");

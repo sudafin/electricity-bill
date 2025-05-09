@@ -2,8 +2,8 @@ package com.electricitybill.config;
 
 import com.electricitybill.filter.CxmRequestValidFilter;
 import com.electricitybill.handler.GlobalExceptionHandler;
-import com.electricitybill.interceptor.RoleInterceptor;
-import com.electricitybill.interceptor.UserInfoInterceptor;
+import com.electricitybill.interceptor.LogRoleInterceptor;
+import com.electricitybill.interceptor.LoginInfoInterceptor;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
@@ -18,12 +18,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import springfox.documentation.builders.ApiInfoBuilder;
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.service.ApiInfo;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.Docket;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -44,19 +38,21 @@ public class ManagerWebConfig implements WebMvcConfigurer {
             "/webjars/**",
             "/swagger-resources",
             "/v2/api-docs",
-            "/admin/**",
-            "/admin/captcha",
+            "/login/**",
             "/doc.html",
+            "/user/bill/pay/**",
+            "/user/bill/notify/**",
             "/error",
+            "/ws/**",
             "/workspace/**"};
     //这里不能将UserInterceptor设为Component不然会出错,要么变为@bean,要么直接new
     @Bean
-    public UserInfoInterceptor userInfoInterceptor(){
-        return new UserInfoInterceptor();
+    public LoginInfoInterceptor userInfoInterceptor(){
+        return new LoginInfoInterceptor();
     };
     @Bean
-    public RoleInterceptor roleInterceptor(){
-        return new RoleInterceptor();
+    public LogRoleInterceptor roleInterceptor(){
+        return new LogRoleInterceptor();
     }
 
     @Override

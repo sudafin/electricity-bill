@@ -10,7 +10,8 @@ import com.electricitybill.mapper.EbRolePermissionMapper;
 import com.electricitybill.service.IEbPermissionService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.electricitybill.service.IEbRoleService;
-import com.electricitybill.utils.UserContextUtils;
+import com.electricitybill.utils.AdminContextUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
  * @since 2024-11-26
  */
 @Service
+@Slf4j
 public class EbPermissionServiceImpl extends ServiceImpl<EbPermissionMapper, EbPermission> implements IEbPermissionService {
     @Resource
     private IEbRoleService ebRoleService;
@@ -41,15 +43,15 @@ public class EbPermissionServiceImpl extends ServiceImpl<EbPermissionMapper, EbP
         AtomicReference<Boolean> isValid = new AtomicReference<>(false);
         String requestURI = request.getRequestURI();
         String[] split = requestURI.split("/");
-        String module = split[1];
+        String module = split[2];
         String actions;
-        if(split.length >=3) {
-            actions = split[2];
+        if(split.length >=4) {
+            actions = split[3];
         } else {
             actions = "";
         }
 
-        EbAdmin ebAdmin = ebAdminMapper.selectById(UserContextUtils.getUser());
+        EbAdmin ebAdmin = ebAdminMapper.selectById(AdminContextUtils.getAdminId());
         List<EbRolePermission> ebRolePermissions = ebRolePermissionMapper.selectList(new LambdaQueryWrapper<EbRolePermission>().eq(EbRolePermission::getRoleId, ebAdmin.getRoleId()));
         List<Long> list = ebRolePermissions.stream().map(EbRolePermission::getPermissionId).collect(Collectors.toList());
         Map<Long, List<Long>> permissionRoleIdToMap = ebRoleService.permissionRoleIdToMap();
@@ -57,6 +59,10 @@ public class EbPermissionServiceImpl extends ServiceImpl<EbPermissionMapper, EbP
         currentPermissionRoleMap.forEach((key,value)->{
             //拿到key的模块名称
             EbPermission ebPermission = baseMapper.selectById(key);
+            if (ebPermission == null){
+                log.warn("当前模块{}不存在",  key);
+                return;
+            }
             if(ebPermission.getPermissionCode().equals(module)){
                 if (value.isEmpty()) {
                     isValid.set(true);

@@ -1,45 +1,39 @@
 package com.electricitybill.service.impl;
 
-import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.electricitybill.constants.Constant;
 import com.electricitybill.entity.R;
 import com.electricitybill.entity.dto.PageDTO;
-import com.electricitybill.entity.dto.user.UserDTO;
+import com.electricitybill.entity.dto.admin.LoginDTO;
+import com.electricitybill.entity.dto.admin.LoginFormDTO;
+import com.electricitybill.entity.dto.user.UserCreateDTO;
 import com.electricitybill.entity.dto.user.UserPageQuery;
+import com.electricitybill.entity.dto.usertype.UserTypeCreateDTO;
 import com.electricitybill.entity.po.*;
-import com.electricitybill.entity.vo.dashboard.DashboardVO;
+import com.electricitybill.entity.vo.admin.LoginVO;
 import com.electricitybill.entity.vo.user.UserDetailVO;
 import com.electricitybill.entity.vo.user.UserPageVO;
-import com.electricitybill.entity.vo.user.UserPaymentRecordVO;
-import com.electricitybill.entity.vo.user.UserPaymentVO;
-import com.electricitybill.enums.UserStatusType;
-import com.electricitybill.enums.UserType;
-import com.electricitybill.expcetions.BizIllegalException;
-import com.electricitybill.expcetions.DbException;
+import com.electricitybill.enums.*;
+import com.electricitybill.expcetions.*;
 import com.electricitybill.mapper.*;
 import com.electricitybill.service.IEbUserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.electricitybill.utils.BeanUtils;
-import com.electricitybill.utils.CollUtils;
-import com.electricitybill.utils.ObjectUtils;
-import com.electricitybill.utils.UserContextUtils;
+import com.electricitybill.service.IEbUserTypeService;
+import com.electricitybill.utils.*;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.commons.lang3.BooleanUtils;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
 
 /**
  * <p>
@@ -53,99 +47,32 @@ import static java.util.stream.Collectors.toMap;
 @Slf4j
 public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> implements IEbUserService {
     @Resource
-    private EbElectricityUsageMapper ebElectricityUsageMapper;
-    @Resource
-    private EbPaymentMapper paymentMapper;
-    @Resource
-    private EbAdminMapper adminMapper;
-    @Resource
-    private EbReconciliationMapper reconciliationMapper;
-    @Resource
-    private EbRateMapper ebRateMapper;
-    private EbUserMapper ebUserMapper;
-    @Autowired
-    private EbPaymentMapper ebPaymentMapper;
+    private EbMeterMapper ebMeterMapper;
 
-    @Override
-    public DashboardVO getDashboardInfo() {
-        /**
-         * 拿到所有用户数量,用电量,支付金额,账单,用户类型和最近7天的用电量
-         */
-        DashboardVO dashboardVO = DashboardVO.builder().build();
-        List<EbElectricityUsage> ebElectricityUsageList = ebElectricityUsageMapper.selectList(new LambdaQueryWrapper<>());
-        //补充总用电量和最近7天的用电量
-        if (CollUtils.isEmpty(ebElectricityUsageList)) {
-            //如果没有数据,则默认为0或空,不用抛错误
-            dashboardVO.setTotalElectricityUsage(0L);
-            dashboardVO.setElectricityWeekUsageList(CollUtils.emptyList());
-        } else {
-            double totalElectricity = ebElectricityUsageList.stream().mapToDouble(usage -> new BigDecimal(String.valueOf(usage.getUsageAmount())).doubleValue()).sum();
-            //将数据倒序,按时间降序,时间最新的在前面方便获取最新的7个数据
-            List<EbElectricityUsage> ebElectricityUsages = ebElectricityUsageList.stream()
-                    .sorted(Comparator.comparing(EbElectricityUsage::getEndTime)
-                            .reversed()).collect(Collectors.toList());
-            //拿到最近7天的数据,设置为0
-            // 生成最近7天的日期列表
-            List<LocalDate> recentDates = IntStream.range(0, 7)
-                    .mapToObj(LocalDate.now()::minusDays)
-                    .sorted()
-                    .collect(Collectors.toList());
-            // 生成 Map<LocalDate, BigDecimal>，这里假设 BigDecimal 的值为每个日期的日期差的 BigDecimal 表示
-            Map<LocalDate, BigDecimal> dateToValueMap = recentDates.stream()
-                    .collect(Collectors.toMap(
-                            date -> date, // 使用日期作为 key
-                            date -> BigDecimal.ZERO, // 初始值为 0
-                            (existing, replacement) -> existing, // 处理键冲突的策略
-                            LinkedHashMap::new // 使用 LinkedHashMap 保持插入顺序
-                    ));
-            ebElectricityUsages.stream()
-                    .limit(7)
-                    //再次把最新的日期放到列表最后面
-                    .sorted(Comparator.comparing(EbElectricityUsage::getEndTime))
-                    .forEach(usage->{
-                        //拿到当前用电量的日期
-                        LocalDate endDate =  usage.getEndTime().toLocalDate();
-                        //如果是最近7天,就加入到list中,否则就跳过
-                        if (dateToValueMap.containsKey(endDate)) {
-                            dateToValueMap.put(endDate,usage.getUsageAmount());
-                        }
-                    });
-            //将dateToValueMap的value转为list
-            List<Double> electricityWeekUsageList = dateToValueMap.values().stream()
-                    //日期排序
-                    .map(BigDecimal::doubleValue).collect(toList());
-            log.debug("总用电量:{}", totalElectricity);
-            log.debug("最近7天的用电量:{}", electricityWeekUsageList);
-            dashboardVO.setTotalElectricityUsage((long) totalElectricity);
-            dashboardVO.setElectricityWeekUsageList(electricityWeekUsageList);
+    @Resource
+    private EbBillMapper ebBillMapper;
+
+    @Resource
+    private IEbUserTypeService ebUserTypeService;
+    @Resource
+    private EbScheduledTaskMapper ebScheduledTaskMapper;
+
+    @Resource
+    private PasswordEncoder passwordEncoder;
+
+    @Resource
+    private JwtUtils jwtUtils;
+
+    private static List<String> getStringList(EbScheduledTask ebScheduledTask, Long userId, Boolean userEditDTO) {
+        String userIds = ebScheduledTask.getUserIds();
+        //,逗号切割,转为list
+        List<String> userIdList = Arrays.asList(userIds.split(","));
+        if (userIdList.contains(String.valueOf(userId)) && !userEditDTO) {
+            userIdList.remove(String.valueOf(userId));
+        } else if (!userIdList.contains(String.valueOf(userId)) && userEditDTO) {
+            userIdList.add(String.valueOf(userId));
         }
-        //补充账单总数和总金额
-        List<EbPayment> ebPaymentList = paymentMapper.selectList(new LambdaQueryWrapper<>());
-        if (CollUtils.isEmpty(ebPaymentList)) {
-            dashboardVO.setTotalPaymentBill(0L);
-            dashboardVO.setTotalAmount(0L);
-        } else {
-            int totalPaymentBill = ebPaymentList.size();
-            int totalAmount = ebPaymentList.stream().mapToInt(payment -> new BigDecimal(String.valueOf(payment.getAmount())).intValue()).sum();
-            log.debug("总账单数:{}", totalPaymentBill);
-            log.debug("总金额:{}", totalAmount);
-            dashboardVO.setTotalAmount((long) totalAmount);
-            dashboardVO.setTotalPaymentBill((long) totalPaymentBill);
-        }
-        //补充用户类型和用户总数
-        List<String> userTypeList = UserType.getUserTypeList();
-        int totalUser = lambdaQuery().list().size();
-        log.debug("用户类型列表:{}", userTypeList);
-        Map<String, Integer> userTypeMap = new HashMap<>();
-        userTypeList.forEach(userType -> {
-            int userTypeCount = lambdaQuery().eq(EbUser::getUserType, userType).list().size();
-            log.debug("用户类型{}的数量:{}", userType, userTypeCount);
-            userTypeMap.put(userType, userTypeCount);
-        });
-        dashboardVO.setUserTypeMap(userTypeMap);
-        dashboardVO.setTotalUser((long) totalUser);
-        log.info("dashboardVO的对象数据:{}", dashboardVO);
-        return dashboardVO;
+        return userIdList;
     }
 
     @Override
@@ -159,14 +86,8 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
         // 分页查询条件
         Page<EbUser> ebUserPage = new Page<>(userPageQuery.getPageNo(), userPageQuery.getPageSize());
         // 查询数据库条件
-        Page<EbUser> page = lambdaQuery()
-                .eq(StrUtil.isNotBlank(userPageQuery.getUserType()), EbUser::getUserType, userPageQuery.getUserType())
-                .eq(StrUtil.isNotBlank(userPageQuery.getPhone()), EbUser::getPhone, userPageQuery.getPhone())
-                .like(StrUtil.isNotBlank(userPageQuery.getName()), EbUser::getUsername, userPageQuery.getName())
-                .eq(StrUtil.isNotBlank(userPageQuery.getMeterNumber()), EbUser::getMeterNo, userPageQuery.getMeterNumber())
-                .ge(userPageQuery.getStartDate() != null, EbUser::getLastPaymentDate, userPageQuery.getStartDate())
-                .le(userPageQuery.getEndDate() != null, EbUser::getLastPaymentDate, userPageQuery.getEndDate())
-                .page(ebUserPage);
+        Page<EbUser> page = lambdaQuery().eq(EbUser::getValidType, ValidType.VALID.getValue()).eq(StrUtil.isNotBlank(userPageQuery.getUserType()), EbUser::getUserType, userPageQuery.getUserType()).eq(StrUtil.isNotBlank(userPageQuery.getPhone()), EbUser::getPhone, userPageQuery.getPhone()).like(StrUtil.isNotBlank(userPageQuery.getName()), EbUser::getUsername, userPageQuery.getName()).eq(StrUtil.isNotBlank(userPageQuery.getMeterId()), EbUser::getMeterId, userPageQuery.getMeterId()).ge(userPageQuery.getStartDate() != null, EbUser::getLastPaymentDate, userPageQuery.getStartDate()).le(userPageQuery.getEndDate() != null, EbUser::getLastPaymentDate, userPageQuery.getEndDate())
+                .orderByDesc(EbUser::getCreatedAt).page(ebUserPage);
         //判断数据是否为空
         /**
          * page.getSize(): 每页的记录数 一页10条数据大小
@@ -193,156 +114,198 @@ public class EbUserServiceImpl extends ServiceImpl<EbUserMapper, EbUser> impleme
         if (ObjectUtils.isEmpty(ebUser)) {
             throw new DbException(Constant.USER_NOT_EXIST);
         }
+        if (!ebUser.getValidType().equals(ValidType.VALID.getValue())) {
+            throw new BizIllegalException(Constant.USER_INVALID);
+        }
         UserDetailVO userDetailVO = BeanUtils.copyBean(ebUser, UserDetailVO.class);
         if (ObjectUtils.isEmpty(userDetailVO)) {
             throw new BizIllegalException(Constant.CONVERT_ERROR);
         }
         log.debug("userDetailVO的数据:{}", userDetailVO);
-        List<EbPayment> ebPaymentList = paymentMapper.selectList(new LambdaQueryWrapper<EbPayment>().eq(EbPayment::getUserId, userId));
-        //如果支付列表为空，则返回空列表
-        ArrayList<UserPaymentRecordVO> recordVOArrayList = new ArrayList<>();
-        if (CollUtils.isEmpty(ebPaymentList)) {
-            userDetailVO.setUserPaymentRecordVOList(CollUtils.emptyList());
-        } else {
-            ebPaymentList.forEach(ebPayment -> {
-                UserPaymentRecordVO userPaymentRecordVO = new UserPaymentRecordVO();
-                userPaymentRecordVO.setPaymentAmount(ebPayment.getAmount());
-                userPaymentRecordVO.setPaymentStatus(ebPayment.getStatus());
-                EbAdmin ebAdmin = adminMapper.selectById(ebPayment.getOperatorId());
-                if (ObjectUtils.isEmpty(ebAdmin)) {
-                    throw new DbException(Constant.DATA_QUERY_EMPTY);
-                } else {
-                    userPaymentRecordVO.setOperator(ebAdmin.getAccount());
-                    userPaymentRecordVO.setRemark(ebPayment.getRemark());
-                    userPaymentRecordVO.setPaymentTime(ebPayment.getPaymentTime());
-                    userPaymentRecordVO.setPaymentMethod(ebPayment.getPaymentMethod());
-                    recordVOArrayList.add(userPaymentRecordVO);
-                }
-                log.debug("userPaymentRecordVO的数据:{}", userPaymentRecordVO);
-            });
+        EbMeter ebMeter = ebMeterMapper.selectOne(new LambdaQueryWrapper<EbMeter>().eq(EbMeter::getUserId, userId));
+        List<EbBill> ebBillList = ebBillMapper.selectList(new LambdaQueryWrapper<EbBill>().eq(EbBill::getUserId, ebUser.getId())).stream().filter(ebBill -> !ebBill.getStatus().equals(BillType.PAID.getDesc())).collect(Collectors.toList());
+        userDetailVO.setOutstandingBill(ebBillList.size());
+        if (ObjectUtils.isEmpty(ebMeter)) {
+            userDetailVO.setLastMeterReadingDate(null);
+            return userDetailVO;
         }
-        userDetailVO.setUserPaymentRecordVOList(recordVOArrayList);
+        userDetailVO.setLastMeterReadingDate(ebMeter.getLastMeterReadingDate());
+        ArrayList<cn.hutool.json.JSONObject> billRecords = new ArrayList<>();
+        ebBillList.forEach(ebBill -> {
+            cn.hutool.json.JSONObject jsonObject = new JSONObject();
+            jsonObject.set("billId", ebBill.getId());
+            jsonObject.set("usageAmount", ebBill.getUsageAmount());
+            jsonObject.set("paymentMethod", ebBill.getPaymentMethod());
+            jsonObject.set("paymentDate", ebBill.getUpdatedAt());
+            jsonObject.set("billTotalAmount", ebBill.getTotalAmount());
+            billRecords.add(jsonObject);
+        });
+        userDetailVO.setBillRecords(billRecords);
         return userDetailVO;
     }
 
     @Override
-    public R insertUser(UserDTO userDTO) {
-        log.debug("userDTO的数据:{}", userDTO);
+    public R insertUser(UserCreateDTO userCreateDTO) {
         //判断用户是否存在
-        EbUser ebUser = baseMapper.selectOne(new LambdaQueryWrapper<EbUser>().eq(EbUser::getPhone, userDTO.getPhone()));
+        EbUser ebUser = baseMapper.selectOne(new LambdaQueryWrapper<EbUser>().eq(EbUser::getIdCardNo, userCreateDTO.idCardNo));
         if (ObjectUtils.isNotEmpty(ebUser)) {
             throw new DbException(Constant.USER_EXIST);
         }
-        EbUser user = BeanUtils.copyBean(userDTO, EbUser.class);
-        user.setElectricityUsage(new BigDecimal(0));
-        user.setLastPaymentDate(LocalDateTime.now());
-        int insert = baseMapper.insert(user);
-        if (insert != 1) {
-            throw new DbException(Constant.DB_INSERT_FAILURE);
-        }
+
+        EbUser user = BeanUtils.copyBean(userCreateDTO, EbUser.class);
+        user.setAccountStatus(AccountStatus.NORMAL.getDesc());
+        //TODO初始密码,后面改
+        user.setAccount(userCreateDTO.getPhone());
+        user.setPassword("123");
+        baseMapper.insert(user);
         return R.ok();
     }
 
     @Override
+    @Transactional
     public R deleteUser(List<Long> userIds) {
-        log.debug("userIds的数据:{}", userIds);
-        int delete = baseMapper.deleteBatchIds(userIds);
-        if (delete != userIds.size()) {
-            throw new DbException(Constant.DB_DELETE_FAILURE);
-        }
-        return R.ok();
-    }
-
-
-    @Override
-    public R updateUser(UserDTO userDTO) {
-        log.debug("userDTO的数据:{}", userDTO);
-        if (ObjectUtils.isEmpty(baseMapper.selectOne(new LambdaQueryWrapper<EbUser>().eq(EbUser::getPhone, userDTO.getPhone())))){
-            throw new DbException(Constant.USER_NOT_EXIST);
-        }
-        EbUser user = BeanUtils.copyBean(userDTO, EbUser.class);
-        int update = baseMapper.update(user, new LambdaQueryWrapper<EbUser>().eq(EbUser::getPhone, userDTO.getPhone()));
-        if (update != 1) {
-            throw new DbException(Constant.DB_UPDATE_FAILURE);
-        }
+        List<EbUser> ebUsers = listByIds(userIds);
+        ebUsers.forEach(user -> {
+            user.setValidType(ValidType.INVALID.getValue());
+        });
+        updateBatchById(ebUsers);
         return R.ok();
     }
 
     @Override
-    public R pay(Long userId, Double money, String paymentMethod) {
-        EbUser ebUser = baseMapper.selectById(userId);
-        //缴费
-        ebUser.setBalance(ebUser.getBalance().add(new BigDecimal(money)));
-        if(ebUser.getBalance().compareTo(new BigDecimal(0)) > 0){
-            ebUser.setAccountStatus(UserStatusType.NORMAL.getDesc());
-        }
-        int update = baseMapper.update(ebUser, new LambdaQueryWrapper<EbUser>().eq(EbUser::getId, userId));
-        if (update != 1) {
-            throw new DbException(Constant.DB_UPDATE_FAILURE);
-        }
-        //先将对账id生成
-        long reconciliationId = IdUtil.getSnowflakeNextId();
-        long paymentId = IdUtil.getSnowflakeNextId();
-        //生成支付账单
-        EbPayment ebPayment = new EbPayment();
-        ebPayment.setId(paymentId);
-        ebPayment.setUserId(ebUser.getId());
-        ebPayment.setAmount(new BigDecimal(money));
-        ebPayment.setPaymentMethod(paymentMethod);
-        ebPayment.setPaymentTime(LocalDateTime.now());
-        ebPayment.setReconciliationId(reconciliationId);
-        ebPayment.setStatus("已支付");
-        ebPayment.setOperatorId(UserContextUtils.getUser());
-        int paymentInsert = ebPaymentMapper.insert(ebPayment);
-        if (paymentInsert != 1) {
-            throw new DbException(Constant.DB_INSERT_FAILURE);
-        }
-
-        //生成对账单
-        EbReconciliation ebReconciliation = new EbReconciliation();;
-        ebReconciliation.setReconciliationNo(reconciliationId);
-        ebReconciliation.setUserId(ebUser.getId());
-        ebReconciliation.setStartDate(LocalDate.now());
-        ebReconciliation.setEndDate(LocalDate.now().plusDays(7));
-        ebReconciliation.setStatus("待审批");
-        ebReconciliation.setPaymentStatus("已支付");
-        ebReconciliation.setPaymentId(paymentId);
-        //查询电费单价
-        List<EbRate> ebRateList = ebRateMapper.selectList(new LambdaQueryWrapper<>());
-        //各个用户类型的电费率kv集合
-        Map<String, BigDecimal> map = ebRateList.stream().collect(Collectors.toMap(EbRate::getUserType, EbRate::getPrice));
-        BigDecimal moneyBigDecimal = BigDecimal.valueOf(money);
-        if(ebUser.getUserType().equals(UserType.RESIDENT.getDesc())){;
-            ebReconciliation.setTotalUsage(map.get(UserType.RESIDENT.getDesc()).multiply(moneyBigDecimal));
-        }else if(ebUser.getUserType().equals(UserType.BUSINESSES.getDesc())){
-            ebReconciliation.setTotalUsage(map.get(UserType.BUSINESSES.getDesc()).multiply(moneyBigDecimal));
-        }
-        ebReconciliation.setTotalAmount(BigDecimal.valueOf(money));
-        int insert = reconciliationMapper.insert(ebReconciliation);
-        if (insert != 1) {
-            throw new DbException(Constant.DB_INSERT_FAILURE);
-        }
-        return R.ok();
-    }
-
-    @Override
-    public UserPaymentVO queryUserPayment(Long userId) {
-        EbUser ebUser = baseMapper.selectById(userId);
+    public R adminUpdateUser(UserCreateDTO userCreateDTO) {
+        EbUser ebUser = baseMapper.selectOne(new LambdaQueryWrapper<EbUser>().eq(EbUser::getIdCardNo, userCreateDTO.idCardNo));
         if (ObjectUtils.isEmpty(ebUser)) {
             throw new DbException(Constant.USER_NOT_EXIST);
         }
-        UserPaymentVO userPaymentVO = new UserPaymentVO();
-        userPaymentVO.setUsername(ebUser.getUsername());
-        userPaymentVO.setUserType(ebUser.getUserType());
-        userPaymentVO.setMeterNo(ebUser.getMeterNo());
-        if(ebUser.getAccountStatus().equals("欠费")){
-            userPaymentVO.setUnpaidAmount(ebUser.getBalance());
-            userPaymentVO.setBalance(new BigDecimal(0));
-        }else{
-            userPaymentVO.setBalance(ebUser.getBalance());
-            userPaymentVO.setUnpaidAmount(new BigDecimal(0));
+        ObjectUtils.assignIfNotNull(ebUser, userCreateDTO.getUserType(), EbUser::setUserType);
+        ObjectUtils.assignIfNotNull(ebUser, userCreateDTO.getUsername(), EbUser::setUsername);
+        ObjectUtils.assignIfNotNull(ebUser, userCreateDTO.getPhone(), EbUser::setPhone);
+        ObjectUtils.assignIfNotNull(ebUser, userCreateDTO.getAddress(), EbUser::setAddress);
+        ObjectUtils.assignIfNotNull(ebUser, userCreateDTO.getMeterNo(), EbUser::setMeterId);
+        baseMapper.updateById(ebUser);
+        return R.ok();
+    }
+
+    @Override
+    public List<String> getUserTypeList() {
+        List<EbUserType> res = ebUserTypeService.lambdaQuery().eq(EbUserType::getStatus, ValidType.VALID.getValue()).list();
+        if (res.isEmpty()) {
+            return ListUtil.empty();
         }
-        return userPaymentVO;
+        return res.stream().map(EbUserType::getTypeName).collect(Collectors.toList());
+    }
+
+    @Override
+    public R addUserType(@NotNull UserTypeCreateDTO userTypeCreateDTO) {
+        ebUserTypeService.lambdaQuery().eq(EbUserType::getTypeName, userTypeCreateDTO.getTypeName()).oneOpt().ifPresent(type -> {
+            throw new DbException(Constant.USER_TYPE_EXIST);
+        });
+        EbUserType ebUserType = BeanUtils.copyBean(userTypeCreateDTO, EbUserType.class);
+        ebUserType.setStatus(ValidType.VALID.getValue());
+        ebUserTypeService.save(ebUserType);
+        return R.ok();
+    }
+
+    @Override
+    public JSONObject getUserInfoByIdCard(String idCardNo) {
+        EbUser ebUser = lambdaQuery().eq(EbUser::getIdCardNo, idCardNo).one();
+        if (ObjectUtils.isEmpty(ebUser)) {
+            throw new DbException(Constant.USER_NOT_EXIST);
+        }
+        if (ebUser.getValidType().equals(ValidType.INVALID.getValue())) {
+            throw new BizIllegalException(Constant.USER_INVALID);
+        }
+        if (ebUser.getMeterId() != null) {
+            throw new BizIllegalException(Constant.USER_HAS_METER);
+        }
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.set("id", ebUser.getId());
+        jsonObject.set("username", ebUser.getUsername());
+        jsonObject.set("phone", ebUser.getPhone());
+        return jsonObject;
+    }
+
+    @Override
+    public R bindMeter(JSONObject jsonObject) {
+        String meterId = jsonObject.getStr("meterId");
+        String userId = jsonObject.getStr("userId");
+        //1表示绑定用户，2表示解绑用户
+        String status = jsonObject.getStr("status");
+        if (StringUtils.isBlank(meterId) || StringUtils.isBlank(userId) || StringUtils.isBlank(status)) {
+            throw new BadRequestException(Constant.REQUEST_PARAM_MISSING);
+        }
+        EbUser ebUser = getById(userId);
+        EbMeter ebMeter = ebMeterMapper.selectById(meterId);
+        if (ObjectUtils.isEmpty(ebUser) || ObjectUtils.isEmpty(ebMeter)) {
+            throw new DbException(Constant.USER_NOT_EXIST);
+        }
+        if (ebUser.getValidType().equals(ValidType.INVALID.getValue())) {
+            throw new BizIllegalException(Constant.USER_INVALID);
+        }
+        if (ebUser.getMeterId() != null && status.equals("1")) {
+            throw new BizIllegalException(Constant.USER_HAS_BIND);
+        }
+        if (ebUser.getMeterId() == null && status.equals("2")) {
+            throw new BizIllegalException(Constant.USER_HAS_UNBIND);
+        }
+        if (status.equals("1")) {
+            ebUser.setMeterId(meterId);
+            ebMeter.setUserId(Long.valueOf(userId));
+        } else {
+            ebUser.setMeterId(null);
+            ebMeter.setUserId(null);
+        }
+        updateById(ebUser);
+        ebMeterMapper.updateById(ebMeter);
+        return R.ok();
+
+    }
+
+    @Override
+    public R login(LoginFormDTO loginFormDTO) {
+        log.info("前端登录信息：{}", loginFormDTO);
+        //根据账号密码查询用户
+        String account = loginFormDTO.getAccount();
+        String password = loginFormDTO.getPassword();
+        EbUser ebUser = lambdaQuery().eq(EbUser::getAccount, account).one();
+        //判断账号是否存在
+        if (ObjectUtils.isEmpty(ebUser)) {
+            R.error(4001,"账号不存在");
+        }
+        //判断密码是否正确,通过bcrypt加密的匹配password是真秘密, admin.getPassword()是加密后的密码,返回值判断是否匹配
+        boolean matches = passwordEncoder.matches(password, ebUser.getPassword());
+        if (!matches) {
+            R.error(4001,"账号或密码错误");
+        }
+        LoginDTO loginDTO = LoginDTO.builder()
+                .isUser(true)
+                .id(ebUser.getId())
+                .userName(ebUser.getUsername())
+                .rememberMe(loginFormDTO.getRememberMe())
+                .build();
+        String token;
+        try {
+            //生成token
+            token = jwtUtils.createToken(loginDTO);
+            //生成refreshToken
+            String refreshToken = jwtUtils.createRefreshToken(loginDTO);
+            //生成refreshToken在cookie的最大有效期
+            int maxAge = Math.toIntExact(BooleanUtils.isTrue(loginDTO.getRememberMe()) ?
+                    Constant.JWT_REMEMBER_ME_TTL.getSeconds() : -1);
+            //在Cookie中设置name  = "refresh" value = refreshToken
+            WebUtils.cookieBuilder()
+                    .name(Constant.REFRESH_HEADER)
+                    .value(refreshToken)
+                    .maxAge(maxAge)
+                    .httpOnly(true)
+                    .build();
+        } catch (Exception e) {
+            log.error("生成token失败", e);
+            throw new UnauthorizedException(Constant.TOKEN_GENERATE_FAILED);
+        }
+        log.debug("token:{}", token);
+        return R.ok(LoginVO.builder().loginDTO(loginDTO).token(token).build());
     }
 
 }

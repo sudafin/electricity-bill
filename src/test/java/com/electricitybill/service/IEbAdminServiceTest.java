@@ -7,7 +7,6 @@ import com.electricitybill.entity.po.EbRolePermission;
 import com.electricitybill.mapper.EbPermissionMapper;
 import com.electricitybill.mapper.EbRolePermissionMapper;
 import com.electricitybill.utils.StringUtils;
-import io.swagger.util.Json;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;

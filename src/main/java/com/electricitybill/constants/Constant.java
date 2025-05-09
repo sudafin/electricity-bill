@@ -63,6 +63,35 @@ public interface Constant {
     Duration JWT_REFRESH_TTL = Duration.ofMinutes(30);
     String JWT_REDIS_KEY_PREFIX = "jwt:uid:";
     String PAYLOAD_JTI_KEY = "jti";
+    String METER_NOT_EXIST = "电表不存在";
+    String USER_INVALID = "用户状态无效";
+    String BILL_NOT_EXIST = "账单不存在";
+    String INVALID_PERIOD_TYPE = "不合法的计算类型";
+    String RATE_USER_TYPE = "用户类型的费率";
+    String RATE_USER_TYPE_NOT_EXIST = "用户类型不存在";
+    String INVALID_DATE_TYPE = "不合法的日期类型";
+    String NOTIFICATION_TYPE_ERROR = "不合法的通知类型";
+    String NOTIFICATION_SENDER_LIST_EMPTY = "通知发送人列表为空";
+    String ADMIN_NOT_EXIST = "管理员不存在";
+    String INVALID_INSPECTION_STATUS = "无效的检测状态";
+    String INVALID_INSPECTION_TYPE = "无效的检测类型";
+    String INVALID_INSPECTION_RESULT = "无效的检测结果";
+    String METER_INSPECTION_NOT_EXIST = "电表检测不存在";
+    String FEEDBACK_STATUS_NOT_EXIST = "反馈状态不存在";
+    String INVALID_FEEDBACK_TYPE ="无效的反馈类型";
+    String FEEDBACK_NOT_EXIST = "反馈不存在";
+    String RATE_USER_TYPE_EXIST = "用户类型的费率已存在";
+    String USER_TYPE_EXIST = "用户类型已存在";
+    String BILL_PAID_OVERDUE = "账单已支付或过期";
+    String PAYMENT_PAID = "账单已支付";
+    String USER_HAS_METER ="当前用户已经有电表";
+    String NOTIFICATION_RECIPIENT_LIST_EMPTY = "通知接收人列表为空";
+    String TASK_NOT_EXIST = "任务不存在";
+    String NOTIFICATION_NOT_EXIST = "通知不存在";
+    String NOTIFICATION_INVALID = "通知状态无效";
+    String USER_HAS_BIND = "用户已经绑定电表";
+    String USER_HAS_UNBIND = "用户未绑定电表";
+
 
     interface Code{
         int SUCCESS = 200;

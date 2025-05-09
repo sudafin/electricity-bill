@@ -4,7 +4,10 @@ import cn.hutool.core.date.LocalDateTimeUtil;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * 时间工具类,用于本地时间操作,包含LocalDateTimeUtil的所有方法和自定义的LocalDateTime的操作方法及常量
@@ -40,6 +43,7 @@ public class DateUtils extends LocalDateTimeUtil {
             DateTimeFormatter.ofPattern(":yyyyMM");
 
     public static final String TIME_ZONE_8 = "GMT+8";
+    public static final ZoneId zoneId = ZoneId.of("Asia/Shanghai");
 
     /**
      * 获取utc时间
@@ -110,6 +114,7 @@ public class DateUtils extends LocalDateTimeUtil {
     }
 
     public static LocalDateTime getMonthBeginTime(LocalDate date) {
+
         return LocalDate.of(date.getYear(), date.getMonth(), 1).atStartOfDay();
     }
 
@@ -147,4 +152,72 @@ public class DateUtils extends LocalDateTimeUtil {
         // 4.返回结果
         return days;
     }
+    /**
+     * Generates a list of date keys (formatted strings) within a given date range,
+     * based on the specified granularity.
+     *
+     * @param start       The start LocalDateTime of the range.
+     * @param end         The end LocalDateTime of the range.
+     * @param granularity The time granularity ("daily", "monthly", "yearly").
+     * @param formatter   The DateTimeFormatter corresponding to the granularity.
+     * @return A sorted List of date key strings. Returns an empty list if start or end is null.
+     */
+    public static List<String> getDateKeysInRange(LocalDateTime start, LocalDateTime end, String granularity, DateTimeFormatter formatter) {
+        List<String> dateKeys = new ArrayList<>();
+
+        if (start == null || end == null || start.isAfter(end)) {
+            return dateKeys; // Return empty list for invalid range
+        }
+
+        granularity = granularity.toLowerCase();
+
+        try {
+            switch (granularity) {
+                case "daily":
+                    LocalDate startDateDaily = start.toLocalDate();
+                    LocalDate endDateDaily = end.toLocalDate();
+                    // Stream dates from start to end (inclusive)
+                    Stream.iterate(startDateDaily, date -> date.plusDays(1))
+                            .limit(ChronoUnit.DAYS.between(startDateDaily, endDateDaily) + 1)
+                            .forEach(date -> dateKeys.add(date.format(formatter)));
+                    break;
+
+                case "monthly":
+                    YearMonth startMonth = YearMonth.from(start);
+                    YearMonth endMonth = YearMonth.from(end);
+                    // Stream months from start to end (inclusive)
+                    Stream.iterate(startMonth, month -> month.plusMonths(1))
+                            .limit(ChronoUnit.MONTHS.between(startMonth, endMonth) + 1)
+                            .forEach(month -> dateKeys.add(month.format(formatter)));
+                    break;
+
+                case "yearly":
+                    Year startYear = Year.from(start);
+                    Year endYear = Year.from(end);
+                    // Stream years from start to end (inclusive)
+                    Stream.iterate(startYear, year -> year.plusYears(1))
+                            .limit(ChronoUnit.YEARS.between(startYear, endYear) + 1)
+                            .forEach(year -> dateKeys.add(year.format(formatter)));
+                    break;
+
+                default:
+                    // Default to daily if granularity is unknown
+                    LocalDate startDateDefault = start.toLocalDate();
+                    LocalDate endDateDefault = end.toLocalDate();
+                    Stream.iterate(startDateDefault, date -> date.plusDays(1))
+                            .limit(ChronoUnit.DAYS.between(startDateDefault, endDateDefault) + 1)
+                            .forEach(date -> dateKeys.add(date.format(formatter)));
+                    break;
+            }
+        } catch (Exception e) {
+            // Log the error appropriately in a real application
+            System.err.println("Error generating date keys for range: " + start + " to " + end + ", granularity: " + granularity + ". Error: " + e.getMessage());
+            // Optionally, return an empty list or throw a custom exception
+            return new ArrayList<>();
+        }
+
+        return dateKeys;
+    }
+
+
 }

@@ -9,8 +9,8 @@ public class NotificationPageVO {
     private Long id;
     private String content;
     private String type;
-    private String level;
     private String title;
     private LocalDateTime createTime;
     private Integer readStatus;
+    private LocalDateTime expireTime;
 }

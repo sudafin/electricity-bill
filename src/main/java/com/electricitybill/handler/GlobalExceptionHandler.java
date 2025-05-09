@@ -8,13 +8,19 @@ import com.electricitybill.expcetions.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.validation.ValidationException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -22,24 +28,78 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
-    //参数校验 @Validated 会给出的异常
-    @ExceptionHandler(ValidationException.class)
-    public ResponseEntity<Object> handle(ValidationException exception){
-        List<String> errors = null;
-        if (exception instanceof ConstraintViolationException) {
-            ConstraintViolationException exs = (ConstraintViolationException) exception;
-            Set<ConstraintViolation<?>> violations = exs.getConstraintViolations();
-            errors = violations.stream()
-                    .map(ConstraintViolation::getMessage).collect(Collectors.toList());
+    
+    /**
+     * 处理 @Valid 注解验证参数时抛出的异常
+     * 主要是处理 @RequestBody 注解的参数校验失败产生的异常
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Object> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+        log.error("参数校验失败异常 -> {}", e.getMessage());
+        return handleBindingResult(e.getBindingResult());
+    }
+
+    /**
+     * 处理 @Validated 注解验证 Form 表单参数时抛出的异常
+     * 主要是处理 @ModelAttribute 注解的参数校验失败产生的异常
+     */
+    @ExceptionHandler(BindException.class)
+    public ResponseEntity<Object> handleBindException(BindException e) {
+        log.error("Form参数校验失败异常 -> {}", e.getMessage());
+        return handleBindingResult(e.getBindingResult());
+    }
+
+    /**
+     * 处理绑定结果中的错误信息
+     */
+    private ResponseEntity<Object> handleBindingResult(BindingResult bindingResult) {
+        Map<String, String> errors = new HashMap<>(bindingResult.getFieldErrorCount());
+        for (FieldError fieldError : bindingResult.getFieldErrors()) {
+            errors.put(fieldError.getField(), fieldError.getDefaultMessage());
         }
-        if (ObjectUtil.isNotEmpty(exception.getCause())) {
-            log.error("参数校验失败异常 -> ", exception);
-        }
+        
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(MapUtil.<String, Object>builder()
                         .put("code", HttpStatus.BAD_REQUEST.value())
-                        .put("msg", errors)
+                        .put("msg", "参数校验失败")
+                        .put("data", errors)
                         .build());
+    }
+    
+    /**
+     * 处理 @Validated 注解验证方法参数时抛出的异常
+     * 主要是处理 @PathVariable、@RequestParam 等注解的参数校验失败产生的异常
+     */
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<Object> handle(ValidationException exception){
+        Map<String, Object> result = MapUtil.<String, Object>builder()
+                .put("code", HttpStatus.BAD_REQUEST.value())
+                .build();
+                
+        if (exception instanceof ConstraintViolationException) {
+            ConstraintViolationException exs = (ConstraintViolationException) exception;
+            Set<ConstraintViolation<?>> violations = exs.getConstraintViolations();
+            
+            Map<String, String> errors = new HashMap<>(violations.size());
+            for (ConstraintViolation<?> violation : violations) {
+                String propertyPath = violation.getPropertyPath().toString();
+                // 提取参数名，去掉方法名部分
+                String paramName = propertyPath.contains(".") ? 
+                        propertyPath.substring(propertyPath.lastIndexOf('.') + 1) : propertyPath;
+                errors.put(paramName, violation.getMessage());
+            }
+            
+            result.put("msg", "参数校验失败");
+            result.put("data", errors);
+        } else {
+            result.put("msg", exception.getMessage());
+        }
+        
+        if (ObjectUtil.isNotEmpty(exception.getCause())) {
+            log.error("参数校验失败异常 -> ", exception);
+        }
+        
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
     }
 
     //我们自定义的异常主要是处理业务处理错误如保存失败,修改失败

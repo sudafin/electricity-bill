@@ -4,10 +4,13 @@ import com.electricitybill.entity.R;
 import com.electricitybill.entity.dto.PageDTO;
 import com.electricitybill.entity.dto.notification.NotificationDTO;
 import com.electricitybill.entity.dto.notification.NotificationPageQuery;
-import com.electricitybill.entity.po.EbNotification;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.electricitybill.entity.po.EbNotification;
+import com.electricitybill.entity.query.PageQuery;
 import com.electricitybill.entity.vo.notification.NotificationDetailVO;
 import com.electricitybill.entity.vo.notification.NotificationPageVO;
+import com.electricitybill.entity.vo.notification.NotificationUserDetailVO;
+import com.electricitybill.entity.vo.notification.NotificationUserPageVO;
 
 import java.util.List;
 
@@ -28,4 +31,8 @@ public interface IEbNotificationService extends IService<EbNotification> {
     R create(NotificationDTO notificationDTO);
 
     R deleteNotification(List<Long> ids);
+
+    PageDTO<NotificationUserPageVO> getNewNotificationList(PageQuery pageQuery);
+
+    NotificationUserDetailVO getNotificationDetail(Long id);
 }

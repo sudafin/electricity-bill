@@ -1,6 +1,7 @@
 package com.electricitybill.config;
 
 import com.electricitybill.entity.R;
+import com.electricitybill.utils.AdminContextUtils;
 import com.electricitybill.utils.UserContextUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -45,17 +46,29 @@ public class ResponseAdvice implements ResponseBodyAdvice<Object> {
         Map<String, String[]> parameterMap = request.getParameterMap();
         try {
             String jsonString = objectMapper.writeValueAsString(parameterMap);
-              UserContextUtils.setParams(jsonString);
+            if (AdminContextUtils.getAdminId() != null) {
+                AdminContextUtils.setParams(jsonString);
+            }else
+                UserContextUtils.setParams(jsonString);
         } catch (IOException e) {
             // 处理 JSON 转换异常
-            UserContextUtils.setParams("");
+            AdminContextUtils.setParams("");
         }
         if (body instanceof R) {
             R result = (R) body;
             //拿到返回值好设置在ThreadLocal中
-            UserContextUtils.setRes(result);
-        }else
-            UserContextUtils.setRes(body);
+            Long adminId = AdminContextUtils.getAdminId();
+            if ( adminId != null) {
+                AdminContextUtils.setRes(result);
+            }else
+                UserContextUtils.setRes(result);
+        }else {
+            if(AdminContextUtils.getAdminId() != null) {
+                AdminContextUtils.setRes(body);
+            }
+            else
+                UserContextUtils.setRes(body);
+        }
         return body;
     }
 

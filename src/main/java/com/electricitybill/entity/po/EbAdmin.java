@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import java.time.LocalDateTime;
 import java.io.Serializable;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -16,71 +18,50 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author huangdada
- * @since 2024-11-26
+ * @since 2025-03-17
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @TableName("eb_admin")
+@ApiModel(value="EbAdmin对象", description="")
 public class EbAdmin implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    @TableId(value = "id", type = IdType.ASSIGN_ID)
+    @ApiModelProperty(value = "管理员ID")
+    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    /**
-     * 用户名
-     */
-    @TableField("account")
+    @ApiModelProperty(value = "账号")
     private String account;
 
-    /**
-     * 密码
-     */
-    @TableField("password")
+    @ApiModelProperty(value = "密码")
     private String password;
 
-    /**
-     * 邮箱
-     */
-    @TableField("email")
+    @ApiModelProperty(value = "邮箱")
     private String email;
 
-    /**
-     * 电话
-     */
-    @TableField("phone")
+    @ApiModelProperty(value = "电话")
     private String phone;
 
-    /**
-     * 角色ID
-     */
-    @TableField("role_id")
+    @ApiModelProperty(value = "角色ID")
     private Long roleId;
 
-    /**
-     * 状态:0禁用/1启用
-     */
-    @TableField("status")
+    @ApiModelProperty(value = "状态: 0禁用/1启用")
     private Integer status;
 
-    /**
-     * 最后登录时间
-     */
-    @TableField("last_login_time")
+    @ApiModelProperty(value = "姓名")
+    @TableField(value = "admin_name")
+    private String adminName;
+
+    @ApiModelProperty(value = "最后登录时间")
     private LocalDateTime lastLoginTime;
 
-    /**
-     * 创建时间
-     */
-    @TableField("created_at")
+    @ApiModelProperty(value = "创建时间")
     private LocalDateTime createdAt;
 
-    /**
-     * 更新时间
-     */
-    @TableField("updated_at")
+    @ApiModelProperty(value = "更新时间")
     private LocalDateTime updatedAt;
 
 

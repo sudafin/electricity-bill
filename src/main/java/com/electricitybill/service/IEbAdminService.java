@@ -1,10 +1,11 @@
 package com.electricitybill.service;
 
 import com.electricitybill.entity.R;
-import com.electricitybill.entity.dto.admin.AdminFormDTO;
-import com.electricitybill.entity.po.EbAdmin;
+import com.electricitybill.entity.dto.admin.LoginFormDTO;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.electricitybill.entity.po.EbAdmin;
 import com.electricitybill.entity.vo.admin.LoginVO;
+import com.electricitybill.entity.vo.dashboard.DashboardVO;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
@@ -20,7 +21,7 @@ import java.io.IOException;
  */
 public interface IEbAdminService extends IService<EbAdmin> {
 
-    R<LoginVO> login(AdminFormDTO adminFormDTO);
+    R<LoginVO> login(LoginFormDTO loginFormDTO);
 
     void create(String key, HttpServletResponse response) throws IOException;
 
@@ -29,4 +30,6 @@ public interface IEbAdminService extends IService<EbAdmin> {
     String refreshToken(String token);
 
     void logout();
+
+    DashboardVO getAdminDashboardInfo();
 }

@@ -1,0 +1,5295 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "API documentation for my project",
+    "version": "1.0.0",
+    "title": "My API Documentation",
+    "contact": {
+      "name": "John Doe",
+      "url": "http://example.com",
+      "email": "john@example.com"
+    }
+  },
+  "host": "localhost:8080",
+  "basePath": "/",
+  "tags": [
+    {
+      "name": "对账管理",
+      "description": "Eb Reconciliation Controller"
+    },
+    {
+      "name": "报表管理",
+      "description": "Eb Report Controller"
+    },
+    {
+      "name": "日志管理",
+      "description": "Eb System Log Controller"
+    },
+    {
+      "name": "用户端电费管理",
+      "description": "Eb User Electricity Controller"
+    },
+    {
+      "name": "用户端缴费管理",
+      "description": "Eb Payment Controller"
+    },
+    {
+      "name": "用户端账单管理",
+      "description": "Eb User Bill Controller"
+    },
+    {
+      "name": "用户端通知管理",
+      "description": "Eb User Notification Controller"
+    },
+    {
+      "name": "电表管理",
+      "description": "Eb Meter Controller"
+    },
+    {
+      "name": "登录管理",
+      "description": "Eb Login Controller"
+    },
+    {
+      "name": "管理端仪表盘管理",
+      "description": "Eb Admin Dashboard Controller"
+    },
+    {
+      "name": "管理端用户反馈",
+      "description": "Eb Admin Feed Back Controller"
+    },
+    {
+      "name": "管理端用户管理",
+      "description": "Eb Admin User Controller"
+    },
+    {
+      "name": "管理端账单管理",
+      "description": "Eb Admin Bill Controller"
+    },
+    {
+      "name": "角色管理",
+      "description": "Eb Role Controller"
+    },
+    {
+      "name": "费率管理",
+      "description": "Eb Rate Controller"
+    },
+    {
+      "name": "通知管理",
+      "description": "Eb Notification Controller"
+    }
+  ],
+  "paths": {
+    "/admin/bill/{userId}": {
+      "get": {
+        "tags": [
+          "管理端账单管理"
+        ],
+        "summary": "管理端查询用户账单",
+        "operationId": "queryUserBillUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "userId",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/UserBillVO",
+                "originalRef": "UserBillVO"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/dashboard": {
+      "get": {
+        "tags": [
+          "管理端仪表盘管理"
+        ],
+        "summary": "getAdminDashboardInfo",
+        "operationId": "getAdminDashboardInfoUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/DashboardVO",
+              "originalRef": "DashboardVO"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/feedback/detail/{feedbackId}": {
+      "get": {
+        "tags": [
+          "管理端用户反馈"
+        ],
+        "summary": "getFeedBackDetail",
+        "operationId": "getFeedBackDetailUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "feedbackId",
+            "in": "path",
+            "description": "feedbackId",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/FeedBackDetailVO",
+              "originalRef": "FeedBackDetailVO"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/feedback/page": {
+      "get": {
+        "tags": [
+          "管理端用户反馈"
+        ],
+        "summary": "queryFeedBackPage",
+        "operationId": "queryFeedBackPageUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "feedbackId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "feedbackStatus",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "feedbackType",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "isAsc",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "pageNo",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "minimum": 1,
+            "exclusiveMinimum": false,
+            "format": "int32"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "minimum": 1,
+            "exclusiveMinimum": false,
+            "format": "int32"
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/PageDTO«FeedBackPageVO»",
+              "originalRef": "PageDTO«FeedBackPageVO»"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/feedback/process/{feedbackId}": {
+      "post": {
+        "tags": [
+          "管理端用户反馈"
+        ],
+        "summary": "processFeedBack",
+        "operationId": "processFeedBackUsingPOST",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "feedBackProcessDTO",
+            "description": "feedBackProcessDTO",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/FeedBackProcessDTO",
+              "originalRef": "FeedBackProcessDTO"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/R«object»",
+              "originalRef": "R«object»"
+            }
+          },
+          "201": {
+            "description": "Created"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/feedback/type": {
+      "get": {
+        "tags": [
+          "管理端用户反馈"
+        ],
+        "summary": "getFeedbackType",
+        "operationId": "getFeedbackTypeUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/log/delete": {
+      "delete": {
+        "tags": [
+          "日志管理"
+        ],
+        "summary": "deleteLog",
+        "operationId": "deleteLogUsingDELETE",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "description": "ids",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/R",
+              "originalRef": "R"
+            }
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/admin/log/detail/{id}": {
+      "get": {
+        "tags": [
+          "日志管理"
+        ],
+        "summary": "queryDetail",
+        "operationId": "queryDetailUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "id",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/LogDetailVO",
+              "originalRef": "LogDetailVO"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/log/export": {
+      "get": {
+        "tags": [
+          "日志管理"
+        ],
+        "summary": "导出日志报表",
+        "operationId": "exportUsingGET_2",
+        "produces": [
+          "*/*"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/log/page": {
+      "get": {
+        "tags": [
+          "日志管理"
+        ],
+        "summary": "queryPage",
+        "operationId": "queryPageUsingGET_3",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "isAsc",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "module",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "operationType",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "operatorName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pageNo",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "minimum": 1,
+            "exclusiveMinimum": false,
+            "format": "int32"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "minimum": 1,
+            "exclusiveMinimum": false,
+            "format": "int32"
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/PageDTO«LogPageVO»",
+              "originalRef": "PageDTO«LogPageVO»"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/meter/create": {
+      "post": {
+        "tags": [
+          "电表管理"
+        ],
+        "summary": "createMeter",
+        "operationId": "createMeterUsingPOST",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "meterCreateDTO",
+            "description": "meterCreateDTO",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/MeterCreateDTO",
+              "originalRef": "MeterCreateDTO"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/R«object»",
+              "originalRef": "R«object»"
+            }
+          },
+          "201": {
+            "description": "Created"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/meter/delete/{meterId}": {
+      "put": {
+        "tags": [
+          "电表管理"
+        ],
+        "summary": "deleteMeter",
+        "operationId": "deleteMeterUsingPUT",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "meterId",
+            "in": "path",
+            "description": "meterId",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/R«object»",
+              "originalRef": "R«object»"
+            }
+          },
+          "201": {
+            "description": "Created"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/meter/edit": {
+      "post": {
+        "tags": [
+          "电表管理"
+        ],
+        "summary": "editMeter",
+        "operationId": "editMeterUsingPOST",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "meterBindDTO",
+            "description": "meterBindDTO",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/MeterEditDTO",
+              "originalRef": "MeterEditDTO"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/R«object»",
+              "originalRef": "R«object»"
+            }
+          },
+          "201": {
+            "description": "Created"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/meter/inspection/{meterId}": {
+      "post": {
+        "tags": [
+          "电表管理"
+        ],
+        "summary": "inspectionCreate",
+        "operationId": "inspectionCreateUsingPOST",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "meterInspectionDTO",
+            "description": "meterInspectionDTO",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/MeterInspectionDTO",
+              "originalRef": "MeterInspectionDTO"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/R«object»",
+              "originalRef": "R«object»"
+            }
+          },
+          "201": {
+            "description": "Created"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/meter/model": {
+      "get": {
+        "tags": [
+          "电表管理"
+        ],
+        "summary": "getMeterModel",
+        "operationId": "getMeterModelUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/meter/page": {
+      "get": {
+        "tags": [
+          "电表管理"
+        ],
+        "summary": "queryMeterPage",
+        "operationId": "queryMeterPageUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "isAsc",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "meterId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "model",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pageNo",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "minimum": 1,
+            "exclusiveMinimum": false,
+            "format": "int32"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "minimum": 1,
+            "exclusiveMinimum": false,
+            "format": "int32"
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/PageDTO«MeterPageVO»",
+              "originalRef": "PageDTO«MeterPageVO»"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/meter/{meterId}": {
+      "get": {
+        "tags": [
+          "电表管理"
+        ],
+        "summary": "getMeterDetail",
+        "operationId": "getMeterDetailUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "meterId",
+            "in": "path",
+            "description": "meterId",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/MeterDetailVO",
+              "originalRef": "MeterDetailVO"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/notification/create": {
+      "post": {
+        "tags": [
+          "通知管理"
+        ],
+        "summary": "create",
+        "operationId": "createUsingPOST",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "notificationDTO",
+            "description": "notificationDTO",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/NotificationDTO",
+              "originalRef": "NotificationDTO"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/R",
+              "originalRef": "R"
+            }
+          },
+          "201": {
+            "description": "Created"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/notification/delete": {
+      "delete": {
+        "tags": [
+          "通知管理"
+        ],
+        "summary": "deleteNotification",
+        "operationId": "deleteNotificationUsingDELETE",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "description": "ids",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/R",
+              "originalRef": "R"
+            }
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/admin/notification/detail/{id}": {
+      "get": {
+        "tags": [
+          "通知管理"
+        ],
+        "summary": "queryNotificationDetail",
+        "operationId": "queryNotificationDetailUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "id",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/NotificationDetailVO",
+              "originalRef": "NotificationDetailVO"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/notification/page": {
+      "get": {
+        "tags": [
+          "通知管理"
+        ],
+        "summary": "queryPage",
+        "operationId": "queryPageUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "isAsc",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "pageNo",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "minimum": 1,
+            "exclusiveMinimum": false,
+            "format": "int32"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "minimum": 1,
+            "exclusiveMinimum": false,
+            "format": "int32"
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "title",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/PageDTO«NotificationPageVO»",
+              "originalRef": "PageDTO«NotificationPageVO»"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/role/create": {
+      "post": {
+        "tags": [
+          "角色管理"
+        ],
+        "summary": "创建角色或系统人员",
+        "operationId": "createRoleUsingPOST",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "roleCreateDTO",
+            "description": "roleCreateDTO",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RoleCreateDTO",
+              "originalRef": "RoleCreateDTO"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/R",
+              "originalRef": "R"
+            }
+          },
+          "201": {
+            "description": "Created"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/role/delete": {
+      "delete": {
+        "tags": [
+          "角色管理"
+        ],
+        "summary": "删除系统人员",
+        "operationId": "deleteAdminsUsingDELETE",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "description": "ids",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/R",
+              "originalRef": "R"
+            }
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/admin/role/detail/{id}": {
+      "get": {
+        "tags": [
+          "角色管理"
+        ],
+        "summary": "获取当前管理人员的信息",
+        "operationId": "editRoleAndAdminDetailUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "id",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/PermissionDetailVO",
+              "originalRef": "PermissionDetailVO"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/role/edit/{id}": {
+      "put": {
+        "tags": [
+          "角色管理"
+        ],
+        "summary": "编辑系统人员",
+        "operationId": "editRoleUsingPUT",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "id",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "in": "body",
+            "name": "roleEditDTO",
+            "description": "roleEditDTO",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/修改角色",
+              "originalRef": "修改角色"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/R",
+              "originalRef": "R"
+            }
+          },
+          "201": {
+            "description": "Created"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/role/list": {
+      "get": {
+        "tags": [
+          "角色管理"
+        ],
+        "summary": "获取权限列表",
+        "operationId": "getPermissionListUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/PermissionDTO",
+                "originalRef": "PermissionDTO"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/role/page": {
+      "get": {
+        "tags": [
+          "角色管理"
+        ],
+        "summary": "分页",
+        "operationId": "queryPageUsingGET_2",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "account",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "adminId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "isAsc",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "pageNo",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "minimum": 1,
+            "exclusiveMinimum": false,
+            "format": "int32"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "minimum": 1,
+            "exclusiveMinimum": false,
+            "format": "int32"
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/PageDTO«RolePageVO»",
+              "originalRef": "PageDTO«RolePageVO»"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/role/roleList": {
+      "get": {
+        "tags": [
+          "角色管理"
+        ],
+        "summary": "获取角色列表",
+        "operationId": "roleListUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/RoleInfoVO",
+                "originalRef": "RoleInfoVO"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/role/status/{id}": {
+      "put": {
+        "tags": [
+          "角色管理"
+        ],
+        "summary": "状态",
+        "operationId": "statusUsingPUT",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "id",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/R",
+              "originalRef": "R"
+            }
+          },
+          "201": {
+            "description": "Created"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/user/addUserType": {
+      "post": {
+        "tags": [
+          "管理端用户管理"
+        ],
+        "summary": "管理端新增用户类型",
+        "operationId": "addUserTypeUsingPOST",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "ebUserType",
+            "description": "ebUserType",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/EbUserType对象",
+              "originalRef": "EbUserType对象"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/R",
+              "originalRef": "R"
+            }
+          },
+          "201": {
+            "description": "Created"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/user/create": {
+      "post": {
+        "tags": [
+          "管理端用户管理"
+        ],
+        "summary": "管理端创建用户",
+        "operationId": "insertUserUsingPOST",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "userDTO",
+            "description": "userDTO",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserDTO",
+              "originalRef": "UserDTO"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/R",
+              "originalRef": "R"
+            }
+          },
+          "201": {
+            "description": "Created"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/user/delete": {
+      "delete": {
+        "tags": [
+          "管理端用户管理"
+        ],
+        "summary": "管理端删除用户",
+        "operationId": "deleteUserUsingDELETE",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "userIds",
+            "in": "query",
+            "description": "userIds",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/R",
+              "originalRef": "R"
+            }
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/admin/user/detail/{userId}": {
+      "get": {
+        "tags": [
+          "管理端用户管理"
+        ],
+        "summary": "管理端查询用户详情",
+        "operationId": "queryUserDetailUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "description": "userId",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/UserDetailVO",
+              "originalRef": "UserDetailVO"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/user/edit": {
+      "put": {
+        "tags": [
+          "管理端用户管理"
+        ],
+        "summary": "管理端更新用户信息",
+        "operationId": "updateUserUsingPUT",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "userDTO",
+            "description": "userDTO",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserDTO",
+              "originalRef": "UserDTO"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/R",
+              "originalRef": "R"
+            }
+          },
+          "201": {
+            "description": "Created"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/user/page": {
+      "get": {
+        "tags": [
+          "管理端用户管理"
+        ],
+        "summary": "管理端分页查询用户",
+        "operationId": "queryUserPageUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "isAsc",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "meterId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pageNo",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "minimum": 1,
+            "exclusiveMinimum": false,
+            "format": "int32"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "minimum": 1,
+            "exclusiveMinimum": false,
+            "format": "int32"
+          },
+          {
+            "name": "phone",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "userType",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/PageDTO«UserPageVO»",
+              "originalRef": "PageDTO«UserPageVO»"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/admin/user/userType": {
+      "get": {
+        "tags": [
+          "管理端用户管理"
+        ],
+        "summary": "管理端获取用户类型",
+        "operationId": "getUserTypeListUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/login": {
+      "get": {
+        "tags": [
+          "登录管理"
+        ],
+        "summary": "getPublicKey",
+        "operationId": "getPublicKeyUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/login/captcha": {
+      "get": {
+        "tags": [
+          "登录管理"
+        ],
+        "summary": "验证码",
+        "description": "验证码",
+        "operationId": "captchaUsingGET",
+        "produces": [
+          "image/png"
+        ],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "query",
+            "description": "key",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/login/login": {
+      "post": {
+        "tags": [
+          "登录管理"
+        ],
+        "summary": "login",
+        "operationId": "loginUsingPOST",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "adminFormDTO",
+            "description": "adminFormDTO",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AdminFormDTO",
+              "originalRef": "AdminFormDTO"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/R«LoginVO»",
+              "originalRef": "R«LoginVO»"
+            }
+          },
+          "201": {
+            "description": "Created"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/login/logout": {
+      "post": {
+        "tags": [
+          "登录管理"
+        ],
+        "summary": "logout",
+        "operationId": "logoutUsingPOST",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "201": {
+            "description": "Created"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/login/refresh": {
+      "get": {
+        "tags": [
+          "登录管理"
+        ],
+        "summary": "刷新token",
+        "operationId": "refreshTokenUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "adminToken",
+            "in": "query",
+            "description": "adminToken",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/rate/create": {
+      "post": {
+        "tags": [
+          "费率管理"
+        ],
+        "summary": "createRate",
+        "operationId": "createRateUsingPOST",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "rateCrateDTO",
+            "description": "rateCrateDTO",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RateCrateDTO",
+              "originalRef": "RateCrateDTO"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/R",
+              "originalRef": "R"
+            }
+          },
+          "201": {
+            "description": "Created"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/rate/delete": {
+      "delete": {
+        "tags": [
+          "费率管理"
+        ],
+        "summary": "deleteRate",
+        "operationId": "deleteRateUsingDELETE",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "description": "ids",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/R",
+              "originalRef": "R"
+            }
+          },
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/rate/detail/{id}": {
+      "get": {
+        "tags": [
+          "费率管理"
+        ],
+        "summary": "getRateDetail",
+        "operationId": "getRateDetailUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "id",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/RateDetailVO",
+              "originalRef": "RateDetailVO"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/rate/edit/{id}": {
+      "put": {
+        "tags": [
+          "费率管理"
+        ],
+        "summary": "editRate",
+        "operationId": "editRateUsingPUT",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "id",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "in": "body",
+            "name": "rateCrateDTO",
+            "description": "rateCrateDTO",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/RateCrateDTO",
+              "originalRef": "RateCrateDTO"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/R",
+              "originalRef": "R"
+            }
+          },
+          "201": {
+            "description": "Created"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/rate/page": {
+      "get": {
+        "tags": [
+          "费率管理"
+        ],
+        "summary": "queryRatePage",
+        "operationId": "queryRatePageUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "isAsc",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "pageNo",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "minimum": 1,
+            "exclusiveMinimum": false,
+            "format": "int32"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "minimum": 1,
+            "exclusiveMinimum": false,
+            "format": "int32"
+          },
+          {
+            "name": "rateId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "userType",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/PageDTO«RatePageVO»",
+              "originalRef": "PageDTO«RatePageVO»"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/reconciliation/approve/detail/{id}": {
+      "get": {
+        "tags": [
+          "对账管理"
+        ],
+        "summary": "queryApprovalReconciliationDetail",
+        "operationId": "queryApprovalReconciliationDetailUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "id",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ApprovalDetailVO",
+              "originalRef": "ApprovalDetailVO"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/reconciliation/approve/{id}": {
+      "put": {
+        "tags": [
+          "对账管理"
+        ],
+        "summary": "approveReconciliation",
+        "operationId": "approveReconciliationUsingPUT",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "approvalDTO",
+            "description": "approvalDTO",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ApprovalDTO",
+              "originalRef": "ApprovalDTO"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "description": "id",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/R",
+              "originalRef": "R"
+            }
+          },
+          "201": {
+            "description": "Created"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/reconciliation/detail/{id}": {
+      "get": {
+        "tags": [
+          "对账管理"
+        ],
+        "summary": "queryReconciliationDetail",
+        "operationId": "queryReconciliationDetailUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "id",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ReconciliationDetailVO",
+              "originalRef": "ReconciliationDetailVO"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/reconciliation/export": {
+      "get": {
+        "tags": [
+          "对账管理"
+        ],
+        "summary": "导出对账数据报表",
+        "operationId": "exportUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/reconciliation/page": {
+      "get": {
+        "tags": [
+          "对账管理"
+        ],
+        "summary": "queryPage",
+        "operationId": "queryPageUsingGET_1",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "isAsc",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "meterNo",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pageNo",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "minimum": 1,
+            "exclusiveMinimum": false,
+            "format": "int32"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "minimum": 1,
+            "exclusiveMinimum": false,
+            "format": "int32"
+          },
+          {
+            "name": "reconciliationNo",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "reconciliationStatus",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "username",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "userType",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/PageDTO«ReconciliationPageVO»",
+              "originalRef": "PageDTO«ReconciliationPageVO»"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/report": {
+      "get": {
+        "tags": [
+          "报表管理"
+        ],
+        "summary": "获取报表",
+        "operationId": "getReportDataUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "reportType",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ReportDataVO",
+                "originalRef": "ReportDataVO"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/report/export": {
+      "get": {
+        "tags": [
+          "报表管理"
+        ],
+        "summary": "导出运营数据报表",
+        "operationId": "exportUsingGET_1",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "reportType",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/user/bill/detailBill/{id}": {
+      "get": {
+        "tags": [
+          "用户端账单管理"
+        ],
+        "summary": "detailBill",
+        "operationId": "detailBillUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "id",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/UserBillVO",
+              "originalRef": "UserBillVO"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/user/bill/notify": {
+      "post": {
+        "tags": [
+          "用户端账单管理"
+        ],
+        "summary": "payNotify",
+        "operationId": "payNotifyUsingPOST",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "*/*"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "201": {
+            "description": "Created"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/user/bill/page": {
+      "get": {
+        "tags": [
+          "用户端账单管理"
+        ],
+        "summary": "query",
+        "operationId": "queryUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "billId",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "isAsc",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "pageNo",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "minimum": 1,
+            "exclusiveMinimum": false,
+            "format": "int32"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "minimum": 1,
+            "exclusiveMinimum": false,
+            "format": "int32"
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/PageDTO«BillPageVO»",
+              "originalRef": "PageDTO«BillPageVO»"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/user/bill/pay": {
+      "get": {
+        "tags": [
+          "用户端账单管理"
+        ],
+        "summary": "pay",
+        "operationId": "payUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "billId",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/user/electricity": {
+      "get": {
+        "tags": [
+          "用户端电费管理"
+        ],
+        "summary": "getElectricityRecords",
+        "operationId": "getElectricityRecordsUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/ElectricityUserVO",
+              "originalRef": "ElectricityUserVO"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/user/notification/newList": {
+      "get": {
+        "tags": [
+          "用户端通知管理"
+        ],
+        "summary": "getNewNotificationList",
+        "operationId": "getNewNotificationListUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "parameters": [
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          },
+          {
+            "name": "isAsc",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "pageNo",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "minimum": 1,
+            "exclusiveMinimum": false,
+            "format": "int32"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "minimum": 1,
+            "exclusiveMinimum": false,
+            "format": "int32"
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/PageDTO«NotificationUserVO»",
+              "originalRef": "PageDTO«NotificationUserVO»"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/user/payment": {
+      "get": {
+        "tags": [
+          "用户端缴费管理"
+        ],
+        "summary": "getPaymentRecords",
+        "operationId": "getPaymentRecordsUsingGET",
+        "produces": [
+          "*/*"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/PaymentUserVO",
+              "originalRef": "PaymentUserVO"
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "AdminDTO": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "refType": null,
+          "example": 1001
+        },
+        "rememberMe": {
+          "type": "boolean",
+          "refType": null,
+          "example": true
+        },
+        "roleName": {
+          "type": "string",
+          "refType": null,
+          "example": "系统管理员"
+        },
+        "userName": {
+          "type": "string",
+          "refType": null,
+          "example": "admin"
+        }
+      },
+      "title": "AdminDTO"
+    },
+    "AdminFormDTO": {
+      "type": "object",
+      "required": [
+        "account",
+        "code",
+        "key",
+        "password"
+      ],
+      "properties": {
+        "account": {
+          "type": "string",
+          "refType": null,
+          "example": "admin"
+        },
+        "code": {
+          "type": "string",
+          "refType": null,
+          "example": "A6F2"
+        },
+        "key": {
+          "type": "string",
+          "refType": null,
+          "example": "a1b2c3d4e5f6"
+        },
+        "password": {
+          "type": "string",
+          "refType": null,
+          "example": "9d4e1e23bd5b727046a9e3b4b7db57bd8d6ee684"
+        },
+        "rememberMe": {
+          "type": "boolean",
+          "refType": null,
+          "example": true
+        }
+      },
+      "title": "AdminFormDTO"
+    },
+    "ApprovalDTO": {
+      "type": "object",
+      "properties": {
+        "comment": {
+          "type": "string",
+          "refType": null,
+          "example": "确认数据无误，予以批准"
+        },
+        "status": {
+          "type": "string",
+          "refType": null,
+          "example": "APPROVED"
+        }
+      },
+      "title": "ApprovalDTO"
+    },
+    "ApprovalDetailVO": {
+      "type": "object",
+      "properties": {
+        "approvalRecordList": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ApprovalRecordVO",
+            "originalRef": "ApprovalRecordVO"
+          },
+          "example": [
+            {
+              "approvalOperator": "张三",
+              "approvalStatus": "APPROVED",
+              "approvalTime": "2023-05-15T14:30:00",
+              "comment": "数据无误，批准通过",
+              "reconciliationNo": 10023
+            }
+          ]
+        },
+        "balance": {
+          "type": "number",
+          "example": 450.75
+        },
+        "comment": {
+          "type": "string",
+          "example": "月度结算已完成"
+        },
+        "isApproved": {
+          "type": "boolean",
+          "example": true
+        },
+        "reconciliationNo": {
+          "type": "integer",
+          "format": "int64",
+          "example": 10023
+        },
+        "status": {
+          "type": "string",
+          "example": "APPROVED"
+        },
+        "username": {
+          "type": "string",
+          "example": "李四"
+        }
+      },
+      "title": "ApprovalDetailVO"
+    },
+    "ApprovalRecordVO": {
+      "type": "object",
+      "properties": {
+        "approvalOperator": {
+          "type": "string",
+          "refType": null
+        },
+        "approvalStatus": {
+          "type": "string",
+          "refType": null
+        },
+        "approvalTime": {
+          "type": "string",
+          "format": "date-time",
+          "refType": null
+        },
+        "comment": {
+          "type": "string",
+          "refType": null
+        },
+        "reconciliationNo": {
+          "type": "integer",
+          "format": "int64",
+          "refType": null
+        }
+      },
+      "title": "ApprovalRecordVO"
+    },
+    "BillPageVO": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "refType": null
+        },
+        "paymentAmount": {
+          "type": "number",
+          "refType": null
+        },
+        "paymentId": {
+          "type": "integer",
+          "format": "int64",
+          "refType": null
+        },
+        "paymentTime": {
+          "type": "string",
+          "format": "date-time",
+          "refType": null
+        },
+        "usageAmount": {
+          "type": "number",
+          "refType": null
+        }
+      },
+      "title": "BillPageVO"
+    },
+    "DashboardVO": {
+      "type": "object",
+      "properties": {
+        "electricityWeekUsageList": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "processedFeedbackCount": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "systemLogCount": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "totalAmount": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "totalElectricityUsage": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "totalPaymentBill": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "totalReconciliation": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "totalUser": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "unprocessedFeedbackCount": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "userTypeMap": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "title": "DashboardVO"
+    },
+    "EbUserType对象": {
+      "type": "object",
+      "properties": {
+        "createTime": {
+          "type": "string",
+          "format": "date-time",
+          "description": "创建时间",
+          "refType": null
+        },
+        "description": {
+          "type": "string",
+          "description": "类型描述",
+          "refType": null
+        },
+        "id": {
+          "type": "integer",
+          "format": "int32",
+          "description": "用户类型ID，主键",
+          "refType": null
+        },
+        "status": {
+          "type": "integer",
+          "format": "int32",
+          "description": "状态：0-禁用，1-启用",
+          "refType": null
+        },
+        "typeName": {
+          "type": "string",
+          "description": "用户类型名称",
+          "refType": null
+        },
+        "updateTime": {
+          "type": "string",
+          "format": "date-time",
+          "description": "更新时间",
+          "refType": null
+        }
+      },
+      "title": "EbUserType对象"
+    },
+    "ElectricityUserVO": {
+      "type": "object",
+      "properties": {
+        "currentMonthElectricity": {
+          "type": "number",
+          "example": 230.5
+        },
+        "currentMonthElectricityFee": {
+          "type": "number",
+          "example": 138.30
+        },
+        "yesterdayElectricity": {
+          "type": "number",
+          "example": 7.6
+        },
+        "yesterdayElectricityFee": {
+          "type": "number",
+          "example": 4.56
+        }
+      },
+      "title": "ElectricityUserVO"
+    },
+    "FeedBackDetailVO": {
+      "type": "object",
+      "properties": {
+        "feedBackContent": {
+          "type": "string"
+        },
+        "feedbackStatus": {
+          "type": "string"
+        },
+        "feedbackType": {
+          "type": "string"
+        },
+        "processTime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "processorName": {
+          "type": "string"
+        },
+        "response": {
+          "type": "string"
+        },
+        "submitTime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "userName": {
+          "type": "string"
+        }
+      },
+      "title": "FeedBackDetailVO"
+    },
+    "FeedBackPageVO": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string",
+          "refType": null
+        },
+        "feedbackStatus": {
+          "type": "string",
+          "refType": null
+        },
+        "feedbackType": {
+          "type": "string",
+          "refType": null
+        },
+        "id": {
+          "type": "string",
+          "refType": null
+        },
+        "submitTime": {
+          "type": "string",
+          "format": "date-time",
+          "refType": null
+        },
+        "userName": {
+          "type": "string",
+          "refType": null
+        }
+      },
+      "title": "FeedBackPageVO"
+    },
+    "FeedBackProcessDTO": {
+      "type": "object",
+      "required": [
+        "feedbackId",
+        "feedbackStatus"
+      ],
+      "properties": {
+        "feedbackId": {
+          "type": "string",
+          "refType": null
+        },
+        "feedbackStatus": {
+          "type": "string",
+          "refType": null
+        },
+        "response": {
+          "type": "string",
+          "refType": null
+        }
+      },
+      "title": "FeedBackProcessDTO"
+    },
+    "LocalTimeReq": {
+      "type": "object",
+      "properties": {
+        "hour": {
+          "type": "string",
+          "format": "byte",
+          "refType": null
+        },
+        "minute": {
+          "type": "string",
+          "format": "byte",
+          "refType": null
+        },
+        "nano": {
+          "type": "integer",
+          "format": "int32",
+          "refType": null
+        },
+        "second": {
+          "type": "string",
+          "format": "byte",
+          "refType": null
+        }
+      },
+      "title": "LocalTimeReq"
+    },
+    "LocalTimeRes": {
+      "type": "object",
+      "properties": {
+        "hour": {
+          "type": "integer",
+          "format": "int32",
+          "refType": null
+        },
+        "minute": {
+          "type": "integer",
+          "format": "int32",
+          "refType": null
+        },
+        "nano": {
+          "type": "integer",
+          "format": "int32",
+          "refType": null
+        },
+        "second": {
+          "type": "integer",
+          "format": "int32",
+          "refType": null
+        }
+      },
+      "title": "LocalTimeRes"
+    },
+    "LogDetailVO": {
+      "type": "object",
+      "properties": {
+        "createTime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "description": {
+          "type": "string"
+        },
+        "errorMsg": {
+          "type": "string"
+        },
+        "ip": {
+          "type": "string"
+        },
+        "module": {
+          "type": "string"
+        },
+        "operationType": {
+          "type": "string"
+        },
+        "operatorName": {
+          "type": "string"
+        },
+        "requestBody": {
+          "type": "string"
+        },
+        "requestParams": {
+          "type": "string"
+        },
+        "responseData": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      },
+      "title": "LogDetailVO"
+    },
+    "LogPageVO": {
+      "type": "object",
+      "properties": {
+        "createTime": {
+          "type": "string",
+          "format": "date-time",
+          "refType": null
+        },
+        "description": {
+          "type": "string",
+          "refType": null
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "refType": null
+        },
+        "ip": {
+          "type": "string",
+          "refType": null
+        },
+        "module": {
+          "type": "string",
+          "refType": null
+        },
+        "operationType": {
+          "type": "string",
+          "refType": null
+        },
+        "operatorName": {
+          "type": "string",
+          "refType": null
+        },
+        "status": {
+          "type": "string",
+          "refType": null
+        }
+      },
+      "title": "LogPageVO"
+    },
+    "LoginVO": {
+      "type": "object",
+      "properties": {
+        "adminDTO": {
+          "$ref": "#/definitions/AdminDTO",
+          "originalRef": "AdminDTO",
+          "refType": "AdminDTO"
+        },
+        "token": {
+          "type": "string",
+          "refType": null
+        }
+      },
+      "title": "LoginVO"
+    },
+    "MeterCreateDTO": {
+      "type": "object",
+      "properties": {
+        "installDate": {
+          "type": "string",
+          "format": "date-time",
+          "refType": null,
+          "example": "2023-03-15T09:30:00"
+        },
+        "installPlace": {
+          "type": "string",
+          "refType": null,
+          "example": "北京市海淀区中关村南路10号3单元501室"
+        },
+        "model": {
+          "type": "string",
+          "refType": null,
+          "example": "DDS-102"
+        },
+        "status": {
+          "type": "string",
+          "refType": null,
+          "example": "正常"
+        }
+      },
+      "title": "MeterCreateDTO"
+    },
+    "MeterDetailVO": {
+      "type": "object",
+      "properties": {
+        "endingReading": {
+          "type": "number",
+          "example": 2458.75
+        },
+        "faultDescription": {
+          "type": "string",
+          "example": "显示屏偶尔闪烁"
+        },
+        "inspectionResult": {
+          "type": "string",
+          "example": "正常，误差在允许范围内"
+        },
+        "inspectionStatus": {
+          "type": "string",
+          "example": "已完成"
+        },
+        "inspectionTime": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2023-04-20T14:30:00"
+        },
+        "inspectionType": {
+          "type": "string",
+          "example": "季度检查"
+        },
+        "inspectorName": {
+          "type": "string",
+          "example": "王工"
+        },
+        "installDate": {
+          "type": "string",
+          "format": "date",
+          "example": "2022-11-15"
+        },
+        "installPlace": {
+          "type": "string",
+          "example": "北京市海淀区中关村南路10号3单元501室"
+        },
+        "lastMeterReadingDate": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2023-05-01T10:15:00"
+        },
+        "model": {
+          "type": "string",
+          "example": "DDS-102"
+        },
+        "nextInspectionTime": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2023-07-20T14:30:00"
+        },
+        "remark": {
+          "type": "string",
+          "example": "用户反映电表读数变化过快，需下次重点检查"
+        },
+        "repairCost": {
+          "type": "number",
+          "example": 150.00
+        },
+        "solution": {
+          "type": "string",
+          "example": "更换显示屏驱动芯片"
+        },
+        "startMeterReadingDate": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2023-04-01T10:15:00"
+        },
+        "startReading": {
+          "type": "number",
+          "example": 2300.50
+        },
+        "status": {
+          "type": "string",
+          "example": "正常"
+        },
+        "userName": {
+          "type": "string",
+          "example": "张小明"
+        }
+      },
+      "title": "MeterDetailVO"
+    },
+    "MeterEditDTO": {
+      "type": "object",
+      "required": [
+        "meterId"
+      ],
+      "properties": {
+        "idCardNo": {
+          "type": "string",
+          "refType": null,
+          "example": "110101199001011234"
+        },
+        "installDate": {
+          "type": "string",
+          "format": "date-time",
+          "refType": null,
+          "example": "2023-03-15T09:30:00"
+        },
+        "installPlace": {
+          "type": "string",
+          "refType": null,
+          "example": "北京市海淀区中关村南路10号3单元501室"
+        },
+        "meterId": {
+          "type": "integer",
+          "format": "int64",
+          "refType": null,
+          "example": 20230001
+        },
+        "model": {
+          "type": "string",
+          "refType": null,
+          "example": "DDS-102"
+        },
+        "status": {
+          "type": "string",
+          "refType": null,
+          "example": "正常"
+        }
+      },
+      "title": "MeterEditDTO"
+    },
+    "MeterInspectionDTO": {
+      "type": "object",
+      "properties": {
+        "faultDescription": {
+          "type": "string",
+          "refType": null,
+          "example": "读数跳动过快，显示屏偶尔闪烁"
+        },
+        "inspectionResult": {
+          "type": "string",
+          "refType": null,
+          "example": "需要维修"
+        },
+        "inspectionStatus": {
+          "type": "string",
+          "refType": null,
+          "example": "已完成"
+        },
+        "inspectionTime": {
+          "type": "string",
+          "format": "date-time",
+          "refType": null,
+          "example": "2023-06-10T13:45:00"
+        },
+        "inspectionType": {
+          "type": "string",
+          "refType": null,
+          "example": "故障检查"
+        },
+        "inspectorName": {
+          "type": "string",
+          "refType": null,
+          "example": "李维修"
+        },
+        "meterId": {
+          "type": "string",
+          "refType": null,
+          "example": "20230001"
+        },
+        "nextInspectionTime": {
+          "type": "string",
+          "format": "date-time",
+          "refType": null,
+          "example": "2023-09-10T13:45:00"
+        },
+        "remark": {
+          "type": "string",
+          "refType": null,
+          "example": "用户反映电费增长异常，需查明原因"
+        },
+        "repairCost": {
+          "type": "number",
+          "refType": null,
+          "example": 180.50
+        },
+        "solution": {
+          "type": "string",
+          "refType": null,
+          "example": "更换主控板和显示驱动电路"
+        }
+      },
+      "title": "MeterInspectionDTO"
+    },
+    "MeterPageVO": {
+      "type": "object",
+      "properties": {
+        "endingReading": {
+          "type": "number",
+          "refType": null,
+          "example": 3250.75
+        },
+        "id": {
+          "type": "string",
+          "refType": null,
+          "example": "20230001"
+        },
+        "installDate": {
+          "type": "string",
+          "format": "date",
+          "refType": null,
+          "example": "2022-11-15"
+        },
+        "installPlace": {
+          "type": "string",
+          "refType": null,
+          "example": "北京市海淀区中关村南路10号3单元501室"
+        },
+        "lastMeterReadingDate": {
+          "type": "string",
+          "format": "date-time",
+          "refType": null,
+          "example": "2023-06-01T10:30:00"
+        },
+        "model": {
+          "type": "string",
+          "refType": null,
+          "example": "DDS-102"
+        },
+        "startReading": {
+          "type": "number",
+          "refType": null,
+          "example": 3050.25
+        },
+        "status": {
+          "type": "string",
+          "refType": null,
+          "example": "正常"
+        },
+        "userName": {
+          "type": "string",
+          "refType": null,
+          "example": "张小明"
+        }
+      },
+      "title": "MeterPageVO"
+    },
+    "NotificationDTO": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string",
+          "refType": null
+        },
+        "expireTime": {
+          "type": "string",
+          "format": "date-time",
+          "refType": null
+        },
+        "notificationType": {
+          "type": "string",
+          "refType": null
+        },
+        "senderList": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "refType": "string"
+        },
+        "title": {
+          "type": "string",
+          "refType": null
+        },
+        "type": {
+          "type": "string",
+          "refType": null
+        }
+      },
+      "title": "NotificationDTO"
+    },
+    "NotificationDetailVO": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string"
+        },
+        "createTime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expireTime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "level": {
+          "type": "string"
+        },
+        "senderName": {
+          "type": "string"
+        },
+        "senderRole": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        }
+      },
+      "title": "NotificationDetailVO"
+    },
+    "NotificationPageVO": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string",
+          "refType": null
+        },
+        "createTime": {
+          "type": "string",
+          "format": "date-time",
+          "refType": null
+        },
+        "expireTime": {
+          "type": "string",
+          "format": "date-time",
+          "refType": null
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "refType": null
+        },
+        "level": {
+          "type": "string",
+          "refType": null
+        },
+        "readStatus": {
+          "type": "integer",
+          "format": "int32",
+          "refType": null
+        },
+        "title": {
+          "type": "string",
+          "refType": null
+        },
+        "type": {
+          "type": "string",
+          "refType": null
+        }
+      },
+      "title": "NotificationPageVO"
+    },
+    "NotificationUserVO": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string",
+          "refType": null
+        },
+        "createTime": {
+          "type": "string",
+          "format": "date-time",
+          "refType": null
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "refType": null
+        },
+        "readStatus": {
+          "type": "integer",
+          "format": "int32",
+          "refType": null
+        },
+        "title": {
+          "type": "string",
+          "refType": null
+        }
+      },
+      "title": "NotificationUserVO"
+    },
+    "PageDTO«BillPageVO»": {
+      "type": "object",
+      "properties": {
+        "list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/BillPageVO",
+            "originalRef": "BillPageVO"
+          },
+          "example": [
+            {
+              "id": 8001,
+              "paymentAmount": 138.30,
+              "paymentId": 10056,
+              "paymentTime": "2023-06-05T14:32:45",
+              "usageAmount": 230.5
+            },
+            {
+              "id": 7982,
+              "paymentAmount": 126.45,
+              "paymentId": 10035,
+              "paymentTime": "2023-05-06T10:15:22",
+              "usageAmount": 210.75
+            }
+          ]
+        },
+        "pages": {
+          "type": "integer",
+          "format": "int64",
+          "example": 12
+        },
+        "total": {
+          "type": "integer",
+          "format": "int64",
+          "example": 115
+        }
+      },
+      "title": "PageDTO«BillPageVO»"
+    },
+    "PageDTO«FeedBackPageVO»": {
+      "type": "object",
+      "properties": {
+        "list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/FeedBackPageVO",
+            "originalRef": "FeedBackPageVO"
+          },
+          "example": [
+            {
+              "content": "我的电表读数似乎跳得过快，请帮忙检查一下",
+              "feedbackStatus": "处理中",
+              "feedbackType": "电表问题",
+              "id": "FB2023060001",
+              "submitTime": "2023-06-09T15:30:45",
+              "userName": "张小明"
+            },
+            {
+              "content": "电费账单有误，实际用电量与账单不符",
+              "feedbackStatus": "已解决",
+              "feedbackType": "账单问题",
+              "id": "FB2023050012",
+              "submitTime": "2023-05-25T09:45:22",
+              "userName": "李明"
+            }
+          ]
+        },
+        "pages": {
+          "type": "integer",
+          "format": "int64",
+          "example": 4
+        },
+        "total": {
+          "type": "integer",
+          "format": "int64",
+          "example": 33
+        }
+      },
+      "title": "PageDTO«FeedBackPageVO»"
+    },
+    "PageDTO«LogPageVO»": {
+      "type": "object",
+      "properties": {
+        "list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/LogPageVO",
+            "originalRef": "LogPageVO"
+          },
+          "example": [
+            {
+              "createTime": "2023-06-10T08:25:13",
+              "description": "更新用户信息",
+              "id": 5012,
+              "ip": "192.168.1.100",
+              "module": "用户管理",
+              "operationType": "UPDATE",
+              "operatorName": "admin",
+              "status": "成功"
+            },
+            {
+              "createTime": "2023-06-10T08:20:45",
+              "description": "创建新电表",
+              "id": 5011,
+              "ip": "192.168.1.100",
+              "module": "电表管理",
+              "operationType": "INSERT",
+              "operatorName": "admin",
+              "status": "成功"
+            }
+          ]
+        },
+        "pages": {
+          "type": "integer",
+          "format": "int64",
+          "example": 126
+        },
+        "total": {
+          "type": "integer",
+          "format": "int64",
+          "example": 1256
+        }
+      },
+      "title": "PageDTO«LogPageVO»"
+    },
+    "PageDTO«MeterPageVO»": {
+      "type": "object",
+      "properties": {
+        "list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MeterPageVO",
+            "originalRef": "MeterPageVO"
+          }
+        },
+        "pages": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "title": "PageDTO«MeterPageVO»"
+    },
+    "PageDTO«NotificationPageVO»": {
+      "type": "object",
+      "properties": {
+        "list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/NotificationPageVO",
+            "originalRef": "NotificationPageVO"
+          },
+          "example": [
+            {
+              "content": "系统将于6月15日00:00-02:00进行升级维护，期间服务不可用",
+              "createTime": "2023-06-10T10:00:00",
+              "expireTime": "2023-06-15T02:00:00",
+              "id": 1023,
+              "level": "重要",
+              "readStatus": 1,
+              "title": "系统维护通知",
+              "type": "系统通知"
+            },
+            {
+              "content": "6月电费账单已生成，请及时缴纳",
+              "createTime": "2023-06-05T00:00:00",
+              "expireTime": "2023-06-25T23:59:59",
+              "id": 1022,
+              "level": "一般",
+              "readStatus": 1,
+              "title": "电费账单通知",
+              "type": "账单通知"
+            }
+          ]
+        },
+        "pages": {
+          "type": "integer",
+          "format": "int64",
+          "example": 8
+        },
+        "total": {
+          "type": "integer",
+          "format": "int64",
+          "example": 78
+        }
+      },
+      "title": "PageDTO«NotificationPageVO»"
+    },
+    "PageDTO«NotificationUserVO»": {
+      "type": "object",
+      "properties": {
+        "list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/NotificationUserVO",
+            "originalRef": "NotificationUserVO"
+          },
+          "example": [
+            {
+              "content": "尊敬的用户，您5月份的电费账单已生成，请及时缴纳",
+              "createTime": "2023-06-01T08:00:00",
+              "id": 2045,
+              "readStatus": 0,
+              "title": "电费账单通知"
+            },
+            {
+              "content": "您的电表使用即将满一年，建议进行检查维护",
+              "createTime": "2023-05-25T14:30:00",
+              "id": 2030,
+              "readStatus": 1,
+              "title": "电表维护提醒"
+            }
+          ]
+        },
+        "pages": {
+          "type": "integer",
+          "format": "int64",
+          "example": 3
+        },
+        "total": {
+          "type": "integer",
+          "format": "int64",
+          "example": 24
+        }
+      },
+      "title": "PageDTO«NotificationUserVO»"
+    },
+    "PageDTO«RatePageVO»": {
+      "type": "object",
+      "properties": {
+        "list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/RatePageVO",
+            "originalRef": "RatePageVO"
+          },
+          "example": [
+            {
+              "effectiveDate": "2023-05-01",
+              "expireDate": "2023-12-31",
+              "flatPrice": 0.55,
+              "id": 501,
+              "peakPrice": 0.65,
+              "status": "有效",
+              "userType": "居民用户",
+              "valleyPrice": 0.35
+            },
+            {
+              "effectiveDate": "2023-05-01",
+              "expireDate": "2023-12-31",
+              "flatPrice": 0.75,
+              "id": 502,
+              "peakPrice": 0.95,
+              "status": "有效",
+              "userType": "商业用户",
+              "valleyPrice": 0.45
+            }
+          ]
+        },
+        "pages": {
+          "type": "integer",
+          "format": "int64",
+          "example": 2
+        },
+        "total": {
+          "type": "integer",
+          "format": "int64",
+          "example": 12
+        }
+      },
+      "title": "PageDTO«RatePageVO»"
+    },
+    "PageDTO«ReconciliationPageVO»": {
+      "type": "object",
+      "properties": {
+        "list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ReconciliationPageVO",
+            "originalRef": "ReconciliationPageVO"
+          },
+          "example": [
+            {
+              "balance": 450.75,
+              "reconciliationNo": 10023,
+              "status": "已批准",
+              "userId": 10025,
+              "userType": "居民用户",
+              "username": "张小明"
+            },
+            {
+              "balance": 825.30,
+              "reconciliationNo": 10022,
+              "status": "已批准",
+              "userId": 10026,
+              "userType": "商业用户",
+              "username": "李明"
+            }
+          ]
+        },
+        "pages": {
+          "type": "integer",
+          "format": "int64",
+          "example": 5
+        },
+        "total": {
+          "type": "integer",
+          "format": "int64",
+          "example": 42
+        }
+      },
+      "title": "PageDTO«ReconciliationPageVO»"
+    },
+    "PageDTO«RolePageVO»": {
+      "type": "object",
+      "properties": {
+        "list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/RolePageVO",
+            "originalRef": "RolePageVO"
+          },
+          "example": [
+            {
+              "account": "admin",
+              "adminId": 1001,
+              "createTime": "2023-01-01T00:00:00",
+              "role": "系统管理员",
+              "roleDesc": "系统管理员，拥有所有权限",
+              "status": 1
+            },
+            {
+              "account": "operator",
+              "adminId": 1002,
+              "createTime": "2023-01-10T09:00:00",
+              "role": "运营人员",
+              "roleDesc": "负责日常运营工作",
+              "status": 1
+            }
+          ]
+        },
+        "pages": {
+          "type": "integer",
+          "format": "int64",
+          "example": 2
+        },
+        "total": {
+          "type": "integer",
+          "format": "int64",
+          "example": 5
+        }
+      },
+      "title": "PageDTO«RolePageVO»"
+    },
+    "PageDTO«UserPageVO»": {
+      "type": "object",
+      "properties": {
+        "list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/UserPageVO",
+            "originalRef": "UserPageVO"
+          }
+        },
+        "pages": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "total": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "title": "PageDTO«UserPageVO»"
+    },
+    "PaymentUserVO": {
+      "type": "object",
+      "properties": {
+        "currentDebt": {
+          "type": "number",
+          "example": 138.30
+        },
+        "paymentCount": {
+          "type": "integer",
+          "format": "int32",
+          "example": 12
+        },
+        "totalCost": {
+          "type": "number",
+          "example": 1625.80
+        }
+      },
+      "title": "PaymentUserVO"
+    },
+    "PermissionDTO": {
+      "type": "object",
+      "properties": {
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PermissionDTO",
+            "originalRef": "PermissionDTO"
+          },
+          "refType": "PermissionDTO",
+          "example": [
+            {
+              "permissionId": 1002,
+              "permissionName": "用户管理-查看"
+            },
+            {
+              "permissionId": 1003,
+              "permissionName": "用户管理-编辑"
+            }
+          ]
+        },
+        "permissionId": {
+          "type": "integer",
+          "format": "int64",
+          "refType": null,
+          "example": 1001
+        },
+        "permissionName": {
+          "type": "string",
+          "refType": null,
+          "example": "用户管理"
+        }
+      },
+      "title": "PermissionDTO"
+    },
+    "PermissionDetailVO": {
+      "type": "object",
+      "properties": {
+        "account": {
+          "type": "string",
+          "example": "admin"
+        },
+        "permissionList": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PermissionDTO",
+            "originalRef": "PermissionDTO"
+          },
+          "example": [
+            {
+              "permissionId": 1001,
+              "permissionName": "用户管理",
+              "children": [
+                {
+                  "permissionId": 1002,
+                  "permissionName": "用户管理-查看"
+                },
+                {
+                  "permissionId": 1003,
+                  "permissionName": "用户管理-编辑"
+                }
+              ]
+            },
+            {
+              "permissionId": 2001,
+              "permissionName": "电表管理",
+              "children": [
+                {
+                  "permissionId": 2002,
+                  "permissionName": "电表管理-查看"
+                },
+                {
+                  "permissionId": 2003,
+                  "permissionName": "电表管理-编辑"
+                }
+              ]
+            }
+          ]
+        },
+        "roleDesc": {
+          "type": "string",
+          "example": "系统管理员，拥有所有权限"
+        },
+        "roleName": {
+          "type": "string",
+          "example": "系统管理员"
+        }
+      },
+      "title": "PermissionDetailVO"
+    },
+    "R": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32",
+          "description": "业务状态码，200-成功，其它-失败"
+        },
+        "data": {
+          "type": "object",
+          "description": "响应数据"
+        },
+        "msg": {
+          "type": "string",
+          "example": "OK",
+          "description": "响应消息"
+        },
+        "requestId": {
+          "type": "string",
+          "example": "1af123c11412e",
+          "description": "请求id"
+        }
+      },
+      "title": "R",
+      "description": "通用响应结果"
+    },
+    "RateCrateDTO": {
+      "type": "object",
+      "properties": {
+        "discount": {
+          "type": "number",
+          "refType": null
+        },
+        "effectiveDate": {
+          "type": "string",
+          "format": "date",
+          "refType": null
+        },
+        "expireDate": {
+          "type": "string",
+          "format": "date",
+          "refType": null
+        },
+        "flatPrice": {
+          "type": "number",
+          "refType": null
+        },
+        "peakEnd": {
+          "$ref": "#/definitions/LocalTimeReq",
+          "originalRef": "LocalTimeReq",
+          "refType": "LocalTimeReq"
+        },
+        "peakPrice": {
+          "type": "number",
+          "refType": null
+        },
+        "peakStart": {
+          "$ref": "#/definitions/LocalTimeReq",
+          "originalRef": "LocalTimeReq",
+          "refType": "LocalTimeReq"
+        },
+        "status": {
+          "type": "integer",
+          "format": "int32",
+          "refType": null
+        },
+        "summerPeakPrice": {
+          "type": "number",
+          "refType": null
+        },
+        "summerPeriod": {
+          "type": "string",
+          "refType": null
+        },
+        "userType": {
+          "type": "string",
+          "refType": null
+        },
+        "valleyEnd": {
+          "$ref": "#/definitions/LocalTimeReq",
+          "originalRef": "LocalTimeReq",
+          "refType": "LocalTimeReq"
+        },
+        "valleyPrice": {
+          "type": "number",
+          "refType": null
+        },
+        "valleyStart": {
+          "$ref": "#/definitions/LocalTimeReq",
+          "originalRef": "LocalTimeReq",
+          "refType": "LocalTimeReq"
+        }
+      },
+      "title": "RateCrateDTO"
+    },
+    "RateDetailVO": {
+      "type": "object",
+      "properties": {
+        "discount": {
+          "type": "number",
+          "example": 0.95
+        },
+        "effectiveDate": {
+          "type": "string",
+          "format": "date",
+          "example": "2023-05-01"
+        },
+        "expireDate": {
+          "type": "string",
+          "format": "date",
+          "example": "2023-12-31"
+        },
+        "flatPrice": {
+          "type": "number",
+          "example": 0.55
+        },
+        "peakEnd": {
+          "$ref": "#/definitions/LocalTimeRes",
+          "originalRef": "LocalTimeRes",
+          "example": {
+            "hour": 22,
+            "minute": 0,
+            "nano": 0,
+            "second": 0
+          }
+        },
+        "peakPrice": {
+          "type": "number",
+          "example": 0.65
+        },
+        "peakStart": {
+          "$ref": "#/definitions/LocalTimeRes",
+          "originalRef": "LocalTimeRes",
+          "example": {
+            "hour": 18,
+            "minute": 0,
+            "nano": 0,
+            "second": 0
+          }
+        },
+        "summerPeakPrice": {
+          "type": "number",
+          "example": 0.75
+        },
+        "summerPeriod": {
+          "type": "string",
+          "example": "06-01至09-30"
+        },
+        "userType": {
+          "type": "string",
+          "example": "居民用户"
+        },
+        "valleyEnd": {
+          "$ref": "#/definitions/LocalTimeRes",
+          "originalRef": "LocalTimeRes",
+          "example": {
+            "hour": 8,
+            "minute": 0,
+            "nano": 0,
+            "second": 0
+          }
+        },
+        "valleyPrice": {
+          "type": "number",
+          "example": 0.35
+        },
+        "valleyStart": {
+          "$ref": "#/definitions/LocalTimeRes",
+          "originalRef": "LocalTimeRes",
+          "example": {
+            "hour": 23,
+            "minute": 0,
+            "nano": 0,
+            "second": 0
+          }
+        }
+      },
+      "title": "RateDetailVO"
+    },
+    "RatePageVO": {
+      "type": "object",
+      "properties": {
+        "effectiveDate": {
+          "type": "string",
+          "format": "date",
+          "refType": null,
+          "example": "2023-05-01"
+        },
+        "expireDate": {
+          "type": "string",
+          "format": "date",
+          "refType": null,
+          "example": "2023-12-31"
+        },
+        "flatPrice": {
+          "type": "number",
+          "refType": null,
+          "example": 0.55
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "refType": null,
+          "example": 501
+        },
+        "peakPrice": {
+          "type": "number",
+          "refType": null,
+          "example": 0.65
+        },
+        "status": {
+          "type": "string",
+          "refType": null,
+          "example": "有效"
+        },
+        "userType": {
+          "type": "string",
+          "refType": null,
+          "example": "居民用户"
+        },
+        "valleyPrice": {
+          "type": "number",
+          "refType": null,
+          "example": 0.35
+        }
+      },
+      "title": "RatePageVO"
+    },
+    "ReconciliationDetailVO": {
+      "type": "object",
+      "properties": {
+        "approvalComment": {
+          "type": "string"
+        },
+        "approvalOperator": {
+          "type": "string"
+        },
+        "approvalTime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "balance": {
+          "type": "number"
+        },
+        "createTime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "meterNo": {
+          "type": "string"
+        },
+        "paymentStatus": {
+          "type": "string"
+        },
+        "reconciliationNo": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "reconciliationStatus": {
+          "type": "string"
+        },
+        "userPaymentRecordVOList": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/UserPaymentRecordVO",
+            "originalRef": "UserPaymentRecordVO"
+          }
+        },
+        "userType": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        }
+      },
+      "title": "ReconciliationDetailVO"
+    },
+    "ReconciliationPageVO": {
+      "type": "object",
+      "properties": {
+        "balance": {
+          "type": "number",
+          "refType": null
+        },
+        "meterNo": {
+          "type": "string",
+          "refType": null
+        },
+        "reconciliationNo": {
+          "type": "integer",
+          "format": "int64",
+          "refType": null
+        },
+        "reconciliationStatus": {
+          "type": "string",
+          "refType": null
+        },
+        "reconciliationTime": {
+          "type": "string",
+          "format": "date",
+          "refType": null
+        },
+        "userType": {
+          "type": "string",
+          "refType": null
+        },
+        "username": {
+          "type": "string",
+          "refType": null
+        }
+      },
+      "title": "ReconciliationPageVO"
+    },
+    "ReportDataVO": {
+      "type": "object",
+      "properties": {
+        "dateStr": {
+          "type": "string",
+          "format": "date",
+          "example": "2023-05-01"
+        },
+        "dateTimeStr": {
+          "type": "string",
+          "example": "2023年5月"
+        },
+        "electricityUsage": {
+          "type": "number",
+          "example": 8520.75
+        },
+        "feeAmount": {
+          "type": "number",
+          "example": 4685.41
+        }
+      },
+      "title": "ReportDataVO"
+    },
+    "RoleCreateDTO": {
+      "type": "object",
+      "properties": {
+        "account": {
+          "type": "string",
+          "refType": null
+        },
+        "isRole": {
+          "type": "boolean",
+          "refType": null
+        },
+        "password": {
+          "type": "string",
+          "refType": null
+        },
+        "permissionIdList": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "refType": "integer"
+        },
+        "role": {
+          "type": "string",
+          "refType": null
+        },
+        "roleDesc": {
+          "type": "string",
+          "refType": null
+        }
+      },
+      "title": "RoleCreateDTO"
+    },
+    "RoleInfoVO": {
+      "type": "object",
+      "properties": {
+        "icon": {
+          "type": "string",
+          "example": "admin-icon"
+        },
+        "label": {
+          "type": "string",
+          "example": "系统管理员"
+        },
+        "value": {
+          "type": "string",
+          "example": "ADMIN"
+        }
+      },
+      "title": "RoleInfoVO"
+    },
+    "RolePageVO": {
+      "type": "object",
+      "properties": {
+        "account": {
+          "type": "string",
+          "refType": null,
+          "example": "admin"
+        },
+        "adminId": {
+          "type": "integer",
+          "format": "int64",
+          "refType": null,
+          "example": 1001
+        },
+        "createTime": {
+          "type": "string",
+          "format": "date-time",
+          "refType": null,
+          "example": "2023-01-01T00:00:00"
+        },
+        "role": {
+          "type": "string",
+          "refType": null,
+          "example": "系统管理员"
+        },
+        "roleDesc": {
+          "type": "string",
+          "refType": null,
+          "example": "系统管理员，拥有所有权限"
+        },
+        "status": {
+          "type": "integer",
+          "format": "int32",
+          "refType": null,
+          "example": 1
+        }
+      },
+      "title": "RolePageVO"
+    },
+    "R«LoginVO»": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32",
+          "description": "业务状态码，200-成功，其它-失败",
+          "example": 200
+        },
+        "data": {
+          "description": "响应数据",
+          "$ref": "#/definitions/LoginVO",
+          "originalRef": "LoginVO",
+          "example": {
+            "adminDTO": {
+              "id": 1001,
+              "rememberMe": true,
+              "roleName": "系统管理员",
+              "userName": "admin"
+            },
+            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6ImFkbWluIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+          }
+        },
+        "msg": {
+          "type": "string",
+          "example": "登录成功",
+          "description": "响应消息"
+        },
+        "requestId": {
+          "type": "string",
+          "example": "1af123c11412e",
+          "description": "请求id"
+        }
+      },
+      "title": "R«LoginVO»",
+      "description": "通用响应结果"
+    },
+    "R«object»": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32",
+          "description": "业务状态码，200-成功，其它-失败",
+          "example": 200
+        },
+        "data": {
+          "type": "object",
+          "description": "响应数据",
+          "example": null
+        },
+        "msg": {
+          "type": "string",
+          "example": "操作成功",
+          "description": "响应消息"
+        },
+        "requestId": {
+          "type": "string",
+          "example": "1af123c11412e",
+          "description": "请求id"
+        }
+      },
+      "title": "R«object»",
+      "description": "通用响应结果"
+    },
+    "UserBillVO": {
+      "type": "object",
+      "properties": {
+        "baseElectricityUsage": {
+          "type": "number",
+          "example": 180.25
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2023-06-01T00:00:01"
+        },
+        "dueDate": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2023-06-15T23:59:59"
+        },
+        "endDate": {
+          "type": "string",
+          "format": "date",
+          "example": "2023-05-31"
+        },
+        "endReading": {
+          "type": "number",
+          "example": 3250.75
+        },
+        "hotElectricityUsage": {
+          "type": "number",
+          "example": 50.25
+        },
+        "meterId": {
+          "type": "string",
+          "example": "20230001"
+        },
+        "paymentId": {
+          "type": "integer",
+          "format": "int64",
+          "example": 10056
+        },
+        "paymentMethod": {
+          "type": "string",
+          "example": "微信支付"
+        },
+        "startDate": {
+          "type": "string",
+          "format": "date",
+          "example": "2023-05-01"
+        },
+        "startReading": {
+          "type": "number",
+          "example": 3050.25
+        },
+        "status": {
+          "type": "string",
+          "example": "已支付"
+        },
+        "totalAmount": {
+          "type": "number",
+          "example": 138.30
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2023-06-05T14:32:45"
+        },
+        "usageAmount": {
+          "type": "number",
+          "example": 230.5
+        },
+        "userType": {
+          "type": "string",
+          "example": "居民用户"
+        },
+        "username": {
+          "type": "string",
+          "example": "张小明"
+        }
+      },
+      "title": "UserBillVO"
+    },
+    "UserDTO": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "type": "string",
+          "refType": null,
+          "example": "北京市海淀区中关村南路10号3单元501室"
+        },
+        "getIdCardNo": {
+          "type": "string",
+          "refType": null,
+          "example": "110101199001011234"
+        },
+        "meterNo": {
+          "type": "string",
+          "refType": null,
+          "example": "20230001"
+        },
+        "phone": {
+          "type": "string",
+          "refType": null,
+          "example": "13812345678"
+        },
+        "userType": {
+          "type": "string",
+          "refType": null,
+          "example": "居民用户"
+        },
+        "username": {
+          "type": "string",
+          "refType": null,
+          "example": "张小明"
+        }
+      },
+      "title": "UserDTO"
+    },
+    "UserDetailVO": {
+      "type": "object",
+      "properties": {
+        "accountStatus": {
+          "type": "string",
+          "example": "正常"
+        },
+        "address": {
+          "type": "string",
+          "example": "北京市海淀区中关村南路10号3单元501室"
+        },
+        "contractEndDate": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2024-04-30T23:59:59"
+        },
+        "contractStartDate": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2023-05-01T00:00:00"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "example": 10025
+        },
+        "idCardNo": {
+          "type": "string",
+          "example": "110101199001011234"
+        },
+        "lastMeterReadingDate": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2023-06-01T10:30:00"
+        },
+        "lastPaymentDate": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2023-06-05T14:32:45"
+        },
+        "meterId": {
+          "type": "string",
+          "example": "20230001"
+        },
+        "outstandingBill": {
+          "type": "integer",
+          "format": "int32",
+          "example": 0
+        },
+        "phone": {
+          "type": "string",
+          "example": "13812345678"
+        },
+        "userType": {
+          "type": "string",
+          "example": "居民用户"
+        },
+        "username": {
+          "type": "string",
+          "example": "张小明"
+        }
+      },
+      "title": "UserDetailVO"
+    },
+    "UserPageVO": {
+      "type": "object",
+      "properties": {
+        "accountStatus": {
+          "type": "string",
+          "refType": null,
+          "example": "正常"
+        },
+        "address": {
+          "type": "string",
+          "refType": null,
+          "example": "北京市海淀区中关村南路10号3单元501室"
+        },
+        "id": {
+          "type": "integer",
+          "format": "int64",
+          "refType": null,
+          "example": 10025
+        },
+        "idCardNo": {
+          "type": "string",
+          "refType": null,
+          "example": "110101199001011234"
+        },
+        "lastPaymentDate": {
+          "type": "string",
+          "format": "date-time",
+          "refType": null,
+          "example": "2023-06-05T14:32:45"
+        },
+        "meterId": {
+          "type": "string",
+          "refType": null,
+          "example": "20230001"
+        },
+        "phone": {
+          "type": "string",
+          "refType": null,
+          "example": "13812345678"
+        },
+        "userType": {
+          "type": "string",
+          "refType": null,
+          "example": "居民用户"
+        },
+        "username": {
+          "type": "string",
+          "refType": null,
+          "example": "张小明"
+        }
+      },
+      "title": "UserPageVO"
+    },
+    "UserPaymentRecordVO": {
+      "type": "object",
+      "properties": {
+        "operator": {
+          "type": "string",
+          "refType": null,
+          "example": "系统自动"
+        },
+        "paymentAmount": {
+          "type": "number",
+          "refType": null,
+          "example": 138.30
+        },
+        "paymentMethod": {
+          "type": "string",
+          "refType": null,
+          "example": "微信支付"
+        },
+        "paymentStatus": {
+          "type": "string",
+          "refType": null,
+          "example": "成功"
+        },
+        "paymentTime": {
+          "type": "string",
+          "format": "date-time",
+          "refType": null,
+          "example": "2023-06-05T14:32:45"
+        },
+        "remark": {
+          "type": "string",
+          "refType": null,
+          "example": "5月电费"
+        }
+      },
+      "title": "UserPaymentRecordVO"
+    },
+    "修改角色": {
+      "type": "object",
+      "properties": {
+        "account": {
+          "type": "string",
+          "refType": null
+        },
+        "password": {
+          "type": "string",
+          "refType": null
+        },
+        "role": {
+          "type": "string",
+          "refType": null
+        }
+      },
+      "title": "修改角色"
+    }
+  }
+}

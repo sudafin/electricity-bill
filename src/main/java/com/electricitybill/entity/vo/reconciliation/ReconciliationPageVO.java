@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 public class ReconciliationPageVO {
@@ -13,6 +14,6 @@ public class ReconciliationPageVO {
     private String userType;
     private String reconciliationStatus;
     private String meterNo;
-    private LocalDate reconciliationTime;
+    private LocalDateTime reconciliationTime;
     private BigDecimal balance;
 }

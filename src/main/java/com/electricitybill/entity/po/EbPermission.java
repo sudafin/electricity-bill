@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import java.time.LocalDateTime;
 import java.io.Serializable;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -15,41 +17,37 @@ import lombok.experimental.Accessors;
  * </p>
  *
  * @author huangdada
- * @since 2024-11-26
+ * @since 2025-03-17
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @TableName("eb_permission")
+@ApiModel(value="EbPermission对象", description="")
 public class EbPermission implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    @ApiModelProperty(value = "权限ID")
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    /**
-     * 权限名称
-     */
+    @ApiModelProperty(value = "权限名称")
     private String permissionName;
 
-    /**
-     * 权限编码
-     */
+    @ApiModelProperty(value = "权限编码")
     private String permissionCode;
 
-    /**
-     * 权限类型:menu/action
-     */
+    @ApiModelProperty(value = "权限类型: menu（菜单）/action（操作）")
     private String permissionType;
 
-    /**
-     * 父权限ID
-     */
+    @ApiModelProperty(value = "父权限ID")
     private Long parentId;
 
+    @ApiModelProperty(value = "创建时间")
     private LocalDateTime createdAt;
 
+    @ApiModelProperty(value = "更新时间")
     private LocalDateTime updatedAt;
 
 

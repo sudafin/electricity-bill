@@ -3,6 +3,7 @@ package com.electricitybill.utils;
 import cn.hutool.core.util.NumberUtil;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,7 +44,7 @@ public class NumberUtils extends NumberUtil {
 
     public static Double setScale(Double number) {
         return new BigDecimal(number)
-                .setScale(2, BigDecimal.ROUND_HALF_UP)
+                .setScale(2, RoundingMode.HALF_UP)
                 .doubleValue();
     }
     /**

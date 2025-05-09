@@ -3,6 +3,7 @@ package com.electricitybill.entity.vo.dashboard;
 import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -10,29 +11,42 @@ import java.util.Map;
 @Builder
 public class DashboardVO {
     /**
-     * 用户总数
+     * 当月新增用户总数
      */
-    private Long totalUser;
+    private Long currentMonthlyAddingUserTotal;
     /**
      * 总用电量
      */
-    private Long totalElectricityUsage;
+    private Long currentMonthlyElectricityUsageTotal;
     /**
      * 总收入
      */
-    private Long totalAmount;
+    private BigDecimal currentMonthlyAmountTotal;
     /**
-     * 账单总数
+     * 当月欠费账单总数
      */
-    private Long totalPaymentBill;
+    private Long currentMonthlyDebtBillTotal;
 
     /**
-     * 最近一周用电量分布
+     * 用户类型分布
      */
-    List<Double> electricityWeekUsageList;
+    private Map<String, Long> userTypeMap;
 
     /**
-    用户类型分布
+     * 已处理反馈数量
      */
-    Map<String,Integer> userTypeMap;
+    private Long processedFeedbackCount;
+
+    /**
+     * 未处理反馈数量
+     */
+    private Long unprocessedFeedbackCount;
+
+    /**
+     * 系统日志数量
+     */
+    private Long systemLogCount;
+
+
+    private Long totalReconciliation;
 }
