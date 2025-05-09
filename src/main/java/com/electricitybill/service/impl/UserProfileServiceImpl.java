@@ -111,18 +111,12 @@ public class UserProfileServiceImpl implements UserProfileService {
     public boolean updateUserProfile(JSONObject jsonObject) {
         Long userId = UserContextUtils.getUserId();
         EbUser user = ebUserMapper.selectById(userId);
-
         if (user == null) {
-            log.error("未找到用户信息, userId: {}", userId);
             throw new BadRequestException("用户信息不存在");
         }
-
-
         if (jsonObject.get("username") != null) {
             user.setUsername(jsonObject.getStr("username"));
         }
-
-
         if (jsonObject.get("address") != null) {
             user.setAddress(jsonObject.getStr("address"));
         }

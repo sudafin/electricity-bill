@@ -79,9 +79,26 @@ public class EbReconciliationServiceImpl extends ServiceImpl<EbReconciliationMap
         //收集id
         Set<Long> ids = ebUserList.stream().mapToLong(EbUser::getId).boxed().collect(Collectors.toSet());
         //正式查询
-        Page<EbReconciliation> reconciliationPage = lambdaQuery()
-                //假如其中有不为空的字段就走这个查询, 如果都为空就不走这个查询
-                .in(!StringUtils.isAllBlank(reconciliationPageQuery.getMeterNo(), reconciliationPageQuery.getUsername(), reconciliationPageQuery.getUserType()), EbReconciliation::getUserId, ids).eq(StringUtils.isNotBlank(reconciliationPageQuery.getReconciliationNo()), EbReconciliation::getId, reconciliationPageQuery.getReconciliationNo()).eq(StringUtils.isNotBlank(reconciliationPageQuery.getReconciliationStatus()), EbReconciliation::getStatus, reconciliationPageQuery.getReconciliationStatus()).ge(reconciliationPageQuery.getStartDate() != null, EbReconciliation::getStartDate, reconciliationPageQuery.getStartDate()).le(reconciliationPageQuery.getEndDate() != null, EbReconciliation::getStartDate, reconciliationPageQuery.getEndDate()).page(ebReconciliationPage);
+        Page<EbReconciliation> reconciliationPage = null;
+        LocalDateTime startDateTime = null;
+        if (reconciliationPageQuery.getStartDate() != null) {
+            startDateTime = reconciliationPageQuery.getStartDate().atStartOfDay();
+        }
+
+        LocalDateTime endDateTime = null;
+        if (reconciliationPageQuery.getEndDate() != null) {
+            endDateTime = reconciliationPageQuery.getEndDate().atStartOfDay();
+        }
+
+        reconciliationPage = lambdaQuery()
+                .in(!StringUtils.isAllBlank(reconciliationPageQuery.getMeterNo(), reconciliationPageQuery.getUsername(), reconciliationPageQuery.getUserType()), EbReconciliation::getUserId, ids)
+                .eq(StringUtils.isNotBlank(reconciliationPageQuery.getReconciliationNo()), EbReconciliation::getId, reconciliationPageQuery.getReconciliationNo())
+                .eq(StringUtils.isNotBlank(reconciliationPageQuery.getReconciliationStatus()), EbReconciliation::getStatus, reconciliationPageQuery.getReconciliationStatus())
+                .ge(startDateTime != null, EbReconciliation::getStartDate, startDateTime)
+                .le(endDateTime != null, EbReconciliation::getStartDate, endDateTime)
+                .orderByDesc(EbReconciliation::getStartDate)
+                .page(ebReconciliationPage);
+
         List<EbReconciliation> records = reconciliationPage.getRecords();
         if (CollUtils.isEmpty(records)) {
             return PageDTO.empty(ebReconciliationPage);

@@ -205,8 +205,8 @@ public class ReportExportServiceImpl implements ReportExportService {
                 .map(reconciliation -> {
                     EbReconciliationExport export = new EbReconciliationExport();
                     export.setUserId(reconciliation.getUserId());
-                    export.setStartDate(reconciliation.getStartDate().atStartOfDay());
-                    export.setEndDate(reconciliation.getEndDate().atStartOfDay());
+                    export.setStartDate(reconciliation.getStartDate());
+                    export.setEndDate(reconciliation.getEndDate());
                     export.setTotalAmount(reconciliation.getTotalAmount());
                     export.setStatus(reconciliation.getStatus());
                     export.setApproverId(reconciliation.getApproverId());

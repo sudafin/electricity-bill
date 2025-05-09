@@ -13,7 +13,8 @@ import java.util.Objects;
 public enum BillType implements BaseEnum{
     UNPAID(0, "未支付"),
     PAID(1, "已支付"),
-    OVERDUE(2, "已过期"),
+    REFUNDED(2, "已退款"),
+    OVERDUE(3, "已过期"),
     ;
     @EnumValue
     final int value;

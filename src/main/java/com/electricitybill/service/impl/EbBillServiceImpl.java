@@ -8,9 +8,11 @@ import com.alipay.api.AlipayClient;
 import com.alipay.api.request.AlipayTradeCancelRequest;
 import com.alipay.api.request.AlipayTradePrecreateRequest;
 import com.alipay.api.request.AlipayTradeQueryRequest;
+import com.alipay.api.request.AlipayTradeRefundRequest;
 import com.alipay.api.response.AlipayTradeCancelResponse;
 import com.alipay.api.response.AlipayTradePrecreateResponse;
 import com.alipay.api.response.AlipayTradeQueryResponse;
+import com.alipay.api.response.AlipayTradeRefundResponse;
 import com.alipay.easysdk.factory.Factory;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -33,10 +35,7 @@ import com.electricitybill.expcetions.DbException;
 import com.electricitybill.mapper.*;
 import com.electricitybill.service.IEbBillService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.electricitybill.utils.BeanUtils;
-import com.electricitybill.utils.CollUtils;
-import com.electricitybill.utils.ObjectUtils;
-import com.electricitybill.utils.StringUtils;
+import com.electricitybill.utils.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,6 +45,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -90,6 +90,25 @@ public class EbBillServiceImpl extends ServiceImpl<EbBillMapper, EbBill> impleme
     @Resource
     private AlipayClient client;
 
+    private static ArrayList<JSONObject> getJsonObjects(EbUsageSummary ebUsageSummary) {
+        ArrayList<JSONObject> jsonObjectArrayList = new ArrayList<>();
+        for (PeriodType periodType : PeriodType.values()) {
+            JSONObject jsonObject = new JSONObject();
+            if (PeriodType.PEAK.getDesc().equals(periodType.getDesc())) {
+                jsonObject.set("name", periodType.getDesc());
+                jsonObject.set("value", ebUsageSummary.getPeakCost());
+            } else if (PeriodType.FLAT.getDesc().equals(periodType.getDesc())) {
+                jsonObject.set("name", periodType.getDesc());
+                jsonObject.set("value", ebUsageSummary.getFlatCost());
+            } else if (PeriodType.VALLEY.getDesc().equals(periodType.getDesc())) {
+                jsonObject.set("name", periodType.getDesc());
+                jsonObject.set("value", ebUsageSummary.getValleyCost());
+            }
+            jsonObjectArrayList.add(jsonObject);
+        }
+        return jsonObjectArrayList;
+    }
+
     @Override
     public List<BillUserDetailVO> queryUserBill(Long userId) {
         EbUser ebUser = userMapper.selectById(userId);
@@ -117,6 +136,7 @@ public class EbBillServiceImpl extends ServiceImpl<EbBillMapper, EbBill> impleme
         Page<EbBill> page = new Page<>(jsonObject.getInt("pageNo"), jsonObject.getInt("pageSize"));
         Page<EbBill> ebBillPage = lambdaQuery()
                 .orderByDesc(EbBill::getCreatedAt)
+                .eq(EbBill::getUserId, UserContextUtils.getUserId())
                 .page(page);
         if (ebBillPage.getTotal() == 0) {
             return PageDTO.empty(page);
@@ -168,29 +188,11 @@ public class EbBillServiceImpl extends ServiceImpl<EbBillMapper, EbBill> impleme
         return billUserDetailVO;
     }
 
-    private static ArrayList<JSONObject> getJsonObjects(EbUsageSummary ebUsageSummary) {
-        ArrayList<JSONObject> jsonObjectArrayList = new ArrayList<>();
-        for (PeriodType periodType : PeriodType.values()) {
-            JSONObject jsonObject = new JSONObject();
-            if (PeriodType.PEAK.getDesc().equals(periodType.getDesc())) {
-                jsonObject.set("name", periodType.getDesc());
-                jsonObject.set("value", ebUsageSummary.getPeakCost());
-            } else if (PeriodType.FLAT.getDesc().equals(periodType.getDesc())) {
-                jsonObject.set("name", periodType.getDesc());
-                jsonObject.set("value", ebUsageSummary.getFlatCost());
-            } else if (PeriodType.VALLEY.getDesc().equals(periodType.getDesc())) {
-                jsonObject.set("name", periodType.getDesc());
-                jsonObject.set("value", ebUsageSummary.getValleyCost());
-            }
-            jsonObjectArrayList.add(jsonObject);
-        }
-        return jsonObjectArrayList;
-    }
-
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Map<String, Object> pay(AliPay aliPay) {
         Long billId = aliPay.getBillId();
+
         // 1. 校验账单
         EbBill ebBill = this.getById(billId);
         if (ebBill == null) {
@@ -210,7 +212,6 @@ public class EbBillServiceImpl extends ServiceImpl<EbBillMapper, EbBill> impleme
             ebPayment.setUserId(ebBill.getUserId());
             ebPayment.setOperatorId(0L);
             int insert = paymentMapper.insert(ebPayment);
-            // 主键回写到账单
             if (insert != 1) {
                 throw new DbException(Constant.DB_INSERT_FAILURE);
             }
@@ -225,28 +226,27 @@ public class EbBillServiceImpl extends ServiceImpl<EbBillMapper, EbBill> impleme
             throw new BizIllegalException(Constant.PAYMENT_PAID);
         }
 
-        // 4. 构造 AlipayClient
-
-
         Map<String, Object> resp = new HashMap<>();
         resp.put("success", false);
 
         try {
-            // 5. 查询支付宝流水状态
+            // 4. 查询支付宝流水状态
             String status = checkOrderStatus(client, String.valueOf(billId));
 
             switch (status) {
                 case "TRADE_CLOSED":
                 case "NOT_EXIST":
-                    // 6. 生成新二维码
+                    // 5. 撤销旧订单
                     cancelOrder(client, String.valueOf(billId));
-                    String timeoutExpress = "120m";  // 设置二维码有效期为2小时
+
+                    // 6. 生成新二维码
+                    String timeoutExpress = "120m";
                     Map<String, String> bizContent = new HashMap<>();
                     bizContent.put("out_trade_no", String.valueOf(billId));
                     bizContent.put("total_amount", String.valueOf(ebBill.getTotalAmount()));
                     bizContent.put("subject", "电费支付");
                     bizContent.put("product_code", "FACE_TO_FACE_PAYMENT");
-                    bizContent.put("timeout_express", timeoutExpress);  // 设置超时时间为2小时
+                    bizContent.put("timeout_express", timeoutExpress);
 
                     AlipayTradePrecreateRequest request = new AlipayTradePrecreateRequest();
                     request.setBizContent(JSON.toJSONString(bizContent));
@@ -256,7 +256,7 @@ public class EbBillServiceImpl extends ServiceImpl<EbBillMapper, EbBill> impleme
                         resp.put("success", true);
                         resp.put("orderNo", billId.toString());
                         resp.put("qrCode", qr.getQrCode());
-                        resp.put("expireTime", System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(120)); // 设置二维码过期时间为2小时
+                        resp.put("expireTime", System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(120));
                         log.info("生成支付宝二维码成功, 订单={}，二维码={}", billId, qr.getQrCode());
                     } else {
                         String msg = "二维码生成失败：" + qr.getSubMsg();
@@ -264,23 +264,41 @@ public class EbBillServiceImpl extends ServiceImpl<EbBillMapper, EbBill> impleme
                         log.error(msg);
                     }
                     break;
+
                 case "WAIT_BUYER_PAY":
-                    // 7. 继续使用旧二维码
+                    // 7. 使用旧二维码继续等待支付
                     resp.put("success", true);
                     resp.put("orderNo", billId.toString());
                     resp.put("message", "订单等待支付，请使用原二维码");
                     resp.put("orderStatus", status);
                     break;
+
+                case "TRADE_SUCCESS":
+                    // 8. 已支付，更新状态并提示
+                    if (!BillType.PAID.getDesc().equals(ebBill.getStatus())) {
+                        ebBill.setStatus(BillType.PAID.getDesc());
+                        ebPayment.setStatus(PaymentType.PAID.getDesc());
+                        this.updateById(ebBill);
+                        paymentMapper.updateById(ebPayment);
+                    }
+                    resp.put("success", false);
+                    resp.put("orderNo", billId.toString());
+                    resp.put("message", "订单已支付，请勿重复扫码");
+                    resp.put("orderStatus", status);
+                    break;
+
                 default:
                     String msg = "当前状态无法重置二维码：" + status;
                     resp.put("error", msg);
                     log.warn(msg);
             }
+
         } catch (AlipayApiException ex) {
             String err = "支付宝接口异常：" + ex.getErrMsg();
             resp.put("error", err);
             log.error(err, ex);
         } finally {
+            // 9. 失败状态回退为未支付
             if (ebPayment.getStatus().equals(PaymentType.FAILED.getDesc())) {
                 ebPayment.setStatus(PaymentType.UNPAID.getDesc());
                 paymentMapper.updateById(ebPayment);
@@ -352,6 +370,22 @@ public class EbBillServiceImpl extends ServiceImpl<EbBillMapper, EbBill> impleme
                     // 7. 支付成功
                     ebBill.setStatus(BillType.PAID.getDesc());
                     ebPayment.setStatus(PaymentType.PAID.getDesc());
+                    ebPayment.setTransactionNo(transactionId);
+                    ebPayment.setPaymentTime(LocalDateTime.now());
+                    ebBill.setPaymentMethod("支付宝");
+                    ebBill.setPaymentTime(LocalDateTime.now());
+                    //设置对账
+                    EbReconciliation ebReconciliation = new EbReconciliation();
+                    ebReconciliation.setStatus("待审批");
+                    ebReconciliation.setUserId(UserContextUtils.getUserId());
+                    ebReconciliation.setStartDate(LocalDateTime.now());
+                    ebReconciliation.setEndDate(LocalDateTime.now().plusDays(30));
+                    ebReconciliation.setTotalUsage(ebBill.getUsageAmount());
+                    ebReconciliation.setTotalAmount(ebBill.getTotalAmount());;
+                    ebReconciliation.setPaymentStatus(PaymentType.PAID.getDesc());;
+                    ebReconciliation.setPaymentId(ebPayment.getId());
+                    ebReconciliationMapper.insert(ebReconciliation);
+
                     log.info("支付确认成功: 订单号={}，交易号={}", billId, transactionId);
                     WebSocketHandler.sendMessageToAll("支付成功，订单号：" + billId);
                 }
@@ -424,7 +458,7 @@ public class EbBillServiceImpl extends ServiceImpl<EbBillMapper, EbBill> impleme
                 paymentDetailVO.setPaymentMethod(ebPayment.getPaymentMethod());
                 paymentDetailVO.setStatus(ebPayment.getStatus());
                 paymentDetailVO.setPaymentTime(ebPayment.getPaymentTime());
-                EbReconciliation ebReconciliation = ebReconciliationMapper.selectById(ebPayment.getReconciliationId());
+                EbReconciliation ebReconciliation = ebReconciliationMapper.selectOne(new LambdaQueryWrapper<EbReconciliation>().eq(EbReconciliation::getPaymentId, ebPayment.getId()));
                 if (ebReconciliation != null) {
                     paymentDetailVO.setIsReconciliation(true);
                     paymentDetailVO.setReconciliationId(ebPayment.getReconciliationId());
@@ -463,17 +497,38 @@ public class EbBillServiceImpl extends ServiceImpl<EbBillMapper, EbBill> impleme
 
         // 调用支付宝接口查询订单状态
         AlipayTradeQueryRequest request = new AlipayTradeQueryRequest();
-        request.setBizContent("{\"out_trade_no\":\"" + billId + "\"}");
+        request.setBizContent("{\"out_trade_no\":\"" + billId.toString() + "\"}");
 
         AlipayTradeQueryResponse response = client.execute(request);
 
         if (response.isSuccess()) {
             EbPayment ebPayment = paymentMapper.selectById(ebBill.getPaymentId());
             ebBill.setStatus(BillType.PAID.getDesc());
-            ebPayment.setStatus(BillType.PAID.getDesc());
             ebPayment.setTransactionNo(response.getTradeNo());
+            ebPayment.setStatus(PaymentType.PAID.getDesc());
+            ebPayment.setPaymentTime(LocalDateTime.now());
+            ebBill.setPaymentMethod("支付宝");
+            ebBill.setPaymentTime(LocalDateTime.now());
+            //设置对账
+            EbReconciliation reconciliation = ebReconciliationMapper.selectOne(
+                    new LambdaQueryWrapper<EbReconciliation>()
+                            .eq(EbReconciliation::getPaymentId, ebPayment.getId())
+            );
+            if(reconciliation == null) {
+                EbReconciliation ebReconciliation = new EbReconciliation();
+                ebReconciliation.setStatus("待审批");
+                ebReconciliation.setUserId(UserContextUtils.getUserId());
+                ebReconciliation.setStartDate(LocalDateTime.now());
+                ebReconciliation.setEndDate(LocalDateTime.now().plusDays(30));
+                ebReconciliation.setTotalUsage(ebBill.getUsageAmount());
+                ebReconciliation.setTotalAmount(ebBill.getTotalAmount());
+                ebReconciliation.setPaymentStatus(PaymentType.PAID.getDesc());
+                ebReconciliation.setPaymentId(ebPayment.getId());
+                ebReconciliationMapper.insert(ebReconciliation);
+            }
             updateById(ebBill);
             paymentMapper.updateById(ebPayment);
+
             return response.getTradeStatus(); // 返回交易状态（例如 WAIT_BUYER_PAY, TRADE_SUCCESS 等）
         } else if ("ACQ.TRADE_NOT_EXIST".equals(response.getSubCode())) {
             return "NOT_EXIST";  // 交易不存在
@@ -582,23 +637,124 @@ public class EbBillServiceImpl extends ServiceImpl<EbBillMapper, EbBill> impleme
         // 执行请求
         AlipayTradeQueryResponse rsp = client.execute(req);
 
-        // 请求成功的处理
         if (rsp != null && rsp.isSuccess()) {
-            return rsp.getTradeStatus(); // 返回订单状态，如 WAIT_BUYER_PAY, TRADE_SUCCESS 等
-        } else {
-            // 请求失败时的处理
-            if (rsp != null && "ACQ.TRADE_NOT_EXIST".equals(rsp.getSubCode())) {
-                // 订单不存在
-                return "NOT_EXIST";
-            } else if (rsp != null && "QUERY_FAILED".equals(rsp.getSubCode())) {
-                // 查询失败
-                return "QUERY_FAILED";
-            } else {
-                // 默认错误处理
-                return "ERROR";
+            String tradeStatus = rsp.getTradeStatus();
+
+            // 同步本地状态（仅当支付成功）
+            if ("TRADE_SUCCESS".equals(tradeStatus)) {
+                EbBill ebBill = getById(Long.valueOf(billId));
+                EbPayment ebPayment = paymentMapper.selectById(ebBill.getPaymentId());
+
+                if (!BillType.PAID.getDesc().equals(ebBill.getStatus()) ||
+                        !PaymentType.PAID.getDesc().equals(ebPayment.getStatus())) {
+                    ebBill.setStatus(BillType.PAID.getDesc());
+                    ebPayment.setStatus(PaymentType.PAID.getDesc());
+                    ebPayment.setTransactionNo(rsp.getTradeNo());
+                    updateById(ebBill);
+                    paymentMapper.updateById(ebPayment);
+                    log.info("checkOrderStatus 同步支付成功状态：订单号={}, 交易号={}", billId, rsp.getTradeNo());
+                }
             }
+
+            return tradeStatus;
+
+        } else if (rsp != null && "ACQ.TRADE_NOT_EXIST".equals(rsp.getSubCode())) {
+            return "NOT_EXIST";
+        } else if (rsp != null && "QUERY_FAILED".equals(rsp.getSubCode())) {
+            return "QUERY_FAILED";
+        } else {
+            return "ERROR";
         }
     }
 
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public JSONObject refund(JSONObject jsonObject) {
+        JSONObject result = new JSONObject();
+        result.set("success", false);
+
+        // 1. 解析参数
+        Long billId = jsonObject.getLong("billId");
+        BigDecimal refundAmount = jsonObject.getBigDecimal("amount");
+        String reason = jsonObject.getStr("reason");
+
+        // 2. 查询账单和支付记录
+        EbBill ebBill = getById(billId);
+        if (ebBill == null) {
+            throw new BizIllegalException("账单不存在");
+        }
+
+        EbPayment ebPayment = paymentMapper.selectById(ebBill.getPaymentId());
+        if (ebPayment == null || !PaymentType.PAID.getDesc().equals(ebPayment.getStatus())) {
+            throw new BizIllegalException("订单未支付或支付记录异常");
+        }
+        EbReconciliation ebReconciliation = ebReconciliationMapper.selectOne(new LambdaQueryWrapper<EbReconciliation>().eq(EbReconciliation::getPaymentId, ebPayment.getId()));
+        if(ebReconciliation.getStatus() == null){
+            throw new BizIllegalException("账单未进行对账");
+        }
+        if (!ebReconciliation.getStatus().equals("退回")) {
+            throw new BizIllegalException("对账状态不是退回状态");
+        }
+        try {
+            // 3. 构造支付宝退款请求参数
+            AlipayTradeRefundRequest refundRequest = new AlipayTradeRefundRequest();
+            Map<String, String> bizContent = new HashMap<>();
+            bizContent.put("out_trade_no", billId.toString());
+            bizContent.put("refund_amount", refundAmount.toPlainString());
+            bizContent.put("refund_reason", reason != null ? reason : "用户退款");
+            refundRequest.setBizContent(JSON.toJSONString(bizContent));
+
+            // 4. 尝试退款（含重试机制）
+            int maxRetries = 3;
+            AlipayTradeRefundResponse refundResponse = null;
+            for (int i = 1; i <= maxRetries; i++) {
+                try {
+                    refundResponse = client.execute(refundRequest);
+                    if (refundResponse.isSuccess()) {
+                        break;
+                    } else if ("aop.ACQ.SYSTEM_ERROR".equals(refundResponse.getSubCode())) {
+                        log.warn("第 {} 次退款失败（系统异常），即将重试...", i);
+                        Thread.sleep(2000);
+                    } else {
+                        break;
+                    }
+                } catch (AlipayApiException e) {
+                    log.error("第 {} 次退款调用支付宝失败: {}", i, e.getMessage());
+                    if (i == maxRetries) throw e;
+                    Thread.sleep(2000);
+                }
+            }
+
+            if (refundResponse != null && refundResponse.isSuccess()) {
+                // 5. 更新状态
+                ebBill.setStatus(BillType.REFUNDED.getDesc());
+                ebPayment.setStatus(PaymentType.REFUNDED.getDesc());
+                ebPayment.setRefundAmount(refundAmount);
+                ebPayment.setRefundTime(LocalDateTime.now());
+                ebPayment.setRemark(reason);
+
+                updateById(ebBill);
+                paymentMapper.updateById(ebPayment);
+
+                result.set("success", true);
+                result.set("msg", "退款成功");
+                result.set("refundTransactionNo", refundResponse.getTradeNo());
+                log.info("退款成功：订单号={}，金额={}，原因={}", billId, refundAmount, reason);
+            } else {
+                String errorMsg = refundResponse != null ?
+                        "退款失败：" + refundResponse.getSubMsg() :
+                        "退款失败，未收到支付宝响应";
+                result.set("msg", errorMsg);
+                log.error(errorMsg);
+            }
+
+        } catch (Exception e) {
+            log.error("支付宝退款异常", e);
+            result.set("msg", "支付宝接口异常");
+        }
+
+        return result;
+    }
 
 }

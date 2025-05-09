@@ -13,7 +13,7 @@ import java.util.Objects;
 public enum PaymentType implements BaseEnum{
     UNPAID(0, "未支付"),
     PAID(1, "已支付"),
-    REFUND(2, "已退款"),
+    REFUNDED(2, "已退款"),
     FAILED(3, "支付失败");
     @EnumValue
     final int value;

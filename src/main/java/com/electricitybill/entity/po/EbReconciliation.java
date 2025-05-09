@@ -38,10 +38,10 @@ public class EbReconciliation implements Serializable {
     private Long userId;
 
     @ApiModelProperty(value = "开始日期")
-    private LocalDate startDate;
+    private LocalDateTime startDate;
 
     @ApiModelProperty(value = "结束日期")
-    private LocalDate endDate;
+    private LocalDateTime endDate;
 
     @ApiModelProperty(value = "总用电量")
     private BigDecimal totalUsage;

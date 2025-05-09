@@ -1,5 +1,6 @@
 package com.electricitybill.controller.admin;
 
+import cn.hutool.json.JSONObject;
 import com.electricitybill.annotation.ExportExcel;
 import com.electricitybill.entity.dto.PageDTO;
 import com.electricitybill.entity.dto.bill.BillPageQuery;
@@ -10,10 +11,7 @@ import com.electricitybill.service.IEbBillService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.constraints.NotNull;
@@ -51,10 +49,15 @@ public class EbAdminBillController {
     @ExportExcel
     @ApiOperation("导出账单报表")
     @GetMapping("/export")
-
     public String export() throws IOException, ExecutionException, InterruptedException {
         Future<String> future = ebBillService.export();
         return future.get();
+    }
+
+    @ApiOperation("退款")
+    @PostMapping("/refund")
+    public JSONObject refund(@RequestBody JSONObject jsonObject){
+        return ebBillService.refund(jsonObject);
     }
 
 }
