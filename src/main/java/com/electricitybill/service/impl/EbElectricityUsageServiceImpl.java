@@ -50,9 +50,6 @@ public class EbElectricityUsageServiceImpl extends ServiceImpl<EbElectricityUsag
     private IEbUsageSummaryService ebUsageSummaryService;
     @Resource
     private IEbBillService ebBillService;
-    @Resource
-    private EbRateMapper ebRateMapper;
-
     /**
      * 计算当天的用电量和电费总和计入表
      */
@@ -86,7 +83,6 @@ public class EbElectricityUsageServiceImpl extends ServiceImpl<EbElectricityUsag
             if (uniqueUserIds.size() > 1) {
                 log.warn("当前电表{}存在多个用户 ID",meterId);
                 continue;
-
             }
             //拿到用户id
             AtomicReference<Long> userId = new AtomicReference<>(uniqueUserIds.iterator().next());
@@ -287,7 +283,6 @@ public class EbElectricityUsageServiceImpl extends ServiceImpl<EbElectricityUsag
     }
     /**
      * 计算分时电价（单位：元/度）
-     *
      *         平段基准电价
      * @param periodType
      *         时段类型（PEAK/FLAT/VALLEY/SUMMER_PEAK）

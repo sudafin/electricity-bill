@@ -29,7 +29,7 @@ import java.util.concurrent.Future;
  * @since 2024-11-26
  */
 @RestController
-@RequestMapping("/reconciliation")
+@RequestMapping("/admin/reconciliation")
 @Slf4j
 @Api(tags = "管理端对账管理")
 public class EbAdminReconciliationController {

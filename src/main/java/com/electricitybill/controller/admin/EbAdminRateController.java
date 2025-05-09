@@ -24,7 +24,7 @@ import java.util.List;
  * @since 2024-11-26
  */
 @RestController
-@RequestMapping("/rate")
+@RequestMapping("/admin/rate")
 @Api(tags = "管理端费率管理")
 public class EbAdminRateController {
     @Resource

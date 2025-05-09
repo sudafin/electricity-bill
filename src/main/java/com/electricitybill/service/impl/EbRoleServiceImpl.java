@@ -375,31 +375,25 @@ public class EbRoleServiceImpl extends ServiceImpl<EbRoleMapper, EbRole> impleme
      * @return 返回一个新的、经过过滤和排序的权限与角色映射
      */
     public Map<Long, List<Long>> currentPermissionRoleMap(Map<Long, List<Long>> fullPermissionMap, List<Long> selectedPermissionIds) {
-        // 返回的 Map 不直接操作参数
         Map<Long, List<Long>> resultMap = new HashMap<>();
+        Set<Long> selectedSet = new HashSet<>(selectedPermissionIds);
 
-        // 构造筛选后的结构（只保留 selectedPermissionIds 中的父权限及其子权限）
-        for (Long id : selectedPermissionIds) {
-            if (fullPermissionMap.containsKey(id)) {
-                // 是父权限
-                List<Long> childIds = fullPermissionMap.get(id);
+        for (Map.Entry<Long, List<Long>> entry : fullPermissionMap.entrySet()) {
+            Long parentId = entry.getKey();
+            List<Long> childIds = entry.getValue();
+
+            // 只保留 selectedPermissionIds 中出现的 parentId
+            if (selectedSet.contains(parentId)) {
                 List<Long> filteredChildren = childIds.stream()
-                        .filter(selectedPermissionIds::contains)
+                        .filter(selectedSet::contains)
                         .collect(Collectors.toList());
-                resultMap.put(id, filteredChildren);
-            } else {
-                // 是孤立子权限，找它的父级（用于兼容性扩展）
-                for (Map.Entry<Long, List<Long>> entry : fullPermissionMap.entrySet()) {
-                    if (entry.getValue().contains(id)) {
-                        resultMap.computeIfAbsent(entry.getKey(), k -> new ArrayList<>()).add(id);
-                    }
-                }
+                resultMap.put(parentId, filteredChildren); // 即使是空也保留
             }
         }
 
-        // 不要缓存和 selectedPermissionIds 强相关的结果！否则多用户会串数据
-        return new TreeMap<>(resultMap);
+        return new TreeMap<>(resultMap); // 如需排序
     }
+
 
     /**
      * 生成权限与角色ID的映射
@@ -412,24 +406,29 @@ public class EbRoleServiceImpl extends ServiceImpl<EbRoleMapper, EbRole> impleme
         // 查询所有权限记录
         List<EbPermission> ebPermissionList = ebPermissionMapper.selectList(new LambdaQueryWrapper<>());
 
-        // 初始化权限映射
+        // 初始化权限映射 HashMap
         Map<Long, List<Long>> permissionMap = new HashMap<>();
 
+        // 第一步：先把所有作为父权限的 ID 初始化为 key
         for (EbPermission permission : ebPermissionList) {
-            Long id = permission.getId();
-            Long parentId = permission.getParentId();
-
-            // 确保每个权限都有映射列表（无论是否是父级）
-            permissionMap.putIfAbsent(id, new ArrayList<>());
-
-            // 如果是子权限，添加到父权限的列表中
-            if (parentId != null) {
-                permissionMap.putIfAbsent(parentId, new ArrayList<>());
-                permissionMap.get(parentId).add(id);
+            if (permission.getParentId() == null) {
+                permissionMap.putIfAbsent(permission.getId(), new ArrayList<>());
             }
         }
 
-        return new TreeMap<>(permissionMap); // TreeMap 可选：让结果按 key 排序
+        // 第二步：处理所有子权限，将其挂到对应的父权限上
+        for (EbPermission permission : ebPermissionList) {
+            Long parentId = permission.getParentId();
+            if (parentId != null) {
+                // 初始化父权限 key（兼容父ID不为null但父权限未出现在上面那步）
+                permissionMap.computeIfAbsent(parentId, k -> new ArrayList<>());
+                permissionMap.get(parentId).add(permission.getId());
+            }
+        }
+
+        // 返回 TreeMap（按 key 升序），如不需要排序可以直接返回 permissionMap
+        return new TreeMap<>(permissionMap);
     }
+
 
 }

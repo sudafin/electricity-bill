@@ -3,6 +3,7 @@ package com.electricitybill.entity.dto.rate;
 import cn.hutool.json.JSONUtil;
 import com.electricitybill.constants.Constant;
 import com.electricitybill.entity.po.EbRate;
+import com.electricitybill.enums.ValidType;
 import com.electricitybill.expcetions.BadRequestException;
 import com.electricitybill.service.IEbRateService;
 import com.electricitybill.utils.StringUtils;
@@ -35,7 +36,7 @@ public class RateCacheDTO {
         if(StringUtils.isNotBlank(rateInfoJson)){
             return JSONUtil.toBean(rateInfoJson,RateCacheDTO.class);
         }
-        EbRate ebRate = ebRateService.lambdaQuery().eq(EbRate::getUserType,userType).eq(EbRate::getStatus,1).one();
+        EbRate ebRate = ebRateService.lambdaQuery().eq(EbRate::getUserType,userType).eq(EbRate::getStatus, ValidType.VALID.getValue()).one();
         if(ebRate == null){
             throw new BadRequestException(Constant.RATE_USER_TYPE_NOT_EXIST);
         }
